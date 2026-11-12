@@ -1,6 +1,6 @@
 {
-  "name": "Yothinnukul Smart Hub",
-  "short_name": "YN Hub",
+  "name": "MACHECK",
+  "short_name": "MAC",
   "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#f1f5f9",
