@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yothinnukul Smart ID & Attendance Hub</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- QR Code Generator Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- HTML5 QR Code Scanner Library -->
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <!-- Google Fonts: Prompt -->
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Prompt', sans-serif; }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen pb-20">
+
+  <!-- Top Navbar -->
+  <header class="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white p-4 shadow-md sticky top-0 z-50">
+    <div class="max-w-md mx-auto flex justify-between items-center">
+      <div class="flex items-center space-x-2">
+        <div class="w-8 h-8 bg-amber-400 rounded-full flex items-center justify-center text-blue-950 font-bold text-sm shadow">
+          YN
+        </div>
+        <div>
+          <h1 class="font-bold text-base leading-tight">Yothinnukul Smart Hub</h1>
+          <p class="text-[11px] text-blue-200">ระบบเช็กชื่อ & ติดตามงานอัจฉริยะ</p>
+        </div>
+      </div>
+      <span id="connection-status" class="text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2.5 py-1 rounded-full flex items-center gap-1">
+        <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span> Online
+      </span>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-md mx-auto p-4 space-y-5">
+
+    <!-- 1. Digital Student ID Card -->
+    <section class="bg-gradient-to-br from-blue-900 to-indigo-950 text-white rounded-2xl p-5 shadow-xl relative overflow-hidden">
+      <!-- Decorative Circle -->
+      <div class="absolute -right-10 -top-10 w-36 h-36 bg-white/5 rounded-full"></div>
+      <div class="absolute -left-10 -bottom-10 w-28 h-28 bg-amber-400/10 rounded-full"></div>
+
+      <div class="flex justify-between items-start mb-4 relative z-10">
+        <div>
+          <span class="text-[10px] uppercase tracking-wider bg-amber-400 text-blue-950 font-bold px-2 py-0.5 rounded">Digital Student ID</span>
+          <h2 id="student-name" class="text-lg font-bold mt-1.5">นายปิยวัฒน์ ศรีสอาด (ออฟ)</h2>
+          <p id="student-info" class="text-xs text-blue-200">รหัส: 6701 | ชั้น ม.6/2 (มัลติมีเดีย-จีน)</p>
+        </div>
+      </div>
+
+      <!-- Dynamic QR Code Box -->
+      <div class="bg-white p-3 rounded-xl flex items-center justify-between text-slate-800 relative z-10 shadow-inner">
+        <div id="qrcode" class="p-1 bg-white rounded"></div>
+        <div class="flex-1 pl-4">
+          <p class="text-xs font-semibold text-blue-900">QR ประจำตัวนักเรียน</p>
+          <p class="text-[11px] text-slate-500 mt-0.5">ใช้แสดงให้ครูสแกนเข้าเรียน</p>
+          <div class="mt-2 flex items-center gap-1.5">
+            <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+              <div id="qr-timer-bar" class="bg-blue-600 h-full transition-all duration-1000" style="width: 100%"></div>
+            </div>
+            <span id="qr-countdown" class="text-[10px] font-mono text-slate-500">15s</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Navigation Tabs (สลับโหมด เช็กชื่อ / งานค้าง) -->
+    <div class="grid grid-cols-2 gap-2 bg-white p-1.5 rounded-xl shadow-sm border border-slate-200">
+      <button onclick="switchTab('scan')" id="tab-scan" class="py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white shadow transition">
+        📷 สแกนเช็กชื่อ
+      </button>
+      <button onclick="switchTab('tasks')" id="tab-tasks" class="py-2 text-sm font-semibold rounded-lg text-slate-600 hover:bg-slate-50 transition flex items-center justify-center gap-1.5">
+        📋 งานค้าง <span id="pending-badge" class="bg-rose-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">2</span>
+      </button>
+    </div>
+
+    <!-- 3. Tab Content: Scan QR Attendance -->
+    <section id="view-scan" class="glass-card rounded-2xl p-5 shadow-md border border-slate-200/60 space-y-4">
+      <div class="text-center">
+        <h3 class="font-bold text-slate-800">สแกน QR หน้าห้องเรียน</h3>
+        <p class="text-xs text-slate-500">ส่องกล้องไปที่ QR Code บนหน้าจอโปรเจกเตอร์เพื่อเช็กชื่อเข้าเรียน</p>
+      </div>
+
+      <!-- Camera Viewport -->
+      <div class="relative rounded-xl overflow-hidden bg-slate-900 aspect-square flex items-center justify-center border-2 border-dashed border-slate-300">
+        <div id="reader" class="w-full h-full"></div>
+        <div id="camera-placeholder" class="text-center p-4">
+          <p class="text-slate-400 text-sm mb-3">กล้องปิดอยู่ กดปุ่มด้านล่างเพื่อเปิดสแกน</p>
+          <button id="btn-start-scan" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2.5 rounded-xl shadow-lg transition">
+            เปิดกล้องสแกน QR
+          </button>
+        </div>
+      </div>
+
+      <!-- Alert Status Box -->
+      <div id="scan-result" class="hidden p-3.5 rounded-xl text-sm font-medium text-center"></div>
+    </section>
+
+    <!-- 4. Tab Content: Assignment & Task Tracker -->
+    <section id="view-tasks" class="hidden space-y-3">
+      <div class="flex justify-between items-center px-1">
+        <h3 class="font-bold text-slate-800 text-sm">รายการงานที่ต้องส่ง (Real-time)</h3>
+        <span class="text-xs text-slate-500">อัปเดตล่าสุดวันนี้</span>
+      </div>
+
+      <!-- Task List Container -->
+      <div id="task-list" class="space-y-3">
+        <!-- ตัวอย่างการ์ดงานค้าง 1 -->
+        <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-rose-500 flex justify-between items-center">
+          <div>
+            <span class="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded">ค้างส่ง • กำหนดส่งวันนี้ 16:00 น.</span>
+            <h4 class="font-bold text-sm text-slate-800 mt-1">แบบฝึกหัดแคลคูลัส อนุพันธ์ลำดับสูง</h4>
+            <p class="text-xs text-slate-500">วิชา: คณิตศาสตร์เพิ่มเติม (ค33101)</p>
+          </div>
+          <button onclick="openSubmitModal('แบบฝึกหัดแคลคูลัส')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-2 rounded-lg border border-blue-200 transition">
+            ส่งงาน
+          </button>
+        </div>
+
+        <!-- ตัวอย่างการ์ดงานค้าง 2 -->
+        <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-amber-500 flex justify-between items-center">
+          <div>
+            <span class="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">ใกล้หมดเขต • พรุ่งนี้</span>
+            <h4 class="font-bold text-sm text-slate-800 mt-1">ออกแบบโปสเตอร์ 3D ประตูชุมพล</h4>
+            <p class="text-xs text-slate-500">วิชา: เทคโนโลยีมัลติมีเดีย</p>
+          </div>
+          <button onclick="openSubmitModal('ออกแบบโปสเตอร์ 3D')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-2 rounded-lg border border-blue-200 transition">
+            ส่งงาน
+          </button>
+        </div>
+
+        <!-- ตัวอย่างงานที่ส่งแล้ว -->
+        <div class="bg-white/70 p-4 rounded-xl shadow-sm border-l-4 border-emerald-500 flex justify-between items-center opacity-80">
+          <div>
+            <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">ตรวจแล้ว • 10/10 คะแนน</span>
+            <h4 class="font-bold text-sm text-slate-700 mt-1 line-through">รายงานประวัติศาสตร์เอเชีย</h4>
+            <p class="text-xs text-slate-500">วิชา: สังคมศึกษา</p>
+          </div>
+          <span class="text-emerald-600 text-xs font-bold">✓ เสร็จสิ้น</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modal ส่งงาน (อัปโหลดรูปภาพ) -->
+  <div id="submit-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="font-bold text-slate-800">ส่งงานออนไลน์</h3>
+        <button onclick="closeSubmitModal()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+      </div>
+      <div>
+        <p class="text-xs text-slate-500">หัวข้องาน:</p>
+        <p id="modal-task-title" class="font-semibold text-sm text-blue-900">ชื่อวิชา</p>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-700 mb-1">แนบรูปถ่ายใบงาน / ไฟล์งาน</label>
+        <input type="file" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border rounded-lg p-1.5">
+      </div>
+      <button onclick="confirmSubmitTask()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-xl text-sm shadow transition">
+        ยืนยันการส่งงาน
+      </button>
+    </div>
+  </div>
+
+  <!-- Firebase & Application Logic -->
+  <script type="module">
+    // นำเข้าฟังก์ชันจากไฟล์ firebase-service.js ที่สร้างไว้ก่อนหน้า
+    import { recordAttendance } from './firebase-service.js';
+
+    // ข้อมูลจำลองของนักเรียนปัจจุบัน (ในระบบจริงดึงมาจาก Firebase Auth)
+    const currentStudent = {
+      studentId: "6701",
+      name: "นายปิยวัฒน์ ศรีสอาด (ออฟ)",
+      classRoom: "ม.6/2"
+    };
+
+    // ==========================================
+    // 1. ระบบสร้าง Dynamic QR Code ประจำตัว (เปลี่ยนทุก 15 วินาที)
+    // ==========================================
+    const qrContainer = document.getElementById("qrcode");
+    let qrCodeObj = new QRCode(qrContainer, {
+      width: 90,
+      height: 90,
+      colorDark: "#1e3a8a",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.H
+    });
+
+    function updateDynamicQR() {
+      const timestamp = Math.floor(Date.now() / 1000);
+      // สร้าง Payload เข้ารหัสเบื้องต้นป้องกันการปลอมแปลง
+      const payload = JSON.stringify({
+        id: currentStudent.studentId,
+        ts: timestamp
+      });
+      qrCodeObj.clear();
+      qrCodeObj.makeCode(payload);
+    }
+
+    // นับถอยหลังรีเฟรช QR Code ทุก 15 วินาที
+    let timeLeft = 15;
+    updateDynamicQR();
+    setInterval(() => {
+      timeLeft--;
+      if (timeLeft <= 0) {
+        timeLeft = 15;
+        updateDynamicQR();
+      }
+      document.getElementById("qr-countdown").innerText = `${timeLeft}s`;
+      document.getElementById("qr-timer-bar").style.width = `${(timeLeft / 15) * 100}%`;
+    }, 1000);
+
+    // ==========================================
+    // 2. ระบบเปิดกล้องสแกน QR Code เช็กชื่อเข้าเรียน
+    // ==========================================
+    let html5QrCode;
+    const btnStartScan = document.getElementById("btn-start-scan");
+    const cameraPlaceholder = document.getElementById("camera-placeholder");
+    const scanResultBox = document.getElementById("scan-result");
+
+    btnStartScan.addEventListener("click", () => {
+      cameraPlaceholder.classList.add("hidden");
+      html5QrCode = new Html5Qrcode("reader");
+
+      html5QrCode.start(
+        { facingMode: "environment" }, // ใช้กล้องหลังมือถือ
+        { fps: 10, qrbox: { width: 220, height: 220 } },
+        async (decodedText) => {
+          // หยุดสแกนชั่วคราวเมื่ออ่านค่าได้
+          html5QrCode.stop();
+          cameraPlaceholder.classList.remove("hidden");
+          
+          showScanStatus("กำลังบันทึกข้อมูลเข้าสู่ระบบ Firebase...", "bg-blue-100 text-blue-800");
+
+          try {
+            // สมมติว่า QR หน้าห้องเรียนส่งค่ามาเป็น JSON เช่น {"sessionId":"sess_01","classId":"class_math_01"}
+            // หากสแกน QR ทั่วไปให้ใช้ค่า Default ทดสอบ
+            let sessionId = "sess_demo_01";
+            let classId = "class_math_01";
+            
+            try {
+              const parsed = JSON.parse(decodedText);
+              if (parsed.sessionId) sessionId = parsed.sessionId;
+              if (parsed.classId) classId = parsed.classId;
+            } catch (e) {
+              // กรณี QR ไม่ใช่ JSON ใช้ข้อความที่สแกนได้เป็น sessionId
+              sessionId = decodedText;
+            }
+
+            // เรียกใช้ฟังก์ชันจาก firebase-service.js เพื่อบันทึกลง Firestore
+            const response = await recordAttendance(sessionId, currentStudent.studentId, classId);
+
+            if (response.success) {
+              showScanStatus(`✅ ${response.message}`, "bg-emerald-100 text-emerald-800 border border-emerald-300");
+            } else {
+              showScanStatus(`⚠️ ${response.error}`, "bg-rose-100 text-rose-800 border border-rose-300");
+            }
+          } catch (err) {
+            showScanStatus(`❌ เกิดข้อผิดพลาด: ${err.message}`, "bg-rose-100 text-rose-800");
+          }
+        },
+        (errorMessage) => {
+          // ข้าม error ระหว่างกำลังเล็งกล้องหา QR
+        }
+      ).catch((err) => {
+        cameraPlaceholder.classList.remove("hidden");
+        showScanStatus("❌ ไม่สามารถเปิดกล้องได้ กรุณาอนุญาตสิทธิ์การใช้กล้องบนเบราว์เซอร์", "bg-rose-100 text-rose-800");
+      });
+    });
+
+    function showScanStatus(msg, classes) {
+      scanResultBox.className = `p-3.5 rounded-xl text-sm font-medium text-center ${classes}`;
+      scanResultBox.innerText = msg;
+      scanResultBox.classList.remove("hidden");
+    }
+  </script>
+
+  <!-- UI Interaction Scripts (สลับแท็บ & เปิด Modal) -->
+  <script>
+    function switchTab(tabName) {
+      const viewScan = document.getElementById("view-scan");
+      const viewTasks = document.getElementById("view-tasks");
+      const tabScan = document.getElementById("tab-scan");
+      const tabTasks = document.getElementById("tab-tasks");
+
+      if (tabName === 'scan') {
+        viewScan.classList.remove("hidden");
+        viewTasks.classList.add("hidden");
+        tabScan.className = "py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white shadow transition";
+        tabTasks.className = "py-2 text-sm font-semibold rounded-lg text-slate-600 hover:bg-slate-50 transition flex items-center justify-center gap-1.5";
+      } else {
+        viewScan.classList.add("hidden");
+        viewTasks.classList.remove("hidden");
+        tabTasks.className = "py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white shadow transition flex items-center justify-center gap-1.5";
+        tabScan.className = "py-2 text-sm font-semibold rounded-lg text-slate-600 hover:bg-slate-50 transition";
+      }
+    }
+
+    function openSubmitModal(taskTitle) {
+      document.getElementById("modal-task-title").innerText = taskTitle;
+      const modal = document.getElementById("submit-modal");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    }
+
+    function closeSubmitModal() {
+      const modal = document.getElementById("submit-modal");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+
+    function confirmSubmitTask() {
+      alert("อัปโหลดไฟล์งานเรียบร้อย! ระบบเปลี่ยนสถานะเป็น 'รอครูตรวจ' แล้ว");
+      closeSubmitModal();
+    }
+  </script>
+</body>
+</html>
