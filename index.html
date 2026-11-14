@@ -1,163 +1,1054 @@
-<!DOCTYPE html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MACHECK</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
-<style type="text/tailwindcss">
-body{font-family:'Noto Sans Thai',sans-serif;background:#f3f5f9;color:#1b2a49}
-.c{@apply bg-white rounded-xl border border-slate-200 p-4}
-.b{@apply px-4 py-2 rounded-lg text-white font-semibold bg-[#1b2a49] active:opacity-80}
-.g{@apply px-4 py-2 rounded-lg bg-slate-100 text-slate-800 font-semibold}
-.i{@apply w-full border border-slate-300 rounded-lg px-3 py-2 mb-2}
-</style></head><body><div id="app"></div><div id="toasts" class="fixed top-3 inset-x-3 z-[60] flex flex-col gap-2 items-center pointer-events-none"></div>
-<script type="module">
-import {initializeApp} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-import {getAuth,GoogleAuthProvider,signInWithPopup,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-import {getFirestore,collection,doc,getDoc,setDoc,onSnapshot,query,where,orderBy,limit,runTransaction,serverTimestamp} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MACHECK - ระบบเช็กชื่อ & ติดตามงาน โรงเรียนโยธินนุกูล</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- QR Code Generator -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- HTML5 QR Scanner -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <!-- Google Fonts: Prompt -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Prompt', sans-serif; background-color: #f8fafc; }
+        .yn-title-gradient {
+            background: linear-gradient(135deg, #0f2447 0%, #1e40af 45%, #b48327 80%, #d4af37 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .yn-gold-btn {
+            background: linear-gradient(135deg, #0f2447 0%, #1e3a8a 100%);
+            border: 1.5px solid #e5be69;
+            box-shadow: 0 4px 15px rgba(15, 36, 71, 0.35);
+        }
+        .yn-gold-btn:hover {
+            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+        }
+        .clip-left-panel { clip-path: polygon(0 0, 100% 0, 72% 100%, 0% 100%); }
+        .clip-center-card { clip-path: polygon(10% 0, 100% 0, 90% 100%, 0% 100%); }
+        .clip-right-1 { clip-path: polygon(18% 0, 100% 0, 82% 100%, 0% 100%); }
+        .clip-right-2 { clip-path: polygon(22% 0, 100% 0, 100% 100%, 0% 100%); }
+        .clip-contact-box { clip-path: polygon(3% 0, 100% 0, 97% 100%, 0% 100%); }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 99px; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col text-slate-800">
 
-const ADMIN_KEY="CHANGE-ME-2569"; // Creator Master Key: เปลี่ยนก่อนใช้งานจริง
+    <!-- Toast Notification -->
+    <div id="toast-box" class="fixed top-5 right-5 z-[100] hidden max-w-sm w-full bg-[#0f2447]/95 backdrop-blur-md text-white px-4 py-3.5 rounded-2xl shadow-2xl border border-amber-400/50 flex items-center justify-between transition-all duration-300">
+        <div class="flex items-center gap-3">
+            <div id="toast-icon-bg" class="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+            </div>
+            <span id="toast-msg" class="text-xs font-medium leading-relaxed">ดำเนินการสำเร็จ</span>
+        </div>
+        <button onclick="hideToast()" class="text-slate-400 hover:text-white ml-3 p-1"><i class="fa-solid fa-xmark"></i></button>
+    </div>
 
-const RULES=`rules_version='2';
-// ตั้งค่าเอกสาร config/security ในคอนโซล: { mk: "<ค่าเดียวกับ ADMIN_KEY>" }
-service cloud.firestore{match /databases/{d}/documents{
-function t(){return request.auth!=null&&exists(/databases/$(d)/documents/users/$(request.auth.uid))&&get(/databases/$(d)/documents/users/$(request.auth.uid)).data.role in ['teacher','admin'];}
-function own(){return request.auth!=null&&(t()||resource==null||resource.data.uid==request.auth.uid);}
-match /config/{x}{allow read,write:if false;}
-match /users/{u}{
- allow read:if request.auth!=null&&(request.auth.uid==u||t());
- allow create:if request.auth!=null&&request.auth.uid==u&&(request.resource.data.role=='student'||(request.resource.data.role=='teacher'&&request.resource.data.mk==get(/databases/$(d)/documents/config/security).data.mk));
- allow update:if request.auth.uid==u&&request.resource.data.role==resource.data.role;}
-match /sessions/{s}{allow read:if request.auth!=null;allow write:if t();}
-match /assignments/{a}{allow read:if request.auth!=null;allow write:if t();}
-match /attendance_logs/{l}{
- allow read:if own();
- allow create:if request.auth!=null&&request.resource.data.uid==request.auth.uid&&request.resource.data.ts==request.time&&l==request.resource.data.sessionId+'_'+request.resource.data.studentId;
- allow update,delete:if false;}
-match /submissions/{s}{
- allow read:if own();
- allow create:if request.auth!=null&&request.resource.data.uid==request.auth.uid&&request.resource.data.status=='COMPLETED'&&request.resource.data.score==null;
- allow update:if t();allow delete:if false;}
-}}`;
+    <!-- Top Official School Header -->
+    <div class="bg-white border-b border-slate-200 py-2.5 px-4">
+        <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center gap-3">
+                <div class="relative group cursor-pointer" onclick="openCustomizerModal()" title="คลิกเพื่อเปลี่ยนโลโก้และตกแต่งเว็บ">
+                    <img id="brand-logo-img" src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23ffffff'/%3E%3Cstop offset='100%25' stop-color='%23e2e8f0'/%3E%3C/linearGradient%3E%3ClinearGradient id='chk1' x1='0' y1='1' x2='1' y2='0'%3E%3Cstop offset='0%25' stop-color='%230f2447'/%3E%3Cstop offset='100%25' stop-color='%231d4ed8'/%3E%3C/linearGradient%3E%3ClinearGradient id='chk2' x1='0' y1='1' x2='1' y2='0'%3E%3Cstop offset='0%25' stop-color='%232563eb'/%3E%3Cstop offset='100%25' stop-color='%237dd3fc'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='10' y='10' width='180' height='180' rx='44' fill='url(%23bg)' stroke='%23cbd5e1' stroke-width='3'/%3E%3Cpath d='M52 102 L82 132 L144 64' fill='none' stroke='url(%23chk1)' stroke-width='26' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M60 100 L88 128 L150 60' fill='none' stroke='url(%23chk2)' stroke-width='22' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" alt="MACHECK Logo" class="w-11 h-11 rounded-xl object-cover border-2 border-[#0f2447]/30 shadow-sm bg-white">
+                    <span class="absolute -bottom-1 -right-1 bg-[#0f2447] text-amber-400 text-[8px] w-4 h-4 rounded-full flex items-center justify-center shadow">
+                        <i class="fa-solid fa-pen"></i>
+                    </span>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span id="header-brand-title" class="font-bold text-lg text-[#0f2447] tracking-tight leading-none">MACHECK</span>
+                        <span class="text-[10px] bg-blue-900 text-amber-300 px-2 py-0.5 rounded font-bold tracking-wide">YOTHINNUKUL OFFICIAL</span>
+                    </div>
+                    <p id="header-brand-sub" class="text-[11px] text-slate-600 mt-0.5 font-medium">โรงเรียนโยธินนุกูล • สังกัดเทศบาลตำบลหนองไผ่ล้อม จ.นครราชสีมา</p>
+                </div>
+            </div>
 
-const $=s=>document.querySelector(s),app=$('#app');
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
-function toast(m,t='ok'){const e=document.createElement('div');e.className='px-4 py-3 rounded-xl shadow-lg text-white text-sm '+{ok:'bg-emerald-600',err:'bg-rose-600',warn:'bg-amber-600'}[t];e.textContent=m;$('#toasts').append(e);setTimeout(()=>e.remove(),3500)}
-function modal(h){const m=document.createElement('div');m.className='fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4';m.innerHTML=`<div class="bg-white rounded-2xl p-5 w-full max-w-md max-h-[90vh] overflow-auto">${h}</div>`;document.body.append(m);m.close=()=>m.remove();return m}
-const ask=q=>new Promise(r=>{const m=modal(`<p class="mb-4">${q}</p><div class="flex gap-2 justify-end"><button class="g" id="n">ยกเลิก</button><button class="b" id="y">ยืนยัน</button></div>`);m.querySelector('#n').onclick=()=>{m.close();r(false)};m.querySelector('#y').onclick=()=>{m.close();r(true)}});
-const qr=(el,t,n)=>{el.innerHTML='';new QRCode(el,{text:t,width:n,height:n})};
+            <div class="flex items-center gap-4 text-xs">
+                <div class="hidden xl:flex items-center gap-2 text-slate-600">
+                    <i class="fa-solid fa-location-dot text-[#991b1b] text-sm"></i>
+                    <span id="header-school-address">187 ถ.ปาณิกบุตร ต.หนองไผ่ล้อม อ.เมือง จ.นครราชสีมา 30000</span>
+                </div>
+                <div class="hidden md:flex items-center gap-2 text-slate-600 border-l pl-4 border-slate-200">
+                    <i class="fa-solid fa-phone text-[#0f2447] text-sm"></i>
+                    <a href="http://yothinnukul.ac.th/th" target="_blank" class="hover:text-blue-700 font-medium underline decoration-amber-400">044-252727 | yothinnukul.ac.th</a>
+                </div>
 
-// ---------- data layer: Cloud (Firestore) / Local (โหมดทดสอบ) ----------
-let fs,auth;
-const Cloud={
- sub(n,cb,w,lim){const c=[];if(w)c.push(where(w[0],'==',w[1]));if(lim)c.push(orderBy('ts','desc'),limit(lim));
-  return onSnapshot(query(collection(fs,n),...c),s=>cb(s.docs.map(d=>({id:d.id,...d.data(),ts:d.data().ts?.toMillis?.()||Date.now()})).sort((a,b)=>b.ts-a.ts)),e=>toast('โหลดข้อมูลไม่ได้: '+e.code,'err'))},
- async get(n,id){const s=await getDoc(doc(fs,n,id));return s.exists()?{id,...s.data()}:null},
- set(n,id,d){return setDoc(doc(fs,n,id),{...d,ts:serverTimestamp()})},
- checkin(id,d){const r=doc(fs,'attendance_logs',id);return runTransaction(fs,async t=>{if((await t.get(r)).exists())return false;t.set(r,{...d,ts:serverTimestamp()});return true})}
-};
-const store=JSON.parse(localStorage.mc_demo||'{}'),ls=[];
-const flush=()=>{localStorage.mc_demo=JSON.stringify(store);ls.forEach(s=>s())};
-const Local={
- sub(n,cb,w,lim){const run=()=>{let a=Object.entries(store[n]||{}).map(([id,d])=>({id,...d}));if(w)a=a.filter(x=>x[w[0]]==w[1]);a.sort((x,y)=>y.ts-x.ts);cb(lim?a.slice(0,lim):a)};ls.push(run);run();return()=>ls.splice(ls.indexOf(run),1)},
- async get(n,id){const d=(store[n]||{})[id];return d?{id,...d}:null},
- async set(n,id,d){(store[n]=store[n]||{})[id]={...d,ts:Date.now()};flush()},
- async checkin(id,d){const l=store.attendance_logs=store.attendance_logs||{};if(l[id])return false;l[id]={...d,ts:Date.now()};flush();return true}
-};
+                <button onclick="openCustomizerModal()" class="bg-gradient-to-r from-[#0f2447] to-[#1e3a8a] hover:from-blue-900 hover:to-blue-800 text-amber-300 border border-amber-400/50 font-bold px-3.5 py-2 rounded-xl shadow-md flex items-center gap-1.5 transition active:scale-95">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>ตกแต่งเว็บ / อัปโหลดรูป</span>
+                </button>
+            </div>
+        </div>
+    </div>
 
-let cfg=JSON.parse(localStorage.mc_cfg||'null'),cloud=!!cfg&&localStorage.mc_mode!=='demo',D=Local,me,pending,unsubs=[],S={a:[],s:[],l:[],u:[],ss:[],tab:'check',cur:null};
-const unsub=()=>{unsubs.forEach(f=>f());unsubs=[]};
+    <!-- Navigation Bar -->
+    <nav class="bg-[#0f2447] text-white shadow-md sticky top-0 z-50 border-b-2 border-[#d4af37]">
+        <div class="max-w-7xl mx-auto px-4 flex items-center justify-between overflow-x-auto">
+            <div class="flex items-center text-xs md:text-sm font-medium whitespace-nowrap">
+                <button onclick="scrollToWorkspace('hero')" class="bg-[#991b1b] text-white px-4 py-3 font-bold border-r border-blue-800/60">
+                    หน้าหลัก
+                </button>
+                <button onclick="scrollToWorkspace('scan')" class="hover:bg-blue-900/80 px-4 py-3 transition border-r border-blue-800/60">
+                    <i class="fa-solid fa-qrcode mr-1.5 text-amber-400"></i>สแกนเช็กชื่อ
+                </button>
+                <button onclick="scrollToWorkspace('tasks')" class="hover:bg-blue-900/80 px-4 py-3 transition border-r border-blue-800/60">
+                    <i class="fa-solid fa-list-check mr-1.5 text-amber-400"></i>ติดตามงานค้าง
+                </button>
+                <button onclick="scrollToWorkspace('profile')" class="hover:bg-blue-900/80 px-4 py-3 transition border-r border-blue-800/60">
+                    <i class="fa-solid fa-id-card mr-1.5 text-amber-400"></i>บัตรนักเรียนดิจิทัล
+                </button>
+                <button onclick="scrollToWorkspace('school-db')" class="hover:bg-blue-900/80 px-4 py-3 transition">
+                    <i class="fa-solid fa-school mr-1.5 text-amber-400"></i>ฐานข้อมูลโรงเรียน
+                </button>
+            </div>
 
-// ---------- header / config ----------
-const header=()=>`<header class="flex items-center gap-3 px-4 py-3 bg-[#1b2a49] text-white"><i class="fa-solid fa-clipboard-check"></i><b class="mr-auto tracking-wide">MACHECK</b>
-<button id="tm" class="text-xs px-3 py-1 rounded-full ${cloud?'bg-white/20':'bg-amber-400 text-black font-semibold'}">${cloud?'โหมดจริง':'โหมดทดสอบ'}</button>
-${me?.role==='student'?'':'<button id="cf" title="ตั้งค่า Firebase"><i class="fa-solid fa-gear"></i></button>'}${me?'<button id="lo" title="ออกจากระบบ"><i class="fa-solid fa-right-from-bracket"></i></button>':''}</header>`;
-function bindHeader(){$('#tm').onclick=()=>{if(!cfg)return cfgModal();localStorage.mc_mode=cloud?'demo':'cloud';location.reload()};
- if($('#cf'))$('#cf').onclick=cfgModal;
- if($('#lo'))$('#lo').onclick=async()=>{if(cloud)await signOut(auth);else landing()}}
-function cfgModal(){const m=modal(`<h3 class="font-bold mb-2">เชื่อมต่อ Firebase</h3><p class="text-sm text-slate-600 mb-2">วางค่า firebaseConfig จากโปรเจกต์ของคุณ</p><textarea id="ct" rows="7" class="i font-mono text-xs" placeholder="{ apiKey: &quot;...&quot;, authDomain: &quot;...&quot;, projectId: &quot;...&quot;, appId: &quot;...&quot; }"></textarea>
-<div class="flex flex-wrap gap-2"><button id="sv" class="b">บันทึกและเชื่อมต่อ</button><button id="rl" class="g">คัดลอก Security Rules</button><button id="cl" class="g">ล้างค่า</button><button id="x" class="g">ปิด</button></div>`);
- m.querySelector('#sv').onclick=()=>{const o={};for(const k of m.querySelector('#ct').value.matchAll(/["']?(\w+)["']?\s*:\s*["']([^"']*)["']/g))o[k[1]]=k[2];
-  if(!o.apiKey||!o.projectId)return toast('ไม่พบ apiKey / projectId ในค่าที่วาง','err');localStorage.mc_cfg=JSON.stringify(o);localStorage.mc_mode='cloud';location.reload()};
- m.querySelector('#rl').onclick=()=>navigator.clipboard.writeText(RULES).then(()=>toast('คัดลอก Rules แล้ว'));
- m.querySelector('#cl').onclick=()=>{localStorage.removeItem('mc_cfg');location.reload()};m.querySelector('#x').onclick=m.close}
+            <div class="flex items-center gap-2 pl-3 shrink-0">
+                <button onclick="toggleFirebaseModal()" id="db-status" class="text-[11px] bg-blue-950 hover:bg-blue-900 text-amber-300 px-2.5 py-1 rounded-lg border border-amber-400/40 font-semibold flex items-center gap-1.5 transition">
+                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                    <span class="hidden sm:inline">เชื่อมต่อ Cloud</span>
+                </button>
+                <button onclick="logoutUser()" id="btn-logout" class="hidden text-xs bg-rose-700 hover:bg-rose-800 text-white px-2.5 py-1 rounded-lg transition" title="ออกจากระบบ">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
 
-// ---------- auth ----------
-function landing(){unsub();me=null;
- app.innerHTML=header()+`<main class="max-w-md mx-auto p-4"><h1 class="text-2xl font-bold mt-4">เช็กชื่อและติดตามงานค้าง</h1><p class="text-slate-600 mb-4">โรงเรียนโยธินนุกูล</p>
- ${cloud?'':'<div class="c mb-4 text-sm bg-amber-50 border-amber-300">กำลังใช้โหมดทดสอบ ข้อมูลเก็บในเบราว์เซอร์นี้เท่านั้น กดเฟืองเพื่อเชื่อม Firebase</div>'}
- <div class="flex mb-3 rounded-lg overflow-hidden border border-slate-300"><button id="ts" class="flex-1 py-2 font-semibold">นักเรียน</button><button id="tt" class="flex-1 py-2 font-semibold">ครู / แอดมิน</button></div><div id="pt" class="c"></div></main>`;
- bindHeader();const pick=r=>{$('#ts').className='flex-1 py-2 font-semibold '+(r=='s'?'bg-[#1b2a49] text-white':'bg-white');$('#tt').className='flex-1 py-2 font-semibold '+(r=='t'?'bg-[#1b2a49] text-white':'bg-white');
-  $('#pt').innerHTML=r=='s'?`<p class="text-sm text-slate-600 mb-2">กรอกข้อมูลครั้งแรกเพื่อผูกบัญชี ครั้งต่อไปกดเข้าสู่ระบบได้เลย</p><input id="sid" inputmode="numeric" class="i" placeholder="รหัสนักเรียน"><input id="gr" class="i" placeholder="ระดับชั้น เช่น ม.4/2"><input id="tr" class="i" placeholder="แผนการเรียน เช่น วิทย์-คณิต"><button id="go" class="b w-full"><i class="fa-brands fa-google mr-2"></i>เข้าสู่ระบบด้วย Google</button>`
-  :`<input id="mk" type="password" class="i" placeholder="รหัสลับแอดมิน (Creator Master Key)"><button id="go" class="b w-full"><i class="fa-brands fa-google mr-2"></i>เข้าสู่ระบบครู ด้วย Google</button>`;
-  $('#go').onclick=()=>login(r)};
- $('#ts').onclick=()=>pick('s');$('#tt').onclick=()=>pick('t');pick('s')}
+    <!-- Slanted Collage Hero Banner -->
+    <section id="hero-banner-section" class="relative w-full bg-white border-b-4 border-[#0f2447] overflow-hidden shadow-lg">
+        <div class="max-w-[1440px] mx-auto relative min-h-[390px] md:min-h-[440px] flex flex-col md:flex-row items-stretch">
+            
+            <!-- Panel 1 -->
+            <div class="hidden md:block w-[24%] relative overflow-hidden clip-left-panel bg-[#0f2447] group cursor-pointer" onclick="openCustomizerModal()">
+                <img id="banner-img-1" src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=800&q=80" alt="Yothinnukul Campus 1" class="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-85">
+                <div class="absolute inset-0 bg-gradient-to-t from-[#0f2447]/80 via-transparent to-transparent"></div>
+                <span class="absolute bottom-3 left-3 text-[10px] bg-[#0f2447]/80 text-amber-300 border border-amber-400/30 px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition">
+                    <i class="fa-solid fa-camera mr-1"></i> เปลี่ยนรูปช่องที่ 1
+                </span>
+            </div>
 
-async function login(r){
- if(r=='t'){if($('#mk').value!==ADMIN_KEY)return toast('รหัสลับแอดมินไม่ถูกต้อง','err');pending={role:'teacher'}}
- else pending={role:'student',studentId:$('#sid').value.trim(),grade:$('#gr').value.trim(),track:$('#tr').value.trim()};
- if(!cloud)return enter({uid:r+'-'+(pending.studentId||'demo'),displayName:r=='t'?'ครูทดสอบ':'นักเรียนทดสอบ'});
- try{await signInWithPopup(auth,new GoogleAuthProvider())}catch(e){toast('เข้าสู่ระบบไม่สำเร็จ ลองใหม่อีกครั้ง','err')}}
+            <!-- Center Content -->
+            <div class="flex-1 md:-ml-14 md:-mr-14 z-20 bg-white/95 md:bg-white md:clip-center-card px-6 py-8 md:px-16 flex flex-col items-center justify-center text-center relative shadow-2xl">
+                <span class="text-[10px] font-bold tracking-widest uppercase text-[#991b1b] bg-red-50 border border-red-200 px-3 py-0.5 rounded-full mb-2">
+                    "สุขภาพเยี่ยม เปี่ยมคุณธรรม เลิศล้ำปัญญา มีคุณค่าต่อสังคม"
+                </span>
+                
+                <h2 id="hero-main-title" class="font-serif-gold text-4xl sm:text-5xl md:text-6xl font-extrabold yn-title-gradient tracking-wider drop-shadow-sm">
+                    MACHECK
+                </h2>
+                <p id="hero-sub-title" class="text-xs sm:text-sm tracking-[0.25em] text-[#0f2447] font-bold uppercase mt-1">
+                    YOTHINNUKUL SCHOOL • KORAT
+                </p>
 
-async function enter(u){
- try{let p=await D.get('users',u.uid);
-  if(!p){if(!pending||(pending.role=='student'&&!/^\d{3,10}$/.test(pending.studentId))){toast('ไม่พบบัญชี กรุณากรอกรหัสนักเรียนแล้วเข้าสู่ระบบอีกครั้ง','err');if(cloud)await signOut(auth);return landing()}
-   p=pending.role=='teacher'?{role:'teacher',name:u.displayName||'ครู',mk:ADMIN_KEY}:{role:'student',studentId:pending.studentId,grade:pending.grade,track:pending.track,name:u.displayName||'นักเรียน',qr:`YN-${pending.studentId}-${crypto.randomUUID()}`};
-   await D.set('users',u.uid,p)}
-  me={uid:u.uid,...p};pending=null;me.role=='student'?studentView():teacherView()}
- catch(e){toast('เข้าสู่ระบบไม่ได้: '+(e.code||e.message),'err');if(cloud)await signOut(auth)}}
+                <div class="w-64 h-[2px] bg-gradient-to-r from-transparent via-[#d4af37] to-transparent my-3"></div>
 
-// ---------- student (mobile fast-pass) ----------
-function studentView(){unsub();S.tab='check';
- app.innerHTML=`<div class="max-w-md mx-auto min-h-screen pb-24 bg-[#f3f5f9]">${header()}<main id="tab" class="p-4"></main>
- <nav class="fixed bottom-0 inset-x-0 max-w-md mx-auto bg-white border-t flex">${[['check','fa-qrcode','เช็กชื่อ'],['tasks','fa-list-check','งานค้าง'],['me','fa-user','ข้อมูลฉัน']].map(([k,i,t])=>`<button data-t="${k}" class="nv flex-1 py-3 text-xs"><i class="fa-solid ${i} text-xl block mb-1"></i>${t}${k=='tasks'?'<span id="bd"></span>':''}</button>`).join('')}</nav></div>`;
- bindHeader();document.querySelectorAll('.nv').forEach(b=>b.onclick=()=>{S.tab=b.dataset.t;draw()});
- unsubs.push(D.sub('assignments',a=>{S.a=a;draw()}),D.sub('submissions',s=>{S.s=s;draw()},['uid',me.uid]),D.sub('attendance_logs',l=>{S.l=l;draw()},['uid',me.uid]));draw()}
+                <h3 id="hero-headline" class="text-lg sm:text-2xl font-bold text-slate-900">
+                    ระบบเช็กชื่ออัจฉริยะ โรงเรียนโยธินนุกูล
+                </h3>
+                <p id="hero-description" class="text-xs text-slate-600 max-w-md mt-1 leading-relaxed">
+                    ฐานข้อมูลกลางสำหรับนักเรียนและบุคลากร สังกัดเทศบาลตำบลหนองไผ่ล้อม เช็กชื่อด้วย Unique QR Code และติดตามงานค้างแบบ Real-time
+                </p>
 
-function draw(){const t=$('#tab');if(!t)return;
- const dn=new Set(S.s.map(x=>x.assignmentId)),pe=S.a.filter(a=>!dn.has(a.id));
- $('#bd').textContent=pe.length||'';$('#bd').className=pe.length?'ml-1 bg-rose-600 text-white rounded-full px-1.5':'';
- document.querySelectorAll('.nv').forEach(b=>b.classList.toggle('text-slate-400',b.dataset.t!=S.tab));
- if(S.tab=='check'){t.innerHTML=`<div class="rounded-2xl bg-[#1b2a49] text-white p-5"><div class="text-xs opacity-70">บัตรนักเรียน โรงเรียนโยธินนุกูล</div><div class="text-xl font-bold mt-1">${esc(me.name)}</div><div class="text-sm opacity-80">รหัส ${esc(me.studentId)}</div><div id="mq" class="bg-white p-2 rounded-lg w-fit mx-auto mt-4"></div></div>
-  <button id="sc" class="b w-full mt-4 py-5 text-lg"><i class="fa-solid fa-camera mr-2"></i>สแกน QR เช็กชื่อ</button>`;qr($('#mq'),me.qr,160);$('#sc').onclick=scan}
- else if(S.tab=='tasks'){t.innerHTML=S.a.length?S.a.map(a=>{const ok=dn.has(a.id);return `<div class="c mb-3 flex items-center gap-3"><div class="flex-1"><div class="font-semibold">${esc(a.title)}</div><div class="text-xs text-slate-500">กำหนดส่ง ${esc(a.due||'ไม่ระบุ')}</div></div>
-   ${ok?'<span class="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">COMPLETED</span>':`<span class="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-700">PENDING</span><button class="b sub" data-id="${a.id}">ส่งงาน</button>`}</div>`}).join(''):'<p class="text-center text-slate-500 mt-10">ยังไม่มีงานที่ครูสั่ง</p>';
-  t.querySelectorAll('.sub').forEach(b=>b.onclick=async()=>{if(!await ask('ยืนยันส่งงานนี้?'))return;
-   try{await D.set('submissions',b.dataset.id+'_'+me.studentId,{assignmentId:b.dataset.id,studentId:me.studentId,uid:me.uid,status:'COMPLETED',score:null});toast('ส่งงานแล้ว')}catch(e){toast('ส่งงานไม่สำเร็จ: '+(e.code||''),'err')}})}
- else{t.innerHTML=`<div class="c"><div class="font-bold text-lg">${esc(me.name)}</div><div class="text-sm text-slate-600">รหัส ${esc(me.studentId)} | ${esc(me.grade||'-')} | ${esc(me.track||'-')}</div></div>
-  <div class="grid grid-cols-3 gap-2 my-3 text-center">${[['เข้าเรียน',S.l.length],['งานค้าง',pe.length],['ส่งแล้ว',dn.size]].map(([n,v])=>`<div class="c"><div class="text-2xl font-bold">${v}</div><div class="text-xs">${n}</div></div>`).join('')}</div>
-  <button id="ex" class="g w-full"><i class="fa-solid fa-copy mr-2"></i>คัดลอกข้อมูล JSON</button>`;
-  $('#ex').onclick=()=>navigator.clipboard.writeText(JSON.stringify({profile:me,attendance:S.l,submissions:S.s},null,2)).then(()=>toast('คัดลอก JSON แล้ว'),()=>toast('คัดลอกไม่ได้','err'))}}
+                <div class="mt-4 bg-[#0f2447] text-white px-7 py-3 clip-contact-box border-b-2 border-[#d4af37] shadow-lg max-w-md w-full">
+                    <p id="hero-box-line1" class="text-xs sm:text-sm font-semibold text-amber-300">
+                        นักเรียน: นายปิยวัฒน์ ศรีสอาด (รหัส 6701)
+                    </p>
+                    <p id="hero-box-line2" class="text-[11px] sm:text-xs text-blue-100 mt-0.5">
+                        ระดับชั้น ม.6/2 • โทร: 044-252727 (yothinnukul.ac.th)
+                    </p>
+                </div>
 
-function scan(){const m=modal(`<div id="rd" class="rounded-lg overflow-hidden"></div><input id="mc" class="i mt-3" placeholder="หรือพิมพ์รหัสคาบ (SES-...)"><div class="flex gap-2"><button id="ok" class="b flex-1">ยืนยันรหัส</button><button id="x" class="g">ปิด</button></div>`);
- const h=new Html5Qrcode('rd');let on=false,fin=false;
- const end=async()=>{try{if(on)await h.stop()}catch{}m.close()};
- const go=async t=>{if(fin)return;fin=true;await end();checkin(t)};
- h.start({facingMode:'environment'},{fps:10,qrbox:220},go).then(()=>on=true).catch(()=>toast('เปิดกล้องไม่ได้ ใช้การพิมพ์รหัสแทน','warn'));
- m.querySelector('#ok').onclick=()=>go(m.querySelector('#mc').value.trim());m.querySelector('#x').onclick=end}
+                <div class="mt-4 flex flex-wrap justify-center gap-3">
+                    <button onclick="scrollToWorkspace('scan')" class="yn-gold-btn text-amber-200 font-bold text-sm px-8 py-2.5 rounded-xl tracking-wide transition transform hover:-translate-y-0.5 active:scale-95">
+                        <i class="fa-solid fa-qrcode mr-2 text-amber-400"></i>เช็กชื่อเข้าเรียนทันที
+                    </button>
+                    <a href="http://yothinnukul.ac.th/th" target="_blank" class="bg-white hover:bg-slate-50 text-[#0f2447] border border-slate-300 font-bold text-xs px-5 py-2.5 rounded-xl flex items-center gap-1.5 shadow-sm transition">
+                        <i class="fa-solid fa-globe text-blue-700"></i> เว็บไซต์หลักโรงเรียน
+                    </a>
+                </div>
+            </div>
 
-async function checkin(t){
- if(!/^SES-\w+$/.test(t))return toast('QR นี้ไม่ใช่ QR เช็กชื่อ','err');const sid=t.slice(4);
- try{if(!await D.get('sessions',sid))return toast('ไม่พบคาบเรียนนี้','err');
-  const ok=await D.checkin(sid+'_'+me.studentId,{sessionId:sid,studentId:me.studentId,uid:me.uid,name:me.name,qr:me.qr});
-  ok?toast('เช็กชื่อสำเร็จ'):toast('คุณเช็กชื่อคาบนี้ไปแล้ว','warn')}catch(e){toast('เช็กชื่อไม่สำเร็จ: '+(e.code||''),'err')}}
+            <!-- Panel 2 -->
+            <div class="hidden md:block w-[22%] relative overflow-hidden clip-right-1 bg-[#1e3a8a] group cursor-pointer border-l-4 border-[#d4af37]" onclick="openCustomizerModal()">
+                <img id="banner-img-2" src="https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=800&q=80" alt="Yothinnukul Campus 2" class="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-85">
+                <div class="absolute inset-0 bg-gradient-to-t from-[#0f2447]/80 via-transparent to-transparent"></div>
+                <span class="absolute bottom-4 left-6 text-[10px] bg-[#0f2447]/80 text-amber-300 px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition">
+                    <i class="fa-solid fa-camera mr-1"></i> เปลี่ยนรูปช่องที่ 2
+                </span>
+            </div>
 
-// ---------- teacher (desktop command center) ----------
-function teacherView(){unsub();S.cur=null;
- app.innerHTML=header()+`<main class="max-w-7xl mx-auto p-4 grid gap-4 lg:grid-cols-3">
- <section class="c"><h2 class="font-bold mb-2">QR หน้าห้องเรียน</h2><input id="st" class="i" placeholder="ชื่อคาบ เช่น คณิต ม.4/2 คาบ 3"><button id="ns" class="b w-full">สร้างคาบเรียนใหม่</button>
-  <div id="sq" class="bg-white p-2 w-fit mx-auto my-4"></div><div id="sl" class="text-center text-sm"></div><div id="ssl" class="flex flex-wrap gap-2 mt-3 justify-center"></div></section>
- <section class="c"><h2 class="font-bold mb-2">ติดตามงานค้าง</h2><input id="at" class="i" placeholder="ชื่องาน"><input id="ad" type="date" class="i"><button id="na" class="b w-full mb-3">สั่งงานใหม่</button><div id="tk"></div></section>
- <section class="c"><h2 class="font-bold mb-2">ประวัติเช็กชื่อ Real-time</h2><div id="fd" class="text-sm"></div></section></main>`;
- bindHeader();
- $('#ns').onclick=async()=>{const id=crypto.randomUUID().slice(0,8);try{await D.set('sessions',id,{title:$('#st').value.trim()||'คาบเรียน',by:me.uid});$('#st').value='';show(id)}catch(e){toast('สร้างคาบไม่สำเร็จ: '+(e.code||''),'err')}};
- $('#na').onclick=async()=>{const t=$('#at').value.trim();if(!t)return toast('กรอกชื่องานก่อน','warn');try{await D.set('assignments',crypto.randomUUID().slice(0,8),{title:t,due:$('#ad').value,by:me.uid});$('#at').value='';toast('สั่งงานแล้ว')}catch(e){toast('สั่งงานไม่สำเร็จ: '+(e.code||''),'err')}};
- unsubs.push(D.sub('sessions',x=>{S.ss=x;sess()}),D.sub('assignments',x=>{S.a=x;tasks()}),D.sub('submissions',x=>{S.s=x;tasks()}),D.sub('users',x=>{S.u=x;tasks()},['role','student']),D.sub('attendance_logs',x=>{S.l=x;feed()},null,30))}
-function show(id){S.cur=id;const s=S.ss.find(x=>x.id==id);qr($('#sq'),'SES-'+id,220);$('#sl').innerHTML=`<b>${esc(s?.title||'')}</b><br><span class="text-slate-500">รหัสสำรอง SES-${id}</span>`}
-function sess(){$('#ssl').innerHTML=S.ss.slice(0,5).map(s=>`<button class="g text-xs" data-id="${s.id}">${esc(s.title)}</button>`).join('');$('#ssl').querySelectorAll('button').forEach(b=>b.onclick=()=>show(b.dataset.id));if(!S.cur&&S.ss[0])show(S.ss[0].id)}
-function tasks(){const n=S.u.length;$('#tk').innerHTML=S.a.length?`<table class="w-full text-sm"><tr class="text-left text-slate-500"><th>งาน</th><th>ส่งแล้ว</th></tr>${S.a.map(a=>{const d=S.s.filter(x=>x.assignmentId==a.id).length;return `<tr class="border-t"><td class="py-2">${esc(a.title)}<div class="text-xs text-slate-500">${esc(a.due||'')}</div></td><td class="w-28"><div class="text-xs">${d}/${n} คน</div><div class="h-2 bg-slate-100 rounded"><div class="h-2 bg-emerald-500 rounded" style="width:${n?Math.min(100,d/n*100):0}%"></div></div></td></tr>`}).join('')}</table>`:'<p class="text-slate-500 text-sm">ยังไม่มีงาน กรอกฟอร์มด้านบนเพื่อสั่งงาน</p>'}
-function feed(){$('#fd').innerHTML=S.l.length?S.l.map(l=>`<div class="flex justify-between border-b py-2"><span>${esc(l.name)} <span class="text-slate-500">(${esc(l.studentId)})</span></span><span class="text-slate-500">${new Date(l.ts).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</span></div>`).join(''):'<p class="text-slate-500">ยังไม่มีการเช็กชื่อ</p>'}
+            <!-- Panel 3 & Official Badge -->
+            <div class="hidden md:block w-[22%] -ml-10 relative overflow-hidden clip-right-2 bg-[#0f2447] group cursor-pointer" onclick="openCustomizerModal()">
+                <img id="banner-img-3" src="https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=800&q=80" alt="Yothinnukul Campus 3" class="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-85">
+                <div class="absolute inset-0 bg-gradient-to-t from-[#0f2447]/80 via-transparent to-transparent"></div>
+                
+                <div class="absolute top-4 right-4 w-20 h-20 rounded-full bg-[#0f2447]/95 border-2 border-[#d4af37] shadow-xl flex flex-col items-center justify-center p-2 text-center">
+                    <img id="badge-circle-img" src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23ffffff'/%3E%3Cstop offset='100%25' stop-color='%23e2e8f0'/%3E%3C/linearGradient%3E%3ClinearGradient id='chk1' x1='0' y1='1' x2='1' y2='0'%3E%3Cstop offset='0%25' stop-color='%230f2447'/%3E%3Cstop offset='100%25' stop-color='%231d4ed8'/%3E%3C/linearGradient%3E%3ClinearGradient id='chk2' x1='0' y1='1' x2='1' y2='0'%3E%3Cstop offset='0%25' stop-color='%232563eb'/%3E%3Cstop offset='100%25' stop-color='%237dd3fc'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='10' y='10' width='180' height='180' rx='44' fill='url(%23bg)' stroke='%23cbd5e1' stroke-width='3'/%3E%3Cpath d='M52 102 L82 132 L144 64' fill='none' stroke='url(%23chk1)' stroke-width='26' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M60 100 L88 128 L150 60' fill='none' stroke='url(%23chk2)' stroke-width='22' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" class="w-8 h-8 object-contain mb-0.5 rounded-lg">
+                    <span class="text-[9px] font-bold text-amber-300 tracking-wider leading-none">MACHECK</span>
+                    <span class="text-[7px] text-white/90 tracking-widest mt-0.5">YOTHINNUKUL</span>
+                </div>
 
-// ---------- boot ----------
-if(cloud){const a=initializeApp(cfg);auth=getAuth(a);fs=getFirestore(a);D=Cloud;onAuthStateChanged(auth,u=>u?enter({uid:u.uid,displayName:u.displayName}):landing())}else landing();
-</script></body></html>
+                <span class="absolute bottom-4 right-4 text-[10px] bg-[#0f2447]/80 text-amber-300 px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition">
+                    <i class="fa-solid fa-camera mr-1"></i> เปลี่ยนรูปช่องที่ 3
+                </span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Workspace -->
+    <main class="max-w-7xl mx-auto w-full px-4 py-8 space-y-8 flex-1">
+        <div class="text-center space-y-1">
+            <p class="text-xs font-bold text-[#991b1b] tracking-widest uppercase">Yothinnukul Smart School Management System</p>
+            <h2 class="font-serif-gold text-2xl md:text-3xl font-bold text-[#0f2447] tracking-wide">
+                MACHECK ATTENDANCE & TASKS PORTAL
+            </h2>
+            <div class="w-32 h-1 bg-gradient-to-r from-[#0f2447] via-[#d4af37] to-[#991b1b] mx-auto mt-2 rounded-full"></div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- 1. Scanner -->
+            <div id="sec-scan" class="lg:col-span-4 bg-white rounded-3xl border border-slate-200 shadow-md overflow-hidden flex flex-col">
+                <div class="bg-[#0f2447] text-white px-5 py-4 flex justify-between items-center border-b-2 border-[#d4af37]">
+                    <div class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-qrcode text-amber-400 text-lg"></i>
+                        <div>
+                            <h3 class="font-bold text-sm">1. ระบบเช็กชื่อเข้าเรียน</h3>
+                            <p class="text-[10px] text-blue-200">สแกน QR หน้าห้องหรือกรอกรหัสคาบ</p>
+                        </div>
+                    </div>
+                    <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 rounded-full font-bold">LIVE</span>
+                </div>
+
+                <div class="p-5 space-y-4 flex-1 flex flex-col justify-between">
+                    <div class="bg-slate-950 rounded-2xl overflow-hidden aspect-square max-h-[250px] mx-auto w-full relative flex items-center justify-center border-2 border-[#0f2447] shadow-inner">
+                        <div id="m-reader" class="w-full h-full"></div>
+                        <div id="m-cam-overlay" class="absolute inset-0 flex flex-col items-center justify-center p-5 text-center bg-[#0f2447]/95">
+                            <div class="w-14 h-14 bg-amber-400/20 text-amber-300 rounded-2xl flex items-center justify-center text-2xl mb-3 border border-amber-400/40">
+                                <i class="fa-solid fa-camera"></i>
+                            </div>
+                            <p class="text-white font-bold text-sm">เปิดกล้องสแกน QR เช็กชื่อ</p>
+                            <p class="text-blue-200 text-[11px] mt-1 mb-4">รองรับกล้องมือถือและเว็บแคมคอมพิวเตอร์</p>
+                            <button onclick="startMobileScanner()" class="yn-gold-btn text-amber-200 font-bold text-xs px-5 py-2.5 rounded-xl transition">
+                                เปิดกล้องสแกนทันที
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 pt-2 border-t border-slate-100">
+                        <label class="text-[11px] font-bold text-[#0f2447] block">หรือกรอกรหัสคาบเรียน (Session ID):</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="d-manual-session" value="YN_2569_01" class="flex-1 border border-slate-300 bg-slate-50 rounded-xl px-3 py-2 text-xs font-mono focus:outline-none focus:border-[#0f2447]">
+                            <button onclick="submitCheckIn(document.getElementById('d-manual-session').value)" class="bg-[#991b1b] hover:bg-red-800 text-white text-xs font-bold px-4 py-2 rounded-xl shadow transition">
+                                เช็กชื่อ
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 rounded-2xl p-3 border border-slate-200/70 space-y-2 max-h-36 overflow-y-auto">
+                        <p class="text-[10px] font-bold text-[#0f2447] uppercase tracking-wider">บันทึกเวลาล่าสุด</p>
+                        <div id="d-logs-feed" class="space-y-1.5 text-xs"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Tasks -->
+            <div id="sec-tasks" class="lg:col-span-4 bg-white rounded-3xl border border-slate-200 shadow-md overflow-hidden flex flex-col">
+                <div class="bg-[#991b1b] text-white px-5 py-4 flex justify-between items-center border-b-2 border-[#d4af37]">
+                    <div class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-list-check text-amber-300 text-lg"></i>
+                        <div>
+                            <h3 class="font-bold text-sm">2. ระบบติดตามงานค้าง</h3>
+                            <p class="text-[10px] text-red-100">อัปเดตสถานะการส่งงานแบบเรียลไทม์</p>
+                        </div>
+                    </div>
+                    <button id="btn-add-task-teacher" onclick="addNewTaskToCloud()" class="text-[11px] bg-black/30 hover:bg-black/50 text-amber-300 border border-amber-300/40 font-bold px-2.5 py-1 rounded-lg transition">
+                        + สั่งงาน
+                    </button>
+                </div>
+
+                <div class="p-5 space-y-4 flex-1 flex flex-col">
+                    <div class="bg-blue-50/70 p-3.5 rounded-2xl border border-blue-200/80 space-y-2">
+                        <div class="flex justify-between items-center text-xs font-bold">
+                            <span class="text-[#0f2447]">ความคืบหน้าการส่งงาน</span>
+                            <span id="d-progress-text" class="text-[#991b1b] font-mono">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                            <div id="d-progress-bar" class="bg-gradient-to-r from-[#0f2447] via-blue-600 to-emerald-500 h-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div id="d-tasks-list" class="space-y-2.5 flex-1 overflow-y-auto max-h-[360px] pr-1"></div>
+                </div>
+            </div>
+
+            <!-- 3. Profile & Unique QR -->
+            <div id="sec-profile" class="lg:col-span-4 bg-white rounded-3xl border border-slate-200 shadow-md overflow-hidden flex flex-col">
+                <div class="bg-[#0f2447] text-white px-5 py-4 flex justify-between items-center border-b-2 border-[#d4af37]">
+                    <div class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-id-card text-amber-400 text-lg"></i>
+                        <div>
+                            <h3 class="font-bold text-sm">3. บัตรนักเรียน & ข้อมูล</h3>
+                            <p class="text-[10px] text-blue-200">Unique Non-Repeating QR Pass</p>
+                        </div>
+                    </div>
+                    <button onclick="exportStudentJSON()" class="text-[10px] bg-[#d4af37] hover:bg-amber-500 text-slate-950 font-bold px-2.5 py-1 rounded-lg transition">
+                        Export JSON
+                    </button>
+                </div>
+
+                <div class="p-5 space-y-4 flex-1 flex flex-col justify-between">
+                    <div class="bg-gradient-to-br from-[#0f2447] via-[#1e3a8a] to-[#0f2447] text-white rounded-2xl p-4 shadow-lg border border-[#d4af37] relative overflow-hidden">
+                        <div class="flex items-center gap-3.5">
+                            <div class="relative group cursor-pointer shrink-0" onclick="openCustomizerModal()">
+                                <img id="student-avatar-img" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Student Photo" class="w-16 h-16 rounded-2xl object-cover border-2 border-[#d4af37] bg-white">
+                                <span class="absolute -bottom-1 -right-1 bg-[#d4af37] text-slate-950 text-[9px] w-5 h-5 rounded-full flex items-center justify-center font-bold shadow">
+                                    <i class="fa-solid fa-camera"></i>
+                                </span>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <span class="text-[9px] bg-[#d4af37] text-slate-950 font-bold px-2 py-0.5 rounded uppercase">Yothinnukul Student ID</span>
+                                <h4 id="d-card-name" class="font-bold text-sm truncate mt-1">นายปิยวัฒน์ ศรีสอาด</h4>
+                                <p id="d-card-meta" class="text-[11px] text-amber-300 font-mono">ID: 6701 • ห้อง ม.6/2</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 bg-white rounded-xl p-3 flex items-center justify-between text-slate-900">
+                            <div>
+                                <p class="text-[11px] font-bold text-[#0f2447]">QR ประจำตัวนักเรียน</p>
+                                <p class="text-[10px] text-slate-500">รหัสเฉพาะบุคคลไม่ซ้ำกัน</p>
+                                <p id="unique-qr-text" class="text-[10px] font-mono font-bold text-[#991b1b] mt-1">YN-6701-UNIQUE</p>
+                            </div>
+                            <div id="d-student-qr" class="p-1 bg-white border border-slate-200 rounded-lg"></div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 text-xs bg-slate-50 p-3.5 rounded-2xl border border-slate-200/70">
+                        <div class="flex justify-between py-1 border-b border-slate-200/60">
+                            <span class="text-slate-500">สถานศึกษา:</span>
+                            <span class="font-bold text-[#0f2447]">โรงเรียนโยธินนุกูล</span>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-slate-200/60">
+                            <span class="text-slate-500">ต้นสังกัด:</span>
+                            <span class="font-bold text-slate-800">เทศบาลตำบลหนองไผ่ล้อม</span>
+                        </div>
+                        <div class="flex justify-between py-1">
+                            <span class="text-slate-500">สิทธิ์การใช้งาน:</span>
+                            <span id="profile-role-label" class="font-bold text-[#991b1b]">นักเรียน / ผู้ใช้งานทั่วไป</span>
+                        </div>
+                    </div>
+
+                    <button onclick="openAuthModal()" class="w-full py-2.5 bg-[#0f2447] hover:bg-blue-950 text-amber-300 font-bold text-xs rounded-xl border border-[#d4af37]/50 shadow transition">
+                        <i class="fa-brands fa-google mr-1.5"></i> เข้าสู่ระบบด้วย Google (นักเรียน / ครู)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- School Database Section -->
+        <section id="sec-school-db" class="bg-white rounded-3xl border border-slate-200 shadow-md overflow-hidden">
+            <div class="bg-gradient-to-r from-[#0f2447] via-[#1e3a8a] to-[#0f2447] text-white px-6 py-4 flex flex-wrap justify-between items-center gap-2 border-b-2 border-[#d4af37]">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-amber-400/20 border border-amber-400/40 flex items-center justify-center text-amber-300">
+                        <i class="fa-solid fa-database"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm md:text-base">ฐานข้อมูลสารสนเทศ โรงเรียนโยธินนุกูล (Yothinnukul Database)</h3>
+                        <p class="text-[11px] text-blue-200">ข้อมูลอ้างอิงจากระบบสารสนเทศสถานศึกษา yothinnukul.ac.th</p>
+                    </div>
+                </div>
+                <a href="http://yothinnukul.ac.th/th" target="_blank" class="text-xs bg-[#d4af37] hover:bg-amber-500 text-slate-950 font-bold px-3.5 py-1.5 rounded-xl transition">
+                    เปิดดูเว็บไซต์ทางการ <i class="fa-solid fa-arrow-up-right-from-square ml-1"></i>
+                </a>
+            </div>
+
+            <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-2.5">
+                    <h4 class="font-bold text-sm text-[#0f2447] flex items-center gap-2 border-b border-slate-200 pb-2">
+                        <i class="fa-solid fa-building-columns text-[#991b1b]"></i> ข้อมูลพื้นฐานสถานศึกษา
+                    </h4>
+                    <p><span class="font-semibold text-slate-600">ชื่อสถานศึกษา:</span> โรงเรียนโยธินนุกูล (Yothinnukul School)</p>
+                    <p><span class="font-semibold text-slate-600">ที่ตั้ง:</span> 187 หมู่ที่ 1 ถ.ปาณิกบุตร ต.หนองไผ่ล้อม อ.เมือง จ.นครราชสีมา 30000</p>
+                    <p><span class="font-semibold text-slate-600">สังกัด:</span> กองการศึกษา เทศบาลตำบลหนองไผ่ล้อม</p>
+                    <p><span class="font-semibold text-slate-600">ระดับที่เปิดสอน:</span> อนุบาล – มัธยมศึกษาตอนปลาย</p>
+                    <p><span class="font-semibold text-slate-600">โทรศัพท์:</span> 044-252727</p>
+                </div>
+
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-2.5">
+                    <h4 class="font-bold text-sm text-[#0f2447] flex items-center gap-2 border-b border-slate-200 pb-2">
+                        <i class="fa-solid fa-award text-amber-600"></i> คำขวัญและปรัชญาโรงเรียน
+                    </h4>
+                    <div class="bg-[#0f2447] text-amber-300 p-3 rounded-xl font-semibold text-center border border-[#d4af37]/50">
+                        "สุขภาพเยี่ยม เปี่ยมคุณธรรม เลิศล้ำปัญญา มีคุณค่าต่อสังคม"
+                    </div>
+                    <p class="text-slate-600 leading-relaxed">
+                        <span class="font-bold text-[#0f2447]">ปรัชญา:</span> มุ่งเน้นการจัดการศึกษาที่สนองความต้องการของชุมชน พัฒนาความรู้ควบคู่คุณธรรม จริยธรรม และเทคโนโลยี
+                    </p>
+                </div>
+
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-2.5">
+                    <h4 class="font-bold text-sm text-[#0f2447] flex items-center gap-2 border-b border-slate-200 pb-2">
+                        <i class="fa-solid fa-link text-blue-700"></i> ลิงก์ระบบงานภายในโรงเรียน
+                    </h4>
+                    <div class="space-y-2">
+                        <a href="http://yothinnukul.ac.th/th" target="_blank" class="flex items-center justify-between p-2.5 bg-white hover:bg-blue-50 rounded-xl border border-slate-200 transition">
+                            <span class="font-semibold text-slate-800">หน้าหลักเว็บไซต์โรงเรียนโยธินนุกูล</span>
+                            <i class="fa-solid fa-chevron-right text-slate-400"></i>
+                        </a>
+                        <a href="https://www.nongpailomcity.go.th" target="_blank" class="flex items-center justify-between p-2.5 bg-white hover:bg-blue-50 rounded-xl border border-slate-200 transition">
+                            <span class="font-semibold text-slate-800">เทศบาลตำบลหนองไผ่ล้อม (ต้นสังกัด)</span>
+                            <i class="fa-solid fa-chevron-right text-slate-400"></i>
+                        </a>
+                        <button onclick="openCustomizerModal()" class="w-full flex items-center justify-between p-2.5 bg-amber-50 hover:bg-amber-100 rounded-xl border border-amber-300 text-amber-900 font-bold transition">
+                            <span>อัปโหลดรูปภาพกิจกรรมลงแบนเนอร์</span>
+                            <i class="fa-solid fa-upload"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-[#0f2447] text-blue-200 text-xs py-5 px-4 border-t-2 border-[#d4af37] mt-8">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
+            <p class="font-semibold text-white">© 2026 MACHECK • ระบบเช็กชื่อและติดตามงาน โรงเรียนโยธินนุกูล จ.นครราชสีมา</p>
+            <p class="text-[11px]">พัฒนาเพื่อยกระดับการศึกษาไทย • เชื่อมต่อฐานข้อมูล Cloud Real-time</p>
+        </div>
+    </footer>
+
+    <!-- Customizer Modal -->
+    <div id="customizer-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4 z-[95] overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border-2 border-[#d4af37] space-y-5 my-auto">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-blue-100 text-[#0f2447] flex items-center justify-center text-base">
+                        <i class="fa-solid fa-palette"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-[#0f2447] text-base">สตูดิโอตกแต่งเว็บไซต์ MACHECK</h3>
+                        <p class="text-[11px] text-slate-500">อัปโหลดรูปภาพจากเครื่องของคุณและปรับแต่งข้อมูลได้ทันที</p>
+                    </div>
+                </div>
+                <button onclick="closeCustomizerModal()" class="text-slate-400 hover:text-slate-700 p-1 text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <div class="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <h4 class="font-bold text-[#0f2447] flex items-center gap-1.5">
+                        <i class="fa-solid fa-cloud-arrow-up text-[#991b1b]"></i> อัปโหลดรูปภาพจากเครื่อง
+                    </h4>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">1. รูปโลโก้เว็บ & ตราวงกลม</label>
+                        <input type="file" accept="image/*" onchange="handleImageUpload(event, 'logo')" class="w-full text-[11px] file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:font-bold file:bg-blue-100 file:text-[#0f2447]">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">2. รูปแบนเนอร์ช่องที่ 1</label>
+                        <input type="file" accept="image/*" onchange="handleImageUpload(event, 'banner1')" class="w-full text-[11px] file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:font-bold file:bg-blue-100 file:text-[#0f2447]">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">3. รูปแบนเนอร์ช่องที่ 2</label>
+                        <input type="file" accept="image/*" onchange="handleImageUpload(event, 'banner2')" class="w-full text-[11px] file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:font-bold file:bg-blue-100 file:text-[#0f2447]">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">4. รูปแบนเนอร์ช่องที่ 3</label>
+                        <input type="file" accept="image/*" onchange="handleImageUpload(event, 'banner3')" class="w-full text-[11px] file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:font-bold file:bg-blue-100 file:text-[#0f2447]">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">5. รูปโปรไฟล์บัตรนักเรียน</label>
+                        <input type="file" accept="image/*" onchange="handleImageUpload(event, 'avatar')" class="w-full text-[11px] file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:font-bold file:bg-amber-100 file:text-amber-900">
+                    </div>
+                </div>
+
+                <div class="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <h4 class="font-bold text-[#0f2447] flex items-center gap-1.5">
+                        <i class="fa-solid fa-pen-to-square text-amber-600"></i> แก้ไขข้อความบนแบนเนอร์
+                    </h4>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">ชื่อระบบ (Brand Title)</label>
+                        <input type="text" id="cust-main-title" value="MACHECK" class="w-full border border-slate-300 rounded-xl px-3 py-1.5 bg-white">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">คำโปรยรอง (Subtitle)</label>
+                        <input type="text" id="cust-sub-title" value="YOTHINNUKUL SCHOOL • KORAT" class="w-full border border-slate-300 rounded-xl px-3 py-1.5 bg-white">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">หัวข้อหลัก (Headline)</label>
+                        <input type="text" id="cust-headline" value="ระบบเช็กชื่ออัจฉริยะ โรงเรียนโยธินนุกูล" class="w-full border border-slate-300 rounded-xl px-3 py-1.5 bg-white">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">ที่อยู่โรงเรียน</label>
+                        <input type="text" id="cust-address" value="187 ถ.ปาณิกบุตร ต.หนองไผ่ล้อม อ.เมือง จ.นครราชสีมา 30000" class="w-full border border-slate-300 rounded-xl px-3 py-1.5 bg-white">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap justify-between items-center gap-2 pt-2 border-t border-slate-200">
+                <button onclick="resetCustomization()" class="text-xs text-[#991b1b] hover:underline font-bold px-3 py-2">
+                    <i class="fa-solid fa-rotate-left mr-1"></i> คืนค่าเริ่มต้น
+                </button>
+                <div class="flex gap-2">
+                    <button onclick="saveTextCustomization()" class="bg-[#0f2447] hover:bg-blue-900 text-amber-300 font-bold text-xs px-5 py-2.5 rounded-xl shadow transition">
+                        <i class="fa-solid fa-check mr-1"></i> บันทึกการตกแต่ง
+                    </button>
+                    <button onclick="closeCustomizerModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs px-4 py-2.5 rounded-xl transition">
+                        ปิดหน้าต่าง
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Gateway Modal -->
+    <div id="auth-gateway-screen" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4 z-[85]">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border-2 border-[#d4af37] space-y-5 relative">
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700"><i class="fa-solid fa-xmark text-lg"></i></button>
+            
+            <div class="text-center space-y-1">
+                <h2 class="font-serif-gold font-bold text-2xl yn-title-gradient">MACHECK LOGIN</h2>
+                <p class="text-xs text-slate-500">เลือกช่องทางเข้าสู่ระบบโรงเรียนโยธินนุกูล</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-1.5 bg-slate-100 p-1.5 rounded-2xl">
+                <button onclick="selectLoginRole('student')" id="auth-tab-student" class="py-2 text-xs font-bold rounded-xl bg-white text-[#0f2447] shadow-sm transition">
+                    <i class="fa-solid fa-user-graduate text-blue-700 mr-1"></i> นักเรียน
+                </button>
+                <button onclick="selectLoginRole('teacher')" id="auth-tab-teacher" class="py-2 text-xs font-bold rounded-xl text-slate-500 transition">
+                    <i class="fa-solid fa-shield-halved text-[#991b1b] mr-1"></i> ครู / ผู้สร้าง
+                </button>
+            </div>
+
+            <div id="auth-panel-student" class="space-y-3">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-700 mb-1">รหัสประจำตัวนักเรียน</label>
+                    <input type="text" id="login-student-id" value="6701" class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm font-mono">
+                </div>
+                <button onclick="loginWithGoogle('student')" class="w-full py-3 bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs rounded-xl border-2 border-slate-200 shadow-sm flex items-center justify-center gap-2 transition">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-4 h-4">
+                    <span>เข้าสู่ระบบนักเรียนด้วย Google</span>
+                </button>
+            </div>
+
+            <div id="auth-panel-teacher" class="hidden space-y-3">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-700 mb-1">รหัสลับแอดมิน (เฉพาะผู้สร้างเท่านั้นที่รู้)</label>
+                    <input type="password" id="admin-secret-input" placeholder="กรอกรหัสลับแอดมิน..." class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm font-mono">
+                </div>
+                <button onclick="loginWithGoogle('teacher')" class="w-full py-3 bg-[#0f2447] hover:bg-blue-950 text-amber-300 font-bold text-xs rounded-xl shadow flex items-center justify-center gap-2 transition">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-4 h-4 bg-white rounded-full p-0.5">
+                    <span>ยืนยันสิทธิ์ผู้สร้าง & ล็อกอิน Google</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Config Modal -->
+    <div id="firebase-config-modal" class="fixed inset-0 bg-slate-950/75 backdrop-blur-sm hidden items-center justify-center p-4 z-[90]">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-[#0f2447] text-sm"><i class="fa-solid fa-fire text-amber-500 mr-1.5"></i>เชื่อมต่อฐานข้อมูล MACHECK1</h3>
+                <button onclick="toggleFirebaseModal()" class="text-slate-400 hover:text-slate-700"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p class="text-xs text-slate-600">วางโค้ด <code class="bg-blue-50 text-[#0f2447] px-1.5 py-0.5 rounded font-mono">firebaseConfig</code> จาก Firebase Console เพื่อซิงค์ข้อมูลแบบ Real-time</p>
+            <textarea id="firebase-config-input" rows="6" class="w-full bg-slate-900 text-emerald-400 font-mono text-xs p-3 rounded-2xl border border-slate-700" placeholder='{
+  "apiKey": "AIzaSy...",
+  "authDomain": "macheck1.firebaseapp.com",
+  "projectId": "macheck1",
+  "storageBucket": "macheck1.appspot.com",
+  "messagingSenderId": "...",
+  "appId": "..."
+}'></textarea>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="saveAndConnectFirebase()" class="bg-[#0f2447] hover:bg-blue-900 text-amber-300 font-bold text-xs px-5 py-2.5 rounded-xl shadow transition">บันทึกและเชื่อมต่อทันที</button>
+                <button onclick="toggleFirebaseModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl transition">ยกเลิก</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Core Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, updateDoc, collection, onSnapshot, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        let db = null;
+        let auth = null;
+        let currentUser = null;
+        let isCloudActive = false;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'macheck1';
+        const CREATOR_ADMIN_SECRET = "YN-CREATOR-2026";
+
+        window.appState = {
+            role: "student",
+            schoolDatabase: {
+                name: "โรงเรียนโยธินนุกูล",
+                englishName: "Yothinnukul School",
+                affiliation: "เทศบาลตำบลหนองไผ่ล้อม",
+                address: "187 หมู่ที่ 1 ถ.ปาณิกบุตร ต.หนองไผ่ล้อม อ.เมือง จ.นครราชสีมา 30000",
+                phone: "044-252727",
+                website: "http://yothinnukul.ac.th/th",
+                motto: "สุขภาพเยี่ยม เปี่ยมคุณธรรม เลิศล้ำปัญญา มีคุณค่าต่อสังคม"
+            },
+            student: {
+                studentId: "6701",
+                name: "นายปิยวัฒน์ ศรีสอาด",
+                classRoom: "ม.6/2",
+                email: ""
+            },
+            tasks: [
+                { id: "T01", title: "แบบฝึกหัดแคลคูลัส ข้อ 1-10", subject: "คณิตศาสตร์เพิ่มเติม (ค33101)", due: "วันนี้ 16:00 น.", status: "PENDING" },
+                { id: "T02", title: "ออกแบบโปสเตอร์ 3D ประตูชุมพล", subject: "เทคโนโลยีมัลติมีเดีย", due: "พรุ่งนี้", status: "PENDING" }
+            ],
+            logs: [
+                { sessionId: "YN_MORNING_01", time: "07:45:12", status: "PRESENT" }
+            ]
+        };
+
+        window.initFirebaseConnection = async function(configObj) {
+            try {
+                const app = initializeApp(configObj);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                isCloudActive = true;
+
+                const statusBtn = document.getElementById("db-status");
+                statusBtn.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>Cloud Online</span>';
+
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'school_info', 'yothinnukul'), window.appState.schoolDatabase, { merge: true });
+                showToast("เชื่อมต่อฐานข้อมูลโรงเรียนโยธินนุกูลสำเร็จ!", "success");
+            } catch (err) {
+                showToast("เชื่อมต่อ Firebase ไม่สำเร็จ: " + err.message, "error");
+            }
+        };
+
+        window.loginWithGoogle = async function(selectedRole) {
+            if (selectedRole === 'teacher') {
+                const enteredKey = document.getElementById("admin-secret-input").value.trim();
+                if (enteredKey !== CREATOR_ADMIN_SECRET) {
+                    showToast("รหัสแอดมินไม่ถูกต้อง! เฉพาะผู้สร้างระบบเท่านั้น", "error");
+                    return;
+                }
+            }
+
+            if (!auth || !db) {
+                showToast("กรุณาตั้งค่า Firebase Config ก่อนล็อกอินด้วย Google", "error");
+                closeAuthModal();
+                toggleFirebaseModal();
+                return;
+            }
+
+            try {
+                const provider = new GoogleAuthProvider();
+                const result = await signInWithPopup(auth, provider);
+                currentUser = result.user;
+                window.appState.role = selectedRole;
+
+                const inputStdId = document.getElementById("login-student-id").value.trim() || "6701";
+                window.appState.student.studentId = selectedRole === 'teacher' ? "ADMIN-YN01" : inputStdId;
+                window.appState.student.name = currentUser.displayName || window.appState.student.name;
+                window.appState.student.email = currentUser.email || "";
+
+                const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', currentUser.uid);
+                await setDoc(userRef, {
+                    uid: currentUser.uid,
+                    name: window.appState.student.name,
+                    email: window.appState.student.email,
+                    role: selectedRole,
+                    studentId: window.appState.student.studentId,
+                    school: "โรงเรียนโยธินนุกูล",
+                    lastLogin: serverTimestamp()
+                }, { merge: true });
+
+                updateStudentUI();
+                closeAuthModal();
+                document.getElementById("btn-logout").classList.remove("hidden");
+                setupRealtimeListeners();
+                generateUniqueStudentQRs();
+
+                showToast(`ยินดีต้อนรับ ${window.appState.student.name}`, "success");
+            } catch (error) {
+                showToast("เข้าสู่ระบบไม่สำเร็จ: " + error.message, "error");
+            }
+        };
+
+        window.logoutUser = async function() {
+            if (auth) await signOut(auth);
+            currentUser = null;
+            document.getElementById("btn-logout").classList.add("hidden");
+            showToast("ออกจากระบบเรียบร้อยแล้ว", "success");
+        };
+
+        function updateStudentUI() {
+            document.getElementById("d-card-name").innerText = window.appState.student.name;
+            document.getElementById("d-card-meta").innerText = `ID: ${window.appState.student.studentId} • ห้อง ${window.appState.student.classRoom}`;
+            document.getElementById("hero-box-line1").innerText = `นักเรียน: ${window.appState.student.name} (รหัส ${window.appState.student.studentId})`;
+            document.getElementById("profile-role-label").innerText = window.appState.role === 'teacher' ? "ครู / ผู้สร้างระบบ (Admin)" : "นักเรียน (Student)";
+        }
+
+        function setupRealtimeListeners() {
+            if (!db || !currentUser) return;
+
+            const logsCol = collection(db, 'artifacts', appId, 'public', 'data', 'attendance_logs');
+            onSnapshot(logsCol, (snapshot) => {
+                const cloudLogs = [];
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    if (data.studentId === window.appState.student.studentId || window.appState.role === 'teacher') {
+                        cloudLogs.push({
+                            sessionId: data.sessionId,
+                            studentName: data.studentName || data.studentId,
+                            time: data.timeString || "บันทึกแล้ว",
+                            createdAt: data.createdAt || 0
+                        });
+                    }
+                });
+                if (cloudLogs.length > 0) {
+                    cloudLogs.sort((a, b) => b.createdAt - a.createdAt);
+                    window.appState.logs = cloudLogs;
+                    renderAllUI();
+                }
+            });
+
+            const tasksCol = collection(db, 'artifacts', appId, 'public', 'data', 'assignments');
+            onSnapshot(tasksCol, async (snapshot) => {
+                if (snapshot.empty) {
+                    for (const t of window.appState.tasks) {
+                        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'assignments', t.id), t);
+                    }
+                } else {
+                    const cloudTasks = [];
+                    snapshot.forEach((docSnap) => cloudTasks.push(docSnap.data()));
+                    cloudTasks.sort((a, b) => a.id.localeCompare(b.id));
+                    window.appState.tasks = cloudTasks;
+                    renderAllUI();
+                }
+            });
+        }
+
+        window.submitCheckIn = async function(sessionId) {
+            if (!sessionId || sessionId.trim() === "") {
+                showToast("กรุณาระบุรหัส Session ก่อนเช็กชื่อ", "error");
+                return;
+            }
+            const cleanSession = sessionId.trim();
+            const logId = `${cleanSession}_${window.appState.student.studentId}`;
+            const nowStr = new Date().toLocaleTimeString('th-TH');
+
+            if (isCloudActive && db && currentUser) {
+                try {
+                    const logRef = doc(db, 'artifacts', appId, 'public', 'data', 'attendance_logs', logId);
+                    await runTransaction(db, async (transaction) => {
+                        const snap = await transaction.get(logRef);
+                        if (snap.exists()) throw new Error(`คุณเช็กชื่อคาบ ${cleanSession} ไปแล้ว!`);
+                        transaction.set(logRef, {
+                            logId, sessionId: cleanSession,
+                            studentId: window.appState.student.studentId,
+                            studentName: window.appState.student.name,
+                            school: "โรงเรียนโยธินนุกูล",
+                            timeString: nowStr, createdAt: Date.now(),
+                            timestamp: serverTimestamp(), status: "PRESENT"
+                        });
+                    });
+                    showToast(`เช็กชื่อสำเร็จ! (${cleanSession})`, "success");
+                } catch (e) {
+                    showToast(e.message, "error");
+                }
+                return;
+            }
+
+            if (window.appState.logs.some(l => l.sessionId === cleanSession)) {
+                showToast(`คุณเช็กชื่อคาบ ${cleanSession} ไปแล้ว!`, "error");
+                return;
+            }
+            window.appState.logs.unshift({ sessionId: cleanSession, time: nowStr, status: "PRESENT" });
+            renderAllUI();
+            showToast(`เช็กชื่อสำเร็จ เวลา ${nowStr} น.`, "success");
+        };
+
+        window.completeTask = async function(taskId) {
+            if (isCloudActive && db && currentUser) {
+                try {
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'assignments', taskId), { status: "COMPLETED" });
+                    showToast(`ส่งงาน ${taskId} เรียบร้อยแล้ว!`, "success");
+                } catch (err) {
+                    showToast("เกิดข้อผิดพลาด: " + err.message, "error");
+                }
+                return;
+            }
+            const task = window.appState.tasks.find(t => t.id === taskId);
+            if (task) {
+                task.status = "COMPLETED";
+                renderAllUI();
+                showToast(`ส่งงาน "${task.title}" เรียบร้อยแล้ว!`, "success");
+            }
+        };
+
+        window.addNewTaskToCloud = async function() {
+            const num = window.appState.tasks.length + 1;
+            const newId = `T0${num}`;
+            const newTask = {
+                id: newId,
+                title: `ใบงานที่ ${num} การพัฒนาเว็บแอปพลิเคชัน`,
+                subject: "วิทยาการคำนวณ",
+                due: "สัปดาห์หน้า",
+                status: "PENDING"
+            };
+            if (isCloudActive && db && currentUser) {
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'assignments', newId), newTask);
+                showToast(`สั่งงาน ${newId} ลงฐานข้อมูลแล้ว!`, "success");
+                return;
+            }
+            window.appState.tasks.unshift(newTask);
+            renderAllUI();
+            showToast("เพิ่มรายการงานใหม่เข้าระบบแล้ว", "success");
+        };
+
+        if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+            window.initFirebaseConnection(JSON.parse(__firebase_config));
+        }
+
+        const dStudentQR = new QRCode(document.getElementById("d-student-qr"), { width: 68, height: 68, colorDark: "#0f2447", colorLight: "#ffffff" });
+        function generateUniqueStudentQRs() {
+            const uniqueHash = (typeof crypto !== 'undefined' && crypto.randomUUID) 
+                ? crypto.randomUUID().split('-')[0].toUpperCase() 
+                : Math.random().toString(36).substring(2, 10).toUpperCase();
+            const uniquePayload = `YN-${window.appState.student.studentId}-${uniqueHash}`;
+            document.getElementById("unique-qr-text").innerText = uniquePayload;
+            dStudentQR.clear();
+            dStudentQR.makeCode(uniquePayload);
+        }
+        generateUniqueStudentQRs();
+        renderAllUI();
+    </script>
+
+    <!-- UI & Custom Image Upload Script -->
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            loadSavedCustomization();
+        });
+
+        function handleImageUpload(event, targetKey) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64Img = e.target.result;
+                applyImageToDOM(targetKey, base64Img);
+                try {
+                    localStorage.setItem(`macheck_img_${targetKey}`, base64Img);
+                    showToast("อัปโหลดและเปลี่ยนรูปภาพสำเร็จ!", "success");
+                } catch (err) {
+                    showToast("แสดงรูปภาพแล้ว", "success");
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function applyImageToDOM(key, src) {
+            if (key === 'logo') {
+                document.getElementById('brand-logo-img').src = src;
+                document.getElementById('badge-circle-img').src = src;
+            } else if (key === 'banner1') {
+                document.getElementById('banner-img-1').src = src;
+            } else if (key === 'banner2') {
+                document.getElementById('banner-img-2').src = src;
+            } else if (key === 'banner3') {
+                document.getElementById('banner-img-3').src = src;
+            } else if (key === 'avatar') {
+                document.getElementById('student-avatar-img').src = src;
+            }
+        }
+
+        function saveTextCustomization() {
+            const texts = {
+                mainTitle: document.getElementById('cust-main-title').value,
+                subTitle: document.getElementById('cust-sub-title').value,
+                headline: document.getElementById('cust-headline').value,
+                address: document.getElementById('cust-address').value
+            };
+            localStorage.setItem('macheck_custom_texts', JSON.stringify(texts));
+            applyTextsToDOM(texts);
+            showToast("บันทึกการตกแต่งเว็บไซต์เรียบร้อยแล้ว!", "success");
+            closeCustomizerModal();
+        }
+
+        function applyTextsToDOM(texts) {
+            if (!texts) return;
+            if (texts.mainTitle) {
+                document.getElementById('hero-main-title').innerText = texts.mainTitle;
+                document.getElementById('header-brand-title').innerText = texts.mainTitle;
+            }
+            if (texts.subTitle) document.getElementById('hero-sub-title').innerText = texts.subTitle;
+            if (texts.headline) document.getElementById('hero-headline').innerText = texts.headline;
+            if (texts.address) document.getElementById('header-school-address').innerText = texts.address;
+        }
+
+        function loadSavedCustomization() {
+            ['logo', 'banner1', 'banner2', 'banner3', 'avatar'].forEach(key => {
+                const savedImg = localStorage.getItem(`macheck_img_${key}`);
+                if (savedImg) applyImageToDOM(key, savedImg);
+            });
+            const savedTexts = localStorage.getItem('macheck_custom_texts');
+            if (savedTexts) {
+                const parsed = JSON.parse(savedTexts);
+                applyTextsToDOM(parsed);
+                document.getElementById('cust-main-title').value = parsed.mainTitle || "MACHECK";
+                document.getElementById('cust-sub-title').value = parsed.subTitle || "YOTHINNUKUL SCHOOL • KORAT";
+                document.getElementById('cust-headline').value = parsed.headline || "ระบบเช็กชื่ออัจฉริยะ โรงเรียนโยธินนุกูล";
+                document.getElementById('cust-address').value = parsed.address || "";
+            }
+        }
+
+        function resetCustomization() {
+            ['logo', 'banner1', 'banner2', 'banner3', 'avatar'].forEach(key => localStorage.removeItem(`macheck_img_${key}`));
+            localStorage.removeItem('macheck_custom_texts');
+            location.reload();
+        }
+
+        function renderAllUI() {
+            const totalTasks = window.appState.tasks.length;
+            const completedTasks = window.appState.tasks.filter(t => t.status === "COMPLETED").length;
+            const progressPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 100;
+
+            document.getElementById("d-progress-text").innerText = `${progressPercent}%`;
+            document.getElementById("d-progress-bar").style.width = `${progressPercent}%`;
+
+            document.getElementById("d-tasks-list").innerHTML = window.appState.tasks.map(t => `
+                <div class="p-3.5 rounded-2xl border ${t.status === 'PENDING' ? 'bg-white border-slate-200 hover:border-[#0f2447]' : 'bg-slate-50 border-slate-100 opacity-70'} flex justify-between items-center gap-2 transition">
+                    <div class="space-y-0.5 min-w-0">
+                        <span class="inline-block text-[10px] font-bold ${t.status === 'PENDING' ? 'text-[#991b1b] bg-red-50' : 'text-emerald-700 bg-emerald-50'} px-2 py-0.5 rounded">
+                            ${t.status === 'PENDING' ? 'ค้างส่ง • ' + t.due : '✓ ส่งงานแล้ว'}
+                        </span>
+                        <h4 class="font-bold text-xs text-slate-900 truncate">${t.title}</h4>
+                        <p class="text-[11px] text-slate-500 truncate">${t.subject}</p>
+                    </div>
+                    ${t.status === 'PENDING' ? `
+                        <button onclick="completeTask('${t.id}')" class="bg-[#0f2447] hover:bg-blue-900 text-amber-300 text-xs font-bold px-3 py-1.5 rounded-xl shadow-sm shrink-0 transition">
+                            ส่งงาน
+                        </button>
+                    ` : `<i class="fa-solid fa-circle-check text-emerald-600 text-base shrink-0"></i>`}
+                </div>
+            `).join('');
+
+            document.getElementById("d-logs-feed").innerHTML = window.appState.logs.map(l => `
+                <div class="p-2.5 bg-white rounded-xl border border-slate-200 flex justify-between items-center">
+                    <div>
+                        <p class="font-bold text-[#0f2447] font-mono text-[11px]">${l.sessionId}</p>
+                        <p class="text-[10px] text-slate-500">${l.time} น.</p>
+                    </div>
+                    <span class="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">มาเรียน</span>
+                </div>
+            `).join('');
+        }
+
+        function scrollToWorkspace(sec) {
+            if (sec === 'hero') {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+            }
+            const el = document.getElementById(`sec-${sec}`);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function openCustomizerModal() {
+            document.getElementById("customizer-modal").classList.remove("hidden");
+            document.getElementById("customizer-modal").classList.add("flex");
+        }
+        function closeCustomizerModal() {
+            document.getElementById("customizer-modal").classList.add("hidden");
+            document.getElementById("customizer-modal").classList.remove("flex");
+        }
+        function openAuthModal() {
+            document.getElementById("auth-gateway-screen").classList.remove("hidden");
+            document.getElementById("auth-gateway-screen").classList.add("flex");
+        }
+        function closeAuthModal() {
+            document.getElementById("auth-gateway-screen").classList.add("hidden");
+            document.getElementById("auth-gateway-screen").classList.remove("flex");
+        }
+        function toggleFirebaseModal() {
+            const m = document.getElementById("firebase-config-modal");
+            m.classList.toggle("hidden");
+            m.classList.toggle("flex");
+        }
+
+        function selectLoginRole(role) {
+            const tabStd = document.getElementById("auth-tab-student");
+            const tabTch = document.getElementById("auth-tab-teacher");
+            const panelStd = document.getElementById("auth-panel-student");
+            const panelTch = document.getElementById("auth-panel-teacher");
+            if (role === 'student') {
+                tabStd.className = "py-2 text-xs font-bold rounded-xl bg-white text-[#0f2447] shadow-sm transition";
+                tabTch.className = "py-2 text-xs font-bold rounded-xl text-slate-500 transition";
+                panelStd.classList.remove("hidden"); panelTch.classList.add("hidden");
+            } else {
+                tabTch.className = "py-2 text-xs font-bold rounded-xl bg-[#0f2447] text-amber-300 shadow-sm transition";
+                tabStd.className = "py-2 text-xs font-bold rounded-xl text-slate-500 transition";
+                panelTch.classList.remove("hidden"); panelStd.classList.add("hidden");
+            }
+        }
+
+        function saveAndConnectFirebase() {
+            const rawInput = document.getElementById("firebase-config-input").value.trim();
+            if (!rawInput) return showToast("กรุณาวางโค้ด firebaseConfig", "error");
+            try {
+                let cleaned = rawInput.replace(/const\s+firebaseConfig\s*=\s*/, '').replace(/;$/, '');
+                const configObj = (new Function("return " + cleaned))();
+                if (!configObj || !configObj.apiKey) throw new Error("Config ไม่ถูกต้อง");
+                toggleFirebaseModal();
+                window.initFirebaseConnection(configObj);
+            } catch (e) {
+                showToast("รูปแบบ Config ไม่ถูกต้อง", "error");
+            }
+        }
+
+        let html5Qr = null;
+        function startMobileScanner() {
+            document.getElementById("m-cam-overlay").classList.add("hidden");
+            html5Qr = new Html5Qrcode("m-reader");
+            html5Qr.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 200, height: 200 } },
+                (decodedText) => {
+                    html5Qr.stop();
+                    document.getElementById("m-cam-overlay").classList.remove("hidden");
+                    window.submitCheckIn(decodedText);
+                },
+                () => {}
+            ).catch(() => {
+                document.getElementById("m-cam-overlay").classList.remove("hidden");
+                showToast("ไม่สามารถเปิดกล้องได้ กรุณาตรวจสอบสิทธิ์เบราว์เซอร์", "error");
+            });
+        }
+
+        function exportStudentJSON() {
+            const el = document.createElement("textarea");
+            el.value = JSON.stringify({ system: "MACHECK_YOTHINNUKUL", data: window.appState }, null, 2);
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand("copy");
+            document.body.removeChild(el);
+            showToast("คัดลอกข้อมูล JSON พร้อมลิงก์ระบบอื่นแล้ว!", "success");
+        }
+
+        let toastTimeout;
+        function showToast(msg, type = "success") {
+            const box = document.getElementById("toast-box");
+            const icon = document.getElementById("toast-icon");
+            document.getElementById("toast-msg").innerText = msg;
+            icon.className = type === "success" ? "fa-solid fa-circle-check text-emerald-400 text-base" : "fa-solid fa-triangle-exclamation text-rose-400 text-base";
+            box.classList.remove("hidden");
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => box.classList.add("hidden"), 3500);
+        }
+        function hideToast() { document.getElementById("toast-box").classList.add("hidden"); }
+    </script>
+</body>
+</html>
