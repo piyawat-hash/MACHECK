@@ -7,56 +7,64 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Prompt -->
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
         body { font-family: 'Prompt', sans-serif; }
+        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
     </style>
 </head>
-<body class="bg-[#1e1b4b] min-h-screen flex items-center justify-center p-0 md:p-6">
+<body class="bg-[#1e1b4b] min-h-screen flex items-center justify-center p-0 md:p-4">
 
-    <!-- Desktop Window Container (จำลองกรอบหน้าจอเดสก์ท็อปหรูหรา) -->
-    <div class="w-full max-w-[1366px] h-screen md:h-[820px] bg-[#f8fafc] md:rounded-3xl shadow-2xl flex overflow-hidden border border-purple-900/20">
+    <!-- Desktop Window Container (ถอดแบบตรงตามภาพต้นฉบับทุกประการ) -->
+    <div class="w-full max-w-[1366px] h-screen md:h-[840px] bg-[#f8fafc] md:rounded-3xl shadow-2xl flex overflow-hidden border border-purple-900/30 relative">
         
         <!-- 1. LEFT SIDEBAR (แถบเมนูด้านซ้ายสีม่วงเข้ม) -->
-        <aside class="w-72 bg-[#3b0764] text-white flex flex-col justify-between p-6 shadow-xl z-10">
+        <aside class="w-72 bg-[#3b0764] text-white flex flex-col justify-between p-6 shadow-2xl z-20">
             <div>
                 <!-- Logo & School Name -->
                 <div class="flex items-center gap-3 mb-10 px-2">
-                    <div class="w-11 h-11 bg-white rounded-2xl flex items-center justify-center shadow-md">
-                        <span class="text-[#581c87] font-black text-xl">M</span>
+                    <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-lg overflow-hidden border-2 border-purple-300">
+                        <img id="sidebar-logo" src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&h=100&fit=crop" alt="School Logo" class="w-full h-full object-cover">
                     </div>
                     <div>
-                        <h1 class="font-bold text-lg tracking-wider text-white">MACHECK</h1>
-                        <p class="text-[10px] text-purple-300">YOTHIN NUKUL SCHOOL</p>
+                        <h1 class="font-black text-lg tracking-wider text-white">MACHECK</h1>
+                        <p class="text-[10px] text-purple-300 font-medium">YOTHIN NUKUL SCHOOL</p>
                     </div>
                 </div>
 
                 <!-- Navigation Menu -->
                 <nav class="space-y-2">
-                    <a href="#" onclick="setActiveNav(this)" class="nav-item flex items-center gap-4 px-4 py-3.5 rounded-2xl font-medium bg-[#581c87] text-white shadow-md transition">
+                    <a href="#" onclick="switchTab('home', this)" class="nav-item flex items-center gap-4 px-4 py-3.5 rounded-2xl font-medium bg-[#581c87] text-white shadow-md transition">
                         <i class="fa-solid fa-house text-lg w-6"></i> หน้าแรก
                     </a>
-                    <a href="#" onclick="setActiveNav(this)" class="nav-item flex items-center gap-4 px-4 py-3.5 rounded-2xl font-medium text-purple-200 hover:bg-[#581c87]/50 hover:text-white transition">
+                    <a href="#" onclick="switchTab('attendance', this)" class="nav-item flex items-center gap-4 px-4 py-3.5 rounded-2xl font-medium text-purple-200 hover:bg-[#581c87]/50 hover:text-white transition">
                         <i class="fa-solid fa-clipboard-user text-lg w-6"></i> เช็กชื่อ
                     </a>
-                    <a href="#" onclick="setActiveNav(this)" class="nav-item flex items-center gap-4 px-4 py-3.5 rounded-2xl font-medium text-purple-200 hover:bg-[#581c87]/50 hover:text-white transition">
+                    <a href="#" onclick="switchTab('tasks', this)" class="nav-item flex items-center gap-4 px-4 py-3.5 rounded-2xl font-medium text-purple-200 hover:bg-[#581c87]/50 hover:text-white transition">
                         <i class="fa-solid fa-box-archive text-lg w-6"></i> งานค้าง
                     </a>
-                    <a href="#" onclick="setActiveNav(this)" class="nav-item flex items-center gap-4 px-4 py-3.5 rounded-2xl font-medium text-purple-200 hover:bg-[#581c87]/50 hover:text-white transition">
+                    <a href="#" onclick="switchTab('reports', this)" class="nav-item flex items-center gap-4 px-4 py-3.5 rounded-2xl font-medium text-purple-200 hover:bg-[#581c87]/50 hover:text-white transition">
                         <i class="fa-solid fa-chart-pie text-lg w-6"></i> รายงาน
                     </a>
-                    <a href="#" onclick="setActiveNav(this)" class="nav-item flex items-center gap-4 px-4 py-3.5 rounded-2xl font-medium text-purple-200 hover:bg-[#581c87]/50 hover:text-white transition">
-                        <i class="fa-solid fa-gear text-lg w-6"></i> ตั้งค่า
+                    <a href="#" onclick="openStudioModal()" class="nav-item flex items-center gap-4 px-4 py-3.5 rounded-2xl font-medium text-purple-200 hover:bg-[#581c87]/50 hover:text-white transition">
+                        <i class="fa-solid fa-gear text-lg w-6"></i> ตั้งค่า (Studio)
                     </a>
                 </nav>
             </div>
 
-            <!-- Footer Sidebar Info -->
+            <!-- Footer Sidebar Info & Firebase Status -->
             <div class="bg-purple-900/40 p-4 rounded-2xl border border-purple-700/30 text-center">
-                <p class="text-xs text-purple-200">โรงเรียนโยธินนุกูล</p>
-                <p class="text-[10px] text-purple-400 mt-0.5">Nakhon Ratchasima</p>
+                <p class="text-xs text-purple-200 font-bold">โรงเรียนโยธินนุกูล</p>
+                <div class="flex items-center justify-center gap-2 mt-2">
+                    <span id="db-status-dot" class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+                    <span id="db-status-text" class="text-[10px] text-purple-300">Offline (Local Mode)</span>
+                </div>
             </div>
         </aside>
 
@@ -64,22 +72,28 @@
         <main class="flex-1 flex flex-col bg-[#f8fafc] overflow-y-auto">
             
             <!-- Top Header Bar -->
-            <header class="bg-white px-8 py-4 flex justify-between items-center shadow-sm border-b border-gray-100">
-                <div class="flex items-center gap-2">
-                    <span class="text-xs font-semibold px-3 py-1 bg-purple-100 text-purple-700 rounded-full">ระบบควบคุมครูผู้สอน</span>
+            <header class="bg-white px-8 py-4 flex justify-between items-center shadow-sm border-b border-gray-100 z-10">
+                <div class="flex items-center gap-3">
+                    <span class="text-xs font-bold px-3 py-1 bg-purple-100 text-purple-800 rounded-full flex items-center gap-1.5">
+                        <i class="fa-solid fa-shield-halved"></i> ระบบจัดการสถานศึกษาอัจฉริยะ
+                    </span>
                 </div>
                 <div class="flex items-center gap-4">
+                    <!-- Connect Firebase Button -->
+                    <button onclick="openFirebaseModal()" class="text-xs bg-purple-50 hover:bg-purple-100 text-purple-700 font-semibold px-4 py-2 rounded-xl border border-purple-200 transition flex items-center gap-2">
+                        <i class="fa-solid fa-database"></i> ตั้งค่า Firebase
+                    </button>
                     <!-- Notification Bell -->
                     <button class="w-11 h-11 rounded-full bg-gray-50 flex items-center justify-center text-gray-600 hover:bg-gray-100 relative transition shadow-sm">
                         <i class="fa-regular fa-bell text-lg"></i>
                         <span class="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white"></span>
                     </button>
-                    <!-- User Profile Pill -->
+                    <!-- Teacher Profile Pill -->
                     <div class="flex items-center gap-3 bg-purple-50 px-4 py-2 rounded-full border border-purple-100 shadow-sm">
-                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces" alt="Teacher Avatar" class="w-9 h-9 rounded-full object-cover ring-2 ring-purple-300">
+                        <img id="header-teacher-img" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces" alt="Teacher Avatar" class="w-9 h-9 rounded-full object-cover ring-2 ring-purple-300">
                         <div class="text-left">
-                            <h4 class="text-xs font-bold text-gray-800">คุณครูวรพงศ์</h4>
-                            <p class="text-[10px] text-purple-600 font-medium">ครูผู้สอน</p>
+                            <h4 id="header-teacher-name" class="text-xs font-bold text-gray-800">คุณครูวรพงศ์</h4>
+                            <p class="text-[10px] text-purple-600 font-medium">ครูผู้สอน (Admin)</p>
                         </div>
                     </div>
                 </div>
@@ -88,7 +102,7 @@
             <!-- Dashboard Body Content -->
             <div class="p-8 space-y-6">
                 
-                <!-- CARD 1: เช็กชื่อประจำคาบเรียน -->
+                <!-- CARD 1: เช็กชื่อประจำคาบเรียน (ตรงตามภาพต้นฉบับ) -->
                 <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-7 transition hover:shadow-md">
                     <!-- Card Header -->
                     <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
@@ -96,8 +110,8 @@
                             <span class="w-2.5 h-6 bg-purple-600 rounded-full"></span>
                             เช็กชื่อประจำคาบเรียน
                         </h2>
-                        <button onclick="generateNewQR()" class="bg-[#7c3aed] hover:bg-[#6d28d9] text-white px-5 py-2.5 rounded-xl font-medium text-sm flex items-center gap-2 shadow-lg shadow-purple-500/20 transition transform active:scale-95">
-                            <i class="fa-solid fa-qrcode"></i> สร้าง QR Code
+                        <button onclick="verifyTeacherAndGenerateQR()" class="bg-[#7c3aed] hover:bg-[#6d28d9] text-white px-5 py-2.5 rounded-xl font-medium text-sm flex items-center gap-2 shadow-lg shadow-purple-500/20 transition transform active:scale-95">
+                            <i class="fa-solid fa-qrcode"></i> สร้าง QR Code (เฉพาะครู)
                         </button>
                     </div>
 
@@ -122,7 +136,7 @@
                     </div>
                 </div>
 
-                <!-- CARD 2: สรุปการเช็กชื่อ -->
+                <!-- CARD 2: สรุปการเช็กชื่อ (ตรงตามภาพต้นฉบับทุกประการ) -->
                 <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-7">
                     <!-- Card Header -->
                     <div class="mb-6 pb-4 border-b border-gray-100">
@@ -138,7 +152,6 @@
                         <!-- Circular Progress Ring (98%) -->
                         <div class="flex items-center justify-center md:justify-start gap-6">
                             <div class="relative w-28 h-28 flex items-center justify-center">
-                                <!-- SVG Ring -->
                                 <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
                                     <path class="text-gray-100" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                                     <path class="text-emerald-500" stroke-dasharray="98, 100" stroke-width="3.5" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
@@ -153,30 +166,30 @@
                             </div>
                         </div>
 
-                        <!-- Legend Stats Items (ตรงตามภาพต้นฉบับทุกประการ) -->
+                        <!-- Legend Stats Items (ตรงตามภาพต้นฉบับ 34 / 1 / 0) -->
                         <div class="md:col-span-2 grid grid-cols-3 gap-4 border-t md:border-t-0 md:border-l border-gray-100 pt-4 md:pt-0 md:pl-8">
-                            <!-- Item 1 -->
+                            <!-- Item 1: มาเรียน -->
                             <div class="flex items-center gap-3">
                                 <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 shadow-sm flex-shrink-0"></span>
                                 <div>
                                     <p class="text-xs text-gray-400 font-medium">มาเรียน</p>
-                                    <p class="text-xl font-black text-gray-900">34 <span class="text-xs font-normal text-gray-500">คน</span></p>
+                                    <p class="text-xl font-black text-gray-900" id="stat-present">34 <span class="text-xs font-normal text-gray-500">คน</span></p>
                                 </div>
                             </div>
-                            <!-- Item 2 -->
+                            <!-- Item 2: ขาดเรียน -->
                             <div class="flex items-center gap-3">
                                 <span class="w-3.5 h-3.5 rounded-full bg-amber-500 shadow-sm flex-shrink-0"></span>
                                 <div>
                                     <p class="text-xs text-gray-400 font-medium">ขาดเรียน</p>
-                                    <p class="text-xl font-black text-gray-900">1 <span class="text-xs font-normal text-gray-500">คน</span></p>
+                                    <p class="text-xl font-black text-gray-900" id="stat-absent">1 <span class="text-xs font-normal text-gray-500">คน</span></p>
                                 </div>
                             </div>
-                            <!-- Item 3 -->
+                            <!-- Item 3: สาย -->
                             <div class="flex items-center gap-3">
                                 <span class="w-3.5 h-3.5 rounded-full bg-blue-500 shadow-sm flex-shrink-0"></span>
                                 <div>
                                     <p class="text-xs text-gray-400 font-medium">สาย</p>
-                                    <p class="text-xl font-black text-gray-900">0 <span class="text-xs font-normal text-gray-500">คน</span></p>
+                                    <p class="text-xl font-black text-gray-900" id="stat-late">0 <span class="text-xs font-normal text-gray-500">คน</span></p>
                                 </div>
                             </div>
                         </div>
@@ -188,24 +201,169 @@
         </main>
     </div>
 
-    <!-- JavaScript สำหรับควบคุมการทำงานหน้าเว็บ -->
+    <!-- MODAL: Custom Studio (อัปโหลดรูปแต่งเว็บ) -->
+    <div id="studio-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center pb-3 border-b border-gray-100">
+                <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <i class="fa-solid fa-paintbrush text-purple-600"></i> สตูดิโอปรับแต่งเว็บไซต์ (Custom Studio)
+                </h3>
+                <button onclick="closeStudioModal()" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="space-y-4 text-sm">
+                <div>
+                    <label class="block font-semibold text-gray-700 mb-1">ลิงก์รูปโลโก้โรงเรียน:</label>
+                    <input type="text" id="input-logo-url" class="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="วาง URL รูปภาพโลโก้">
+                </div>
+                <div>
+                    <label class="block font-semibold text-gray-700 mb-1">ชื่อคุณครูผู้สอน:</label>
+                    <input type="text" id="input-teacher-name" class="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500" value="คุณครูวรพงศ์">
+                </div>
+                <div>
+                    <label class="block font-semibold text-gray-700 mb-1">ลิงก์รูปโปรไฟล์ครู:</label>
+                    <input type="text" id="input-teacher-img" class="w-full px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="วาง URL รูปโปรไฟล์ครู">
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                <button onclick="closeStudioModal()" class="px-5 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium">ยกเลิก</button>
+                <button onclick="saveStudioSettings()" class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-medium shadow-lg shadow-purple-500/20">บันทึกการเปลี่ยนแปลง</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Firebase Configuration Setup -->
+    <div id="firebase-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center pb-3 border-b border-gray-100">
+                <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <i class="fa-solid fa-database text-purple-600"></i> เชื่อมต่อฐานข้อมูล Firebase Cloud
+                </h3>
+                <button onclick="closeFirebaseModal()" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <p class="text-xs text-gray-500">วางโค้ดตั้งค่า <code class="bg-gray-100 px-1.5 py-0.5 rounded text-purple-600 font-mono">firebaseConfig</code> จากโปรเจกต์ของคุณเพื่อเปิดใช้งานระบบ Cloud Real-time</p>
+            <div>
+                <textarea id="firebase-config-input" rows="6" class="w-full p-4 rounded-xl border border-gray-200 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-50" placeholder='const firebaseConfig = { apiKey: "...", authDomain: "...", projectId: "..." };'></textarea>
+            </div>
+            <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                <button onclick="closeFirebaseModal()" class="px-5 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium text-sm">ยกเลิก</button>
+                <button onclick="initFirebaseFromInput()" class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-medium text-sm shadow-lg shadow-purple-500/20">เชื่อมต่อ Firebase ทันที</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
     <script>
-        // ฟังก์ชันเปลี่ยนสถานะเมนู Active บน Sidebar
-        function setActiveNav(element) {
+        // รหัสลับผู้ดูแลระบบ (Admin Master Key สำหรับยืนยันสิทธิ์ครูสร้างห้อง)
+        const CREATOR_MASTER_KEY = "YN-CREATOR-2026";
+        let db = null;
+        let auth = null;
+
+        // โหลดค่าปรับแต่งจาก LocalStorage (ถ้ามี)
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedLogo = localStorage.getItem('macheck_logo');
+            const savedName = localStorage.getItem('macheck_teacher_name');
+            const savedImg = localStorage.getItem('macheck_teacher_img');
+            
+            if(savedLogo) document.getElementById('sidebar-logo').src = savedLogo;
+            if(savedName) {
+                document.getElementById('header-teacher-name').innerText = savedName;
+                document.getElementById('input-teacher-name').value = savedName;
+            }
+            if(savedImg) {
+                document.getElementById('header-teacher-img').src = savedImg;
+                document.getElementById('input-teacher-img').value = savedImg;
+            }
+        });
+
+        // ฟังก์ชันสลับแถบเมนู Active
+        function switchTab(tabName, element) {
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('bg-[#581c87]', 'text-white', 'shadow-md');
                 item.classList.add('text-purple-200', 'hover:bg-[#581c87]/50', 'hover:text-white');
             });
-            element.classList.remove('text-purple-200', 'hover:bg-[#581c87]/50', 'hover:text-white');
-            element.classList.add('bg-[#581c87]', 'text-white', 'shadow-md');
+            if(element) {
+                element.classList.remove('text-purple-200', 'hover:bg-[#581c87]/50', 'hover:text-white');
+                element.classList.add('bg-[#581c87]', 'text-white', 'shadow-md');
+            }
+            if(tabName !== 'home') {
+                alert("✨ เปิดใช้งานส่วน: " + tabName.toUpperCase() + " (ระบบพร้อมเชื่อมต่อข้อมูลจริงผ่าน Firebase)");
+            }
         }
 
-        // ฟังก์ชันจำลองการสร้าง QR Code ใหม่เมื่อคลิกปุ่ม
-        function generateNewQR() {
-            const randomCode = "YN-SESSION-" + Math.floor(1000 + Math.random() * 9000);
+        // ระบบยืนยันสิทธิ์ครูก่อนสร้าง QR Code คาบเรียนใหม่
+        function verifyTeacherAndGenerateQR() {
+            const inputKey = prompt("🔒 กรุณากรอกรหัสผ่านผู้ดูแลระบบ (Teacher Master Key):\n(รหัสเริ่มต้น: YN-CREATOR-2026)");
+            if (inputKey === CREATOR_MASTER_KEY) {
+                alert("✅ ยืนยันสิทธิ์สำเร็จ: เริ่มสร้างห้องและ QR Code ประจำคาบใหม่");
+                generateNewSessionQR();
+            } else if (inputKey !== null) {
+                alert("❌ รหัสผ่านไม่ถูกต้อง! สิทธิ์การสร้างห้องและ QR Code สงวนไว้สำหรับครูผู้สอนเท่านั้น");
+            }
+        }
+
+        // ฟังก์ชันสร้าง QR Code ใหม่
+        function generateNewSessionQR() {
+            const sessionId = "YN-" + Math.random().toString(36).substring(2, 9).toUpperCase();
             const qrBox = document.getElementById('qr-code-box');
-            qrBox.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${randomCode}" alt="Session QR Code" class="w-full h-full object-contain animate-fade-in">`;
-            alert("✨ สร้าง QR Code ประจำคาบเรียนใหม่สำเร็จ! (รหัสเซสชัน: " + randomCode + ")");
+            qrBox.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${sessionId}" alt="Session QR Code" class="w-full h-full object-contain animate-fade-in">`;
+            
+            // บันทึกลง Firebase ถ้าเชื่อมต่ออยู่
+            if(db) {
+                db.collection("attendance_sessions").doc(sessionId).set({
+                    className: "ม.6/2",
+                    subject: "วิทยาการคำนวณ",
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    active: true
+                }).then(() => {
+                    console.log("บันทึกเซสชันลง Cloud สำเร็จ:", sessionId);
+                });
+            }
+            alert("🚀 สร้าง QR Code คาบเรียนใหม่สำเร็จ! รหัสเซสชัน: " + sessionId);
+        }
+
+        // Custom Studio Modal Control
+        function openStudioModal() { document.getElementById('studio-modal').classList.remove('hidden'); document.getElementById('studio-modal').classList.add('flex'); }
+        function closeStudioModal() { document.getElementById('studio-modal').classList.remove('flex'); document.getElementById('studio-modal').classList.add('hidden'); }
+        function saveStudioSettings() {
+            const logoUrl = document.getElementById('input-logo-url').value;
+            const teacherName = document.getElementById('input-teacher-name').value;
+            const teacherImg = document.getElementById('input-teacher-img').value;
+
+            if(logoUrl) { localStorage.setItem('macheck_logo', logoUrl); document.getElementById('sidebar-logo').src = logoUrl; }
+            if(teacherName) { localStorage.setItem('macheck_teacher_name', teacherName); document.getElementById('header-teacher-name').innerText = teacherName; }
+            if(teacherImg) { localStorage.setItem('macheck_teacher_img', teacherImg); document.getElementById('header-teacher-img').src = teacherImg; }
+
+            closeStudioModal();
+            alert("✨ บันทึกการตั้งค่าสตูดิโอเรียบร้อยแล้ว!");
+        }
+
+        // Firebase Modal Control
+        function openFirebaseModal() { document.getElementById('firebase-modal').classList.remove('hidden'); document.getElementById('firebase-modal').classList.add('flex'); }
+        function closeFirebaseModal() { document.getElementById('firebase-modal').classList.remove('flex'); document.getElementById('firebase-modal').classList.add('hidden'); }
+        
+        function initFirebaseFromInput() {
+            const rawText = document.getElementById('firebase-config-input').value;
+            try {
+                // Parse firebaseConfig object from text input
+                const match = rawText.match(/\{[\s\S]*\}/);
+                if (!match) throw new Error("ไม่พบรูปแบบ firebaseConfig ที่ถูกต้อง");
+                const firebaseConfig = eval('(' + match[0] + ')');
+
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+                auth = firebase.auth();
+
+                document.getElementById('db-status-dot').className = "w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse";
+                document.getElementById('db-status-text').innerText = "Cloud Online (Connected)";
+                closeFirebaseModal();
+                alert("🎉 เชื่อมต่อ Firebase Cloud สำเร็จเรียบร้อย!");
+            } catch (error) {
+                alert("❌ เกิดข้อผิดพลาดในการเชื่อมต่อ: " + error.message + "\nกรุณาตรวจสอบรูปแบบโค้ดใหม่อีกครั้ง");
+            }
         }
     </script>
 </body>
