@@ -1,27 +1,34 @@
 <!DOCTYPE html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#3b0764"><title>MACHECK | โรงเรียนโยธินนุกูล</title>
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="manifest.json"><link rel="icon" href="icon-192.png">
 <script src="https://cdn.tailwindcss.com"></script>
+<script>
+const L={50:'100% 98%',100:'91% 95%',200:'95% 92%',300:'95% 85%',400:'92% 76%',500:'90% 66%',600:'83% 58%',700:'70% 50%',800:'69% 42%',900:'70% 33%',950:'85% 20%'};
+tailwind.config={theme:{extend:{colors:{brand:Object.fromEntries(Object.entries(L).map(([k,v])=>[k,`hsl(var(--h) ${v} / <alpha-value>)`]))}}}}
+</script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 <style type="text/tailwindcss">
+:root{--h:268}
 body{font-family:'Prompt',sans-serif;background:#f8fafc;color:#1f2937}
 .c{@apply bg-white rounded-3xl shadow-sm border border-slate-100 p-6 mb-6}
-.b{@apply px-5 py-2.5 rounded-xl text-white font-medium bg-[#7c3aed] shadow-lg shadow-purple-500/20 active:scale-95 transition}
+.b{@apply px-5 py-2.5 rounded-xl text-white font-medium bg-brand-600 shadow-lg shadow-brand-500/20 active:scale-95 transition}
 .g{@apply px-5 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-medium}
-.i{@apply w-full border border-slate-200 rounded-xl px-4 py-2.5 mb-2 focus:outline-none focus:ring-2 focus:ring-purple-500}
-.sb .nv{@apply flex items-center gap-4 px-4 py-3 rounded-2xl font-medium w-full text-left text-purple-200}
-.sb .nv.on{@apply bg-[#581c87] text-white shadow-md}
+.i{@apply w-full border border-slate-200 rounded-xl px-4 py-2.5 mb-2 focus:outline-none focus:ring-2 focus:ring-brand-500}
+.sb .nv{@apply flex items-center gap-4 px-4 py-3 rounded-2xl font-medium w-full text-left text-brand-200}
+.sb .nv.on{@apply bg-brand-900 text-white shadow-md}
 .bn .nv{@apply flex-1 py-2.5 text-xs text-slate-400}
-.bn .nv.on{@apply text-[#7c3aed] font-semibold}
+.bn .nv.on{@apply text-brand-600 font-semibold}
 </style></head><body><div id="app"></div><div id="toasts" class="fixed top-3 inset-x-3 z-[60] flex flex-col gap-2 items-center pointer-events-none"></div>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import {getAuth,GoogleAuthProvider,signInWithPopup,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-import {getFirestore,collection,doc,getDoc,setDoc,updateDoc,onSnapshot,query,where,runTransaction,serverTimestamp} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import {getFirestore,collection,doc,getDoc,setDoc,updateDoc,deleteDoc,onSnapshot,query,where,runTransaction,serverTimestamp} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
 const ADMIN_KEY="YN-CREATOR-2026"; // Creator Master Key (ต้องตรงกับ config/security.mk)
+const DEFAULT_CFG={apiKey:"AIzaSyB-96UvU8NsWXNYS4UV_GsFf2Nf3zQJAkQ",authDomain:"macheck1.firebaseapp.com",projectId:"macheck1",appId:"1:197384962959:web:0fbed0435594cdbb7c81fa"};
+const THEMES=[['ม่วง',268],['น้ำเงิน',217],['เขียว',152],['เขียวน้ำทะเล',180],['ชมพู',338],['ส้ม',24]];
 
 // ---------- helpers ----------
 const $=s=>document.querySelector(s),app=$('#app');
@@ -33,17 +40,17 @@ const err=e=>toast('เกิดข้อผิดพลาด: '+(e.code||e.mes
 function modal(h){const m=document.createElement('div');m.className='fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4';m.innerHTML=`<div class="bg-white rounded-3xl p-6 w-full max-w-md max-h-[90vh] overflow-auto">${h}</div>`;document.body.append(m);m.close=()=>m.remove();return m}
 const ask=q=>new Promise(r=>{const m=modal(`<p class="mb-5 font-medium">${q}</p><div class="flex gap-2 justify-end"><button class="g" id="n">ยกเลิก</button><button class="b" id="y">ยืนยัน</button></div>`);m.querySelector('#n').onclick=()=>{m.close();r(false)};m.querySelector('#y').onclick=()=>{m.close();r(true)}});
 const qr=(el,t,n)=>{if(!el)return;el.innerHTML='';new QRCode(el,{text:t,width:n,height:n,correctLevel:QRCode.CorrectLevel.H})};
-const logo=c=>`<div class="inline-flex flex-col items-center ${c}"><svg viewBox="0 0 70 48" class="h-11"><text x="0" y="42" font-size="50" font-weight="900" font-style="italic" fill="currentColor">M</text><circle cx="52" cy="18" r="12" fill="none" stroke="currentColor" stroke-width="5"/><path d="M46 18l5 5 8-9" fill="none" stroke="currentColor" stroke-width="4"/><path d="M60 27l6 8" stroke="currentColor" stroke-width="6" stroke-linecap="round"/></svg><b class="text-2xl font-black italic tracking-wide leading-none">MACHECK</b><span class="text-[9px] italic font-semibold tracking-widest">YOTHIN NUKUL SCHOOL</span></div>`;
-const av=(s,n,c)=>s?`<img src="${esc(s)}" referrerpolicy="no-referrer" class="${c} rounded-full object-cover ring-2 ring-purple-300">`:`<div class="${c} rounded-full bg-purple-200 text-purple-800 font-bold flex items-center justify-center ring-2 ring-purple-300 shrink-0">${esc((n||'?').replace(/^(นางสาว|นาย|นาง|ครู|คุณครู)/,'')[0]||'?')}</div>`;
-const crest=()=>ST.logo?`<img src="${esc(ST.logo)}" class="w-12 h-12 rounded-full object-cover ring-2 ring-purple-300 bg-white">`:`<div class="w-12 h-12 rounded-full bg-gradient-to-br from-[#7c3aed] to-[#3b0764] text-white flex items-center justify-center ring-2 ring-purple-300"><i class="fa-solid fa-graduation-cap"></i></div>`;
-
-// ---------- settings (Studio) ----------
-const ST=JSON.parse(localStorage.mc_st||'{}'),saveST=()=>localStorage.mc_st=JSON.stringify(ST);
-let Dr={}; // ค่าที่กำลังพิมพ์
+const theme=h=>document.documentElement.style.setProperty('--h',h??268);
+const img=(f,n)=>new Promise(r=>{const o=new FileReader();o.onload=()=>{const i=new Image();i.onload=()=>{const k=Math.min(1,n/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*k;c.height=i.height*k;c.getContext('2d').drawImage(i,0,0,c.width,c.height);r(c.toDataURL('image/webp',.85))};i.src=o.result};o.readAsDataURL(f)});
+let G={}; // ตั้งค่าสตูดิโอจาก Firestore: settings/studio
+const logo=c=>`<img src="${c.includes('white')?'logo-white.png':'logo.png'}" alt="MACHECK" class="h-16 object-contain ${c}">`;
+const crest=(c='w-12 h-12',s=G.logo)=>`<img src="${s?esc(s):'crest.png'}" alt="โรงเรียนโยธินนุกูล" class="${c} rounded-full object-cover ring-2 ring-brand-300 bg-white">`;
+const av=(s,n,c)=>s?`<img src="${esc(s)}" referrerpolicy="no-referrer" class="${c} rounded-full object-cover ring-2 ring-brand-300">`:`<div class="${c} rounded-full bg-brand-200 text-brand-800 font-bold flex items-center justify-center ring-2 ring-brand-300 shrink-0">${esc((n||'?').replace(/^(นางสาว|นาย|นาง|ครู|คุณครู)/,'')[0]||'?')}</div>`;
+let Dr={}; // ค่าที่กำลังพิมพ์/เลือก
 document.addEventListener('input',e=>{const k=e.target.dataset.k;if(k)Dr[k]=e.target.value});
+document.addEventListener('change',async e=>{const k=e.target.dataset.up,f=e.target.files?.[0];if(k&&f){Dr[k]=await img(f,k=='logo'?256:160);R()}});
 
 // ---------- data layer: Cloud (Firestore) / Local (โหมดทดสอบ) ----------
-const DEFAULT_CFG={apiKey:"AIzaSyB-96UvU8NsWXNYS4UV_GsFf2Nf3zQJAkQ",authDomain:"macheck1.firebaseapp.com",projectId:"macheck1",appId:"1:197384962959:web:0fbed0435594cdbb7c81fa"};
 let fs,auth,cfg=JSON.parse(localStorage.mc_cfg||'null')||DEFAULT_CFG;
 const cloud=!!cfg.apiKey&&localStorage.mc_mode!=='demo';
 const Cloud={
@@ -51,6 +58,7 @@ const Cloud={
  async get(n,id){const s=await getDoc(doc(fs,n,id));return s.exists()?{id,...s.data()}:null},
  set(n,id,d,k='ts'){return setDoc(doc(fs,n,id),{...d,[k]:serverTimestamp()})},
  upd(n,id,d){return updateDoc(doc(fs,n,id),d)},
+ del(n,id){return deleteDoc(doc(fs,n,id))},
  checkin(id,d){const r=doc(fs,'attendance_logs',id);return runTransaction(fs,async t=>{if((await t.get(r)).exists())return false;t.set(r,{...d,ts:serverTimestamp()});return true})}
 };
 const store=JSON.parse(localStorage.mc_demo||'{}'),ls=[];
@@ -60,11 +68,13 @@ const Local={
  async get(n,id){const d=(store[n]||{})[id];return d?{id,...d}:null},
  async set(n,id,d,k='ts'){(store[n]=store[n]||{})[id]={...d,[k]:Date.now()};flush()},
  async upd(n,id,d){Object.assign(store[n][id],d);flush()},
+ async del(n,id){delete store[n][id];flush()},
  async checkin(id,d){const l=store.attendance_logs=store.attendance_logs||{};if(l[id])return false;l[id]={...d,ts:Date.now()};flush();return true}
 };
 let D=Local,me,pending,unsubs=[],S={a:[],s:[],l:[],u:[],ss:[],tab:'home',cur:null};
 const unsub=()=>{unsubs.forEach(f=>f());unsubs=[]};
 const R=()=>me&&(me.role=='student'?renderS():renderT());
+const subG=()=>D.sub('settings',x=>{const s=x.find(i=>i.id=='studio');if(s){G=s;theme(G.hue);R()}});
 
 // ---------- actions ----------
 const chip=()=>`<button data-a="tm" class="text-xs px-3 py-1.5 rounded-full font-semibold ${cloud?'bg-white/25 text-white':'bg-amber-400 text-black'}">${cloud?'โหมดจริง':'โหมดทดสอบ'}</button>`;
@@ -74,32 +84,49 @@ const A={
  lo:async()=>{if(await ask('ต้องการออกจากระบบหรือไม่?')){if(cloud)await signOut(auth);else landing()}},
  fb:()=>fbModal(),
  pick:b=>{S.cur=b.dataset.id;R()},
- ns:async()=>{const c=(Dr.cls??ST.cls??'').trim()||'ห้องเรียน',s=(Dr.sub??ST.sub??'').trim()||'ไม่ระบุวิชา';ST.cls=c;ST.sub=s;saveST();Dr={};const id=crypto.randomUUID().slice(0,8);
+ ns:async()=>{const c=(Dr.cls??cs()?.className??'').trim()||'ห้องเรียน',s=(Dr.sub??cs()?.subject??'').trim()||'ไม่ระบุวิชา';Dr={};const id=crypto.randomUUID().slice(0,8);
   try{await D.set('attendance_sessions',id,{className:c,subject:s,active:true},'createdAt');S.cur=id;S.tab='home';toast('สร้าง QR Code คาบใหม่แล้ว');R()}catch(e){err(e)}},
  tg:async()=>{const s=cs();if(!s)return;try{await D.upd('attendance_sessions',s.id,{active:!s.active})}catch(e){err(e)}},
  na:async()=>{const t=(Dr.at||'').trim();if(!t)return toast('กรอกชื่องานก่อน','warn');
   try{await D.set('assignments',crypto.randomUUID().slice(0,8),{title:t,due:Dr.ad||''});Dr.at='';Dr.ad='';toast('สั่งงานแล้ว');R()}catch(e){err(e)}},
+ da:async b=>{if(!await ask('ลบงานนี้ออกจากระบบ?'))return;try{await D.del('assignments',b.dataset.id);toast('ลบงานแล้ว')}catch(e){err(e)}},
  sub:async b=>{if(!await ask('ยืนยันส่งงานนี้?'))return;
   try{await D.set('submissions',b.dataset.id+'_'+me.studentId,{assignmentId:b.dataset.id,studentId:me.studentId,uid:me.uid,status:'COMPLETED',score:null});toast('ส่งงานแล้ว')}catch(e){err(e)}},
  sc:()=>scan(),
+ sp:async()=>{const p={grade:(Dr.grade??me.grade??'').trim(),track:(Dr.track??me.track??'').trim()};try{await D.upd('users',me.uid,p);Object.assign(me,p);Dr={};toast('บันทึกข้อมูลแล้ว');R()}catch(e){err(e)}},
  ex:()=>navigator.clipboard.writeText(JSON.stringify(me.role=='student'?{profile:me,attendance:S.l,submissions:S.s}:{students:S.u,sessions:S.ss,attendance:S.l,assignments:S.a,submissions:S.s},null,2)).then(()=>toast('คัดลอก JSON แล้ว'),()=>toast('คัดลอกไม่ได้','err')),
- sv:()=>{for(const k of['logo','tname','timg'])if(Dr[k]!==undefined)ST[k]=Dr[k].trim();saveST();Dr={};toast('บันทึกการตั้งค่าแล้ว');R()}
+ csv:()=>{const q=v=>`"${String(v).replace(/^[=+\-@]/,"'$&").replace(/"/g,'""')}"`;
+  const r=[['ชื่อ','รหัส','ชั้น','แผนการเรียน','เข้าเรียน (ครั้ง)','งานค้าง']].concat(S.u.map(u=>[u.name,u.studentId,u.grade||'',u.track||'',S.l.filter(l=>l.uid==u.id).length,Math.max(0,S.a.length-S.s.filter(x=>x.uid==u.id).length)]));
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+r.map(x=>x.map(q).join(',')).join('\n')],{type:'text/csv'}));a.download='macheck-report.csv';a.click()},
+ hue:b=>{Dr.hue=+b.dataset.h;theme(Dr.hue);R()},
+ rl:()=>{Dr.logo='';R()},
+ sv:async()=>{try{
+  if(Dr.logo!==undefined||Dr.hue!==undefined)await D.set('settings','studio',{logo:Dr.logo??G.logo??'',hue:Dr.hue??G.hue??268});
+  const p={};if(Dr.tname?.trim())p.name=Dr.tname.trim();if(Dr.timg!==undefined)p.photo=Dr.timg;
+  if(Object.keys(p).length){await D.upd('users',me.uid,p);Object.assign(me,p)}
+  Dr={};toast('บันทึกการตั้งค่าแล้ว');R()}catch(e){err(e)}}
 };
 document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(b)A[b.dataset.a]?.(b)});
-function fbModal(){const m=modal(`<h3 class="font-bold text-lg mb-1"><i class="fa-solid fa-database text-purple-600 mr-2"></i>เชื่อมต่อ Firebase Cloud</h3><p class="text-xs text-slate-500 mb-3">วางค่า firebaseConfig จากโปรเจกต์ของคุณ</p><textarea id="ct" rows="7" class="i font-mono text-xs bg-slate-50" placeholder="{ apiKey: &quot;...&quot;, authDomain: &quot;...&quot;, projectId: &quot;...&quot;, appId: &quot;...&quot; }"></textarea>
+function fbModal(){const m=modal(`<h3 class="font-bold text-lg mb-1"><i class="fa-solid fa-database text-brand-600 mr-2"></i>เชื่อมต่อ Firebase Cloud</h3><p class="text-xs text-slate-500 mb-3">วางค่า firebaseConfig จากโปรเจกต์ของคุณ</p><textarea id="ct" rows="7" class="i font-mono text-xs bg-slate-50" placeholder="{ apiKey: &quot;...&quot;, authDomain: &quot;...&quot;, projectId: &quot;...&quot;, appId: &quot;...&quot; }"></textarea>
 <div class="flex flex-wrap gap-2 justify-end"><button id="x" class="g">ปิด</button><button id="cl" class="g">ล้างค่า</button><button id="sv" class="b">เชื่อมต่อทันที</button></div>`);
  m.querySelector('#sv').onclick=()=>{const o={};for(const k of m.querySelector('#ct').value.matchAll(/["']?(\w+)["']?\s*:\s*["']([^"']*)["']/g))o[k[1]]=k[2];
   if(!o.apiKey||!o.projectId)return toast('ไม่พบ apiKey / projectId ในค่าที่วาง','err');localStorage.mc_cfg=JSON.stringify(o);localStorage.mc_mode='cloud';location.reload()};
  m.querySelector('#cl').onclick=()=>{localStorage.removeItem('mc_cfg');location.reload()};m.querySelector('#x').onclick=m.close}
 
-// ---------- login ----------
+// ---------- landing / login ----------
+const FEATS=[['fa-bolt','รวดเร็ว ทันสมัย','ด้วยสถาปัตยกรรม Single-file และ Tailwind CSS โหลดไว ใช้งานลื่นไหล'],['fa-shield-halved','ปลอดภัย มั่นใจได้','Google Sign-In และ Creator Master Key ป้องกันการเข้าถึงโดยไม่ได้รับอนุญาต'],['fa-cloud-arrow-up','ข้อมูลเรียลไทม์','ด้วย Firebase Cloud Firestore ซิงค์ข้อมูลทันที ป้องกันข้อมูลสูญหาย'],['fa-laptop-mobile','ใช้งานได้ 2 ระบบ','Mobile Fast-Pass และ Teacher Command Center ในหน้าจอเดียว'],['fa-palette','ปรับแต่งได้อิสระ','Custom Studio อัปโหลดรูปภาพ เปลี่ยนธีมได้ทันที'],['fa-qrcode','QR Code เฉพาะตัว','ใช้ Unique Token ไม่ซ้ำกัน แม่นยำสูง']];
 function landing(){unsub();me=null;S.tab='home';
- app.innerHTML=`<div class="min-h-screen bg-gradient-to-b from-[#3b0764] via-[#6d28d9] to-[#c4b5fd] flex flex-col items-center justify-center p-4 relative">
- <div class="absolute top-4 right-4 flex gap-2">${chip()}<button data-a="fb" class="w-9 h-9 rounded-full bg-white/25 text-white"><i class="fa-solid fa-gear"></i></button></div>
- <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 text-center"><div class="flex justify-center mb-2">${crest()}</div>${logo('text-[#6d28d9]')}<p class="text-sm text-slate-500 mt-2 mb-4">ระบบเช็กชื่ออัจฉริยะ โรงเรียนโยธินนุกูล</p>
- ${cloud?'':'<div class="text-xs bg-amber-50 text-amber-700 rounded-xl p-3 mb-3">โหมดทดสอบ: ข้อมูลเก็บในเบราว์เซอร์นี้เท่านั้น กดเฟืองเพื่อเชื่อม Firebase</div>'}
- <div class="flex mb-4 bg-violet-50 rounded-xl p-1"><button id="ts" class="flex-1 py-2 rounded-lg font-semibold">นักเรียน</button><button id="tt" class="flex-1 py-2 rounded-lg font-semibold">ครู / แอดมิน</button></div><div id="pt" class="text-left"></div></div></div>`;
- const pick=r=>{$('#ts').className='flex-1 py-2 rounded-lg font-semibold '+(r=='s'?'bg-[#7c3aed] text-white shadow':'text-slate-500');$('#tt').className='flex-1 py-2 rounded-lg font-semibold '+(r=='t'?'bg-[#7c3aed] text-white shadow':'text-slate-500');
+ app.innerHTML=`<div class="min-h-screen bg-gradient-to-b from-brand-100 via-brand-300 to-brand-700"><div class="max-w-6xl mx-auto px-4 py-5">
+  <div class="flex items-center gap-3">${crest('w-14 h-14')}<div class="border-l-2 border-brand-700 pl-3 leading-tight"><div class="font-bold text-lg text-brand-950">โรงเรียนโยธินนุกูล</div><div class="text-xs font-semibold text-brand-700">YOTHIN NUKUL SCHOOL</div></div><div class="ml-auto flex gap-2">${chip()}<button data-a="fb" class="w-9 h-9 rounded-full bg-white/60 text-brand-950"><i class="fa-solid fa-gear"></i></button></div></div>
+  <div class="grid lg:grid-cols-2 gap-8 items-center mt-8">
+   <div class="text-center lg:text-left"><img src="logo.png" alt="MACHECK" class="h-28 mx-auto lg:mx-0"><div class="text-brand-950 font-semibold mt-2">Smart Check, Simple Life</div><div class="text-3xl lg:text-4xl font-black italic text-brand-950 mt-4 leading-snug">เช็กง่าย แม่นยำ<br>ครบจบในที่เดียว</div><div class="inline-block mt-4 bg-brand-700 text-white rounded-full px-5 py-2 font-semibold">ก้าวสู่โรงเรียนดิจิทัลด้วย MACHECK</div></div>
+   <div class="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-md mx-auto">${cloud?'':'<div class="text-xs bg-amber-50 text-amber-700 rounded-xl p-3 mb-3">โหมดทดสอบ: ข้อมูลเก็บในเบราว์เซอร์นี้เท่านั้น กดเฟืองเพื่อเชื่อม Firebase</div>'}
+    <div class="flex mb-4 bg-brand-50 rounded-xl p-1"><button id="ts" class="flex-1 py-2 rounded-lg font-semibold">นักเรียน</button><button id="tt" class="flex-1 py-2 rounded-lg font-semibold">ครู / แอดมิน</button></div><div id="pt"></div></div></div>
+  <div class="mt-10 mx-auto w-fit bg-gradient-to-r from-brand-950 to-brand-600 text-white rounded-full px-8 py-3 font-black text-xl"><i class="fa-solid fa-trophy text-amber-300 mr-2"></i>จุดเด่นของระบบ MACHECK</div>
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">${FEATS.map(([i,t,d])=>`<div class="bg-white/90 rounded-3xl p-4 flex gap-4 items-center shadow"><div class="w-14 h-14 shrink-0 rounded-full bg-gradient-to-br from-brand-600 to-brand-950 text-white flex items-center justify-center text-2xl"><i class="fa-solid ${i}"></i></div><div><div class="font-bold text-brand-950">${t}</div><div class="text-xs text-slate-600">${d}</div></div></div>`).join('')}</div>
+  <div class="mt-6 rounded-3xl bg-brand-950 text-white p-6"><div class="font-black text-xl text-amber-300 mb-3"><i class="fa-solid fa-star mr-2"></i>ข้อดีที่ได้รับ</div>${['ลดภาระงานครู เช็กชื่อและติดตามงานได้ง่ายขึ้น','นักเรียนใช้งานสะดวก รวดเร็ว ทุกที่ ทุกเวลา','ยกระดับการบริหารจัดการ สู่โรงเรียนดิจิทัลเต็มรูปแบบ'].map(x=>`<div class="flex gap-3 items-center py-1"><i class="fa-solid fa-circle-check text-amber-300 text-xl"></i>${x}</div>`).join('')}</div>
+  <p class="text-center text-white font-bold italic text-xl mt-8 pb-4">MACHECK... มากกว่าการเช็กชื่อ <span class="text-amber-300">คืออนาคตของการศึกษาไทย</span></p></div></div>`;
+ const pick=r=>{$('#ts').className='flex-1 py-2 rounded-lg font-semibold '+(r=='s'?'bg-brand-600 text-white shadow':'text-slate-500');$('#tt').className='flex-1 py-2 rounded-lg font-semibold '+(r=='t'?'bg-brand-600 text-white shadow':'text-slate-500');
   $('#pt').innerHTML=r=='s'?`<p class="text-xs text-slate-500 mb-2">กรอกข้อมูลครั้งแรกเพื่อผูกบัญชี ครั้งต่อไปกดเข้าสู่ระบบได้เลย</p><input id="sid" inputmode="numeric" class="i" placeholder="รหัสนักเรียน"><input id="gr" class="i" placeholder="ระดับชั้น เช่น ม.6/2"><input id="tr" class="i" placeholder="แผนการเรียน เช่น วิทย์-คณิต"><button id="go" class="b w-full"><i class="fa-brands fa-google mr-2"></i>เข้าสู่ระบบด้วย Google</button>`
    :`<input id="mk" type="password" class="i" placeholder="รหัสลับแอดมิน (Creator Master Key)"><button id="go" class="b w-full"><i class="fa-brands fa-google mr-2"></i>เข้าสู่ระบบครู ด้วย Google</button>`;
   $('#go').onclick=()=>login(r)};
@@ -119,27 +146,27 @@ async function enter(u){
 
 // ---------- student: Mobile Fast-Pass ----------
 function studentView(){unsub();
- app.innerHTML=`<div class="max-w-md mx-auto min-h-screen bg-gradient-to-b from-[#6d28d9] via-[#8b5cf6] to-[#c4b5fd] pb-28">
- <div class="flex items-center justify-between px-4 pt-4 pb-3 text-white"><button data-a="nav" data-t="home" class="w-9 h-9 rounded-full bg-white/20"><i class="fa-solid fa-arrow-left"></i></button>${chip()}</div><main id="main" class="px-3"></main>
+ app.innerHTML=`<div class="max-w-md mx-auto min-h-screen bg-gradient-to-b from-brand-700 via-brand-500 to-brand-300 pb-28">
+ <div class="flex items-center justify-between px-4 pt-4 pb-3 text-white"><button data-a="nav" data-t="home" class="w-9 h-9 rounded-full bg-white/20"><i class="fa-solid fa-arrow-left"></i></button>${cloud?'<button data-a="nav" data-t="set" class="w-9 h-9 rounded-full bg-white/20"><i class="fa-solid fa-gear"></i></button>':chip()}</div><main id="main" class="px-3"></main>
  <nav class="bn fixed bottom-0 inset-x-0 max-w-md mx-auto bg-white rounded-t-3xl shadow-[0_-4px_20px_rgba(0,0,0,.12)] flex px-2">${[['home','fa-house','หน้าแรก'],['task','fa-clipboard-list','งานค้าง'],['set','fa-user','ตั้งค่า']].map(([k,i,t])=>`<button data-a="nav" data-t="${k}" class="nv"><i class="fa-solid ${i} text-xl block mb-0.5"></i>${t}${k=='task'?'<span id="bd"></span>':''}</button>`).join('')}</nav></div>`;
- unsubs.push(D.sub('assignments',a=>{S.a=a;R()}),D.sub('submissions',s=>{S.s=s;R()},['uid',me.uid]),D.sub('attendance_logs',l=>{S.l=l;R()},['uid',me.uid]));R()}
+ unsubs.push(subG(),D.sub('assignments',a=>{S.a=a;R()}),D.sub('submissions',s=>{S.s=s;R()},['uid',me.uid]),D.sub('attendance_logs',l=>{S.l=l;R()},['uid',me.uid]));R()}
 function renderS(){
  const dn=new Set(S.s.map(x=>x.assignmentId)),pe=S.a.filter(a=>!dn.has(a.id)),l=S.l[0];
  $('#bd').textContent=pe.length||'';$('#bd').className=pe.length?'ml-1 bg-rose-500 text-white rounded-full px-1.5 text-[10px]':'';
  document.querySelectorAll('.nv').forEach(b=>b.classList.toggle('on',b.dataset.t==S.tab));
  const box='bg-white rounded-3xl p-5 shadow-xl';
- $('#main').innerHTML=S.tab=='home'?`<div class="${box} text-center">${logo('text-[#6d28d9]')}
-  <div class="flex items-center gap-3 bg-violet-50 rounded-2xl p-3 mt-4 text-left">${av(me.photo,me.name,'w-14 h-14')}<div class="min-w-0"><div class="font-semibold truncate">${esc(me.name)}</div><div class="text-sm text-slate-500">${esc(me.grade||'-')} | รหัส ${esc(me.studentId)}</div></div></div>
-  <div class="relative w-fit mx-auto my-4 p-2 border border-slate-100 rounded-2xl"><div id="mq"></div><i class="fa-solid fa-circle-check absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-4xl text-[#7c3aed] bg-white rounded-full"></i></div>
+ $('#main').innerHTML=S.tab=='home'?`<div class="${box} text-center"><div class="flex justify-center">${logo('')}</div>
+  <div class="flex items-center gap-3 bg-brand-50 rounded-2xl p-3 mt-4 text-left">${av(me.photo,me.name,'w-14 h-14')}<div class="min-w-0"><div class="font-semibold truncate">${esc(me.name)}</div><div class="text-sm text-slate-500">${esc(me.grade||'-')} | รหัส ${esc(me.studentId)}</div></div></div>
+  <div class="relative w-fit mx-auto my-4 p-2 border border-slate-100 rounded-2xl"><div id="mq"></div><i class="fa-solid fa-circle-check absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-4xl text-brand-600 bg-white rounded-full"></i></div>
   ${l?`<div class="bg-emerald-500 text-white rounded-full py-2 font-semibold">เช็กชื่อสำเร็จ <i class="fa-solid fa-check ml-1"></i></div><div class="text-xs text-slate-500 mt-2">${fd(l.ts)} | ${ft(l.ts)} น.</div>`:'<div class="bg-slate-100 text-slate-500 rounded-full py-2 font-semibold">ยังไม่ได้เช็กชื่อ</div>'}
   <button data-a="sc" class="b w-full mt-4 py-4 text-lg"><i class="fa-solid fa-camera mr-2"></i>สแกน QR เช็กชื่อ</button></div>`
  :S.tab=='task'?(S.a.length?S.a.map(a=>{const ok=dn.has(a.id);return `<div class="${box} !p-4 mb-3 flex items-center gap-3"><div class="flex-1 min-w-0"><div class="font-semibold">${esc(a.title)}</div><div class="text-xs text-slate-500">กำหนดส่ง ${esc(a.due||'ไม่ระบุ')}</div></div>
    ${ok?'<span class="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 font-semibold">COMPLETED</span>':`<span class="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-700 font-semibold">PENDING</span><button data-a="sub" data-id="${a.id}" class="b !px-3 !py-1.5 text-sm">ส่งงาน</button>`}</div>`}).join(''):`<div class="${box} text-center text-slate-500">ยังไม่มีงานที่ครูสั่ง</div>`)
- :`<div class="${box} flex items-center gap-3 mb-3">${av(me.photo,me.name,'w-14 h-14')}<div><div class="font-bold">${esc(me.name)}</div><div class="text-sm text-slate-500">${esc(me.grade||'-')} | ${esc(me.track||'-')} | รหัส ${esc(me.studentId)}</div></div></div>
-  <div class="grid grid-cols-3 gap-2 mb-3 text-center">${[['เข้าเรียน',S.l.length],['งานค้าง',pe.length],['ส่งแล้ว',dn.size]].map(([n,v])=>`<div class="bg-white rounded-2xl p-3 shadow"><div class="text-2xl font-black text-[#6d28d9]">${v}</div><div class="text-xs text-slate-500">${n}</div></div>`).join('')}</div>
+ :`<div class="${box} flex items-center gap-3 mb-3">${av(me.photo,me.name,'w-14 h-14')}<div><div class="font-bold">${esc(me.name)}</div><div class="text-sm text-slate-500">รหัส ${esc(me.studentId)}</div></div></div>
+  <div class="grid grid-cols-3 gap-2 mb-3 text-center">${[['เข้าเรียน',S.l.length],['งานค้าง',pe.length],['ส่งแล้ว',dn.size]].map(([n,v])=>`<div class="bg-white rounded-2xl p-3 shadow"><div class="text-2xl font-black text-brand-700">${v}</div><div class="text-xs text-slate-500">${n}</div></div>`).join('')}</div>
+  <div class="${box} mb-3"><input data-k="grade" class="i" placeholder="ระดับชั้น เช่น ม.6/2" value="${esc(Dr.grade??me.grade??'')}"><input data-k="track" class="i" placeholder="แผนการเรียน" value="${esc(Dr.track??me.track??'')}"><button data-a="sp" class="b w-full">บันทึกข้อมูลของฉัน</button></div>
   <div class="${box} space-y-2"><button data-a="ex" class="g w-full"><i class="fa-solid fa-copy mr-2"></i>คัดลอกข้อมูล JSON</button><button data-a="lo" class="g w-full text-rose-600"><i class="fa-solid fa-right-from-bracket mr-2"></i>ออกจากระบบ</button></div>`;
  if(S.tab=='home')qr($('#mq'),me.qr,170)}
-
 function scan(){const m=modal(`<h3 class="font-bold mb-3">สแกน QR หน้าห้องเรียน</h3><div id="rd" class="rounded-2xl overflow-hidden"></div><input id="mc" class="i mt-3" placeholder="หรือพิมพ์รหัสคาบ (SES-...)"><div class="flex gap-2"><button id="ok" class="b flex-1">ยืนยันรหัส</button><button id="x" class="g">ปิด</button></div>`);
  const h=new Html5Qrcode('rd');let on=false,fin=false;
  const end=async()=>{try{if(on)await h.stop()}catch{}m.close()};
@@ -156,15 +183,16 @@ async function checkin(t){
 const NAV=[['home','fa-house','หน้าแรก'],['att','fa-clipboard-user','เช็กชื่อ'],['task','fa-box-archive','งานค้าง'],['rep','fa-chart-pie','รายงาน'],['set','fa-gear','ตั้งค่า']];
 const cs=()=>S.ss.find(x=>x.id==S.cur),cl=()=>S.l.filter(l=>l.sessionId==S.cur),late=l=>cs()&&l.ts-cs().ts>9e5;
 function teacherView(){unsub();S.cur=null;
- app.innerHTML=`<div class="flex h-screen bg-[#f8fafc]"><aside class="sb hidden lg:flex w-64 shrink-0 bg-[#3b0764] text-white flex-col justify-between p-5"><div><div class="flex justify-center mb-8 mt-2">${logo('text-white')}</div><nav class="space-y-2">${NAV.map(([k,i,t])=>`<button data-a="nav" data-t="${k}" class="nv"><i class="fa-solid ${i} text-lg w-6"></i>${t}</button>`).join('')}</nav></div>
-  <div class="bg-purple-900/40 rounded-2xl p-4 text-center text-xs text-purple-200"><div class="flex justify-center mb-2">${crest()}</div><b>โรงเรียนโยธินนุกูล</b><div class="mt-1"><i class="fa-solid fa-circle text-[8px] ${cloud?'text-emerald-400':'text-amber-400'} mr-1"></i>${cloud?'Cloud Online':'Offline (Local Mode)'}</div></div></aside>
+ app.innerHTML=`<div class="flex h-screen bg-[#f8fafc]"><aside class="sb hidden lg:flex w-64 shrink-0 bg-brand-950 text-white flex-col justify-between p-5"><div><div class="flex justify-center mb-8 mt-2">${logo('text-white')}</div><nav class="space-y-2">${NAV.map(([k,i,t])=>`<button data-a="nav" data-t="${k}" class="nv"><i class="fa-solid ${i} text-lg w-6"></i>${t}</button>`).join('')}</nav></div>
+  <div id="sf" class="bg-brand-900/40 rounded-2xl p-4 text-center text-xs text-brand-200"></div></aside>
   <div class="flex-1 flex flex-col min-w-0"><header id="hd" class="bg-white px-4 lg:px-8 py-3 flex justify-between items-center shadow-sm border-b border-slate-100 gap-2"></header><main id="main" class="flex-1 overflow-auto p-4 lg:p-8 pb-24 lg:pb-8"></main></div>
   <nav class="bn lg:hidden fixed bottom-0 inset-x-0 bg-white shadow-[0_-4px_20px_rgba(0,0,0,.12)] flex">${NAV.map(([k,i,t])=>`<button data-a="nav" data-t="${k}" class="nv"><i class="fa-solid ${i} text-lg block mb-0.5"></i>${t}</button>`).join('')}</nav></div>`;
- unsubs.push(D.sub('attendance_sessions',x=>{S.ss=x;if(!S.cur&&x[0])S.cur=x[0].id;R()}),D.sub('assignments',x=>{S.a=x;R()}),D.sub('submissions',x=>{S.s=x;R()}),D.sub('users',x=>{S.u=x;R()},['role','student']),D.sub('attendance_logs',x=>{S.l=x;R()}));R()}
+ unsubs.push(subG(),D.sub('attendance_sessions',x=>{S.ss=x;if(!S.cur&&x[0])S.cur=x[0].id;R()}),D.sub('assignments',x=>{S.a=x;R()}),D.sub('submissions',x=>{S.s=x;R()}),D.sub('users',x=>{S.u=x;R()},['role','student']),D.sub('attendance_logs',x=>{S.l=x;R()}));R()}
 function renderT(){
- $('#hd').innerHTML=`<span class="hidden sm:flex text-xs font-semibold px-3 py-1.5 bg-purple-100 text-purple-800 rounded-full"><i class="fa-solid fa-shield-halved mr-1.5 mt-0.5"></i>ระบบจัดการสถานศึกษาอัจฉริยะ</span><div class="flex items-center gap-3 ml-auto"><span class="[&>button]:!text-purple-800 [&>button]:!bg-purple-100">${chip()}</span>
+ $('#sf').innerHTML=`<div class="flex justify-center mb-2">${crest()}</div><b>โรงเรียนโยธินนุกูล</b><div class="mt-1"><i class="fa-solid fa-circle text-[8px] ${cloud?'text-emerald-400':'text-amber-400'} mr-1"></i>${cloud?'Cloud Online':'Offline (Local Mode)'}</div>`;
+ $('#hd').innerHTML=`<span class="hidden sm:flex text-xs font-semibold px-3 py-1.5 bg-brand-100 text-brand-800 rounded-full"><i class="fa-solid fa-shield-halved mr-1.5 mt-0.5"></i>ระบบจัดการสถานศึกษาอัจฉริยะ</span><div class="flex items-center gap-3 ml-auto"><span class="[&>button]:!text-brand-800 [&>button]:!bg-brand-100">${chip()}</span>
   <span class="relative w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-600"><i class="fa-regular fa-bell text-lg"></i><i class="absolute top-2 right-2.5 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white"></i></span>
-  <div class="flex items-center gap-2 bg-purple-50 pl-1.5 pr-4 py-1.5 rounded-full border border-purple-100">${av(ST.timg||me.photo,ST.tname||me.name,'w-9 h-9')}<div><div class="text-xs font-bold">${esc(ST.tname||me.name)}</div><div class="text-[10px] text-purple-600 font-medium">ครูผู้สอน (Admin)</div></div></div>
+  <div class="flex items-center gap-2 bg-brand-50 pl-1.5 pr-4 py-1.5 rounded-full border border-brand-100">${av(me.photo,me.name,'w-9 h-9')}<div><div class="text-xs font-bold">${esc(me.name)}</div><div class="text-[10px] text-brand-600 font-medium">ครูผู้สอน (Admin)</div></div></div>
   <button data-a="lo" title="ออกจากระบบ" class="w-10 h-10 rounded-full bg-slate-50 text-slate-500"><i class="fa-solid fa-right-from-bracket"></i></button></div>`;
  $('#main').innerHTML={home:tHome,att:tAtt,task:tTask,rep:tRep,set:tSet}[S.tab]();
  document.querySelectorAll('.nv').forEach(b=>b.classList.toggle('on',b.dataset.t==S.tab));
@@ -172,23 +200,34 @@ function renderT(){
 const ttl=(c,t)=>`<h2 class="text-lg font-bold flex items-center gap-2 mb-4"><span class="w-2.5 h-6 ${c} rounded-full"></span>${t}</h2>`;
 function tHome(){const s=cs(),L=cl(),n=S.u.length,lt=L.filter(late).length,pr=L.length-lt,ab=Math.max(0,n-L.length),rate=n?Math.round(L.length/n*100):0;let o=0;
  const arc=[[pr,'#22c55e'],[lt,'#3b82f6'],[ab,'#f59e0b']].map(([v,c])=>{const k=n?v/n*100:0,r=`<circle cx="18" cy="18" r="15.9155" fill="none" stroke="${c}" stroke-width="3.5" stroke-dasharray="${k} ${100-k}" stroke-dashoffset="${-o}"/>`;o+=k;return r}).join('');
- return `<section class="rounded-3xl overflow-hidden bg-white shadow-sm border border-slate-100 mb-6"><div class="bg-gradient-to-r from-[#581c87] to-[#7c3aed] text-white px-6 py-4 flex justify-between items-center gap-3"><h2 class="font-bold text-lg">เช็กชื่อประจำคาบเรียน</h2><button data-a="ns" class="bg-white text-[#6d28d9] rounded-full px-5 py-2 font-semibold text-sm shadow shrink-0"><i class="fa-solid fa-qrcode mr-1"></i>สร้าง QR Code</button></div>
- <div class="p-6 flex flex-col md:flex-row justify-between items-center gap-6"><div class="w-full md:w-auto"><div class="text-5xl font-black italic text-[#3b0764]">${esc(s?.className||'ยังไม่มีคาบ')}</div><div class="text-gray-500 mt-1 mb-4">${esc(s?.subject||'กดสร้าง QR Code เพื่อเริ่มคาบเรียน')}</div>
-  <div class="flex gap-2"><input data-k="cls" class="i !mb-0 !w-28" placeholder="ห้อง ม.6/2" value="${esc(Dr.cls??ST.cls??'')}"><input data-k="sub" class="i !mb-0" placeholder="วิชา" value="${esc(Dr.sub??ST.sub??'')}"></div></div>
+ return `<section class="rounded-3xl overflow-hidden bg-white shadow-sm border border-slate-100 mb-6"><div class="bg-gradient-to-r from-brand-900 to-brand-600 text-white px-6 py-4 flex justify-between items-center gap-3"><h2 class="font-bold text-lg">เช็กชื่อประจำคาบเรียน</h2><button data-a="ns" class="bg-white text-brand-700 rounded-full px-5 py-2 font-semibold text-sm shadow shrink-0"><i class="fa-solid fa-qrcode mr-1"></i>สร้าง QR Code</button></div>
+ <div class="p-6 flex flex-col md:flex-row justify-between items-center gap-6"><div class="w-full md:w-auto"><div class="text-5xl font-black italic text-brand-950">${esc(s?.className||'ยังไม่มีคาบ')}</div><div class="text-gray-500 mt-1 mb-4">${esc(s?.subject||'กดสร้าง QR Code เพื่อเริ่มคาบเรียน')}</div>
+  <div class="flex gap-2"><input data-k="cls" class="i !mb-0 !w-28" placeholder="ห้อง ม.6/2" value="${esc(Dr.cls??s?.className??'')}"><input data-k="sub" class="i !mb-0" placeholder="วิชา" value="${esc(Dr.sub??s?.subject??'')}"></div></div>
   <div class="flex flex-col items-center gap-2"><div class="p-3 border border-slate-100 rounded-2xl shadow-sm bg-white">${s?'<div id="mq"></div>':'<div class="w-[150px] h-[150px] bg-slate-50 rounded-xl flex items-center justify-center text-slate-300 text-5xl"><i class="fa-solid fa-qrcode"></i></div>'}</div>
   ${s?`<button data-a="tg" class="text-xs font-semibold px-3 py-1 rounded-full ${s.active?'bg-emerald-50 text-emerald-600':'bg-slate-100 text-slate-500'}"><i class="fa-solid fa-circle text-[8px] mr-1"></i>${s.active?'ใช้งานอยู่ (แตะเพื่อปิดคาบ)':'ปิดคาบแล้ว (แตะเพื่อเปิด)'}</button>`:''}</div></div></section>
  <section class="c">${ttl('bg-emerald-500','สรุปการเช็กชื่อ')}<div class="grid md:grid-cols-3 gap-6 items-center"><div class="flex items-center gap-5"><div class="relative w-28 h-28 shrink-0"><svg viewBox="0 0 36 36" class="w-full h-full -rotate-90"><circle cx="18" cy="18" r="15.9155" fill="none" stroke="#f1f5f9" stroke-width="3.5"/>${arc}</svg><div class="absolute inset-0 flex items-center justify-center text-2xl font-black">${rate}%</div></div><div><div class="text-sm font-bold">อัตราการเข้าเรียน</div><div class="text-xs text-gray-400">รวมทั้งหมด ${n} คน</div></div></div>
  <div class="md:col-span-2 grid grid-cols-3 gap-4 md:border-l border-slate-100 md:pl-8">${[['มาเรียน',pr,'bg-emerald-500'],['ขาดเรียน',ab,'bg-amber-500'],['สาย',lt,'bg-blue-500']].map(([t,v,c])=>`<div class="flex items-center gap-3"><span class="w-3.5 h-3.5 rounded-full ${c} shrink-0"></span><div><div class="text-xs text-gray-400">${t}</div><div class="text-xl font-black">${v} <span class="text-xs font-normal text-gray-500">คน</span></div></div></div>`).join('')}</div></div></section>`}
-function tAtt(){const L=cl();return `<section class="c">${ttl('bg-purple-600','รายชื่อผู้เช็กชื่อ')}<div class="flex flex-wrap gap-2 mb-4">${S.ss.slice(0,8).map(s=>`<button data-a="pick" data-id="${s.id}" class="px-3 py-1.5 rounded-full text-xs font-semibold ${s.id==S.cur?'bg-[#7c3aed] text-white':'bg-slate-100 text-slate-600'}">${esc(s.className)} ${esc(s.subject)} ${fd(s.ts)} ${ft(s.ts)}</button>`).join('')||'<span class="text-slate-400 text-sm">ยังไม่มีคาบเรียน</span>'}</div>
+function tAtt(){const L=cl();return `<section class="c">${ttl('bg-brand-600','รายชื่อผู้เช็กชื่อ')}<div class="flex flex-wrap gap-2 mb-4">${S.ss.slice(0,8).map(s=>`<button data-a="pick" data-id="${s.id}" class="px-3 py-1.5 rounded-full text-xs font-semibold ${s.id==S.cur?'bg-brand-600 text-white':'bg-slate-100 text-slate-600'}">${esc(s.className)} ${esc(s.subject)} ${fd(s.ts)} ${ft(s.ts)}</button>`).join('')||'<span class="text-slate-400 text-sm">ยังไม่มีคาบเรียน</span>'}</div>
  ${L.length?L.map(l=>`<div class="flex justify-between items-center border-b border-slate-100 py-3 text-sm"><span class="font-medium">${esc(l.name)} <span class="text-slate-400">(${esc(l.studentId)})</span></span><span>${ft(l.ts)} น. <b class="ml-2 text-xs px-2 py-1 rounded-full ${late(l)?'bg-blue-100 text-blue-700':'bg-emerald-100 text-emerald-700'}">${late(l)?'สาย':'มาเรียน'}</b></span></div>`).join(''):'<p class="text-slate-400 text-sm">ยังไม่มีนักเรียนเช็กชื่อในคาบนี้</p>'}</section>`}
 function tTask(){const n=S.u.length;return `<section class="c">${ttl('bg-amber-500','สั่งงานใหม่')}<div class="grid md:grid-cols-3 gap-2"><input data-k="at" class="i md:col-span-2" placeholder="ชื่องาน" value="${esc(Dr.at||'')}"><input data-k="ad" type="date" class="i" value="${esc(Dr.ad||'')}"></div><button data-a="na" class="b">สั่งงาน</button></section>
- <section class="c">${ttl('bg-purple-600','ติดตามงานค้าง')}${S.a.length?S.a.map(a=>{const d=S.s.filter(x=>x.assignmentId==a.id).length,p=n?Math.min(100,d/n*100):0;return `<div class="py-3 border-b border-slate-100"><div class="flex justify-between text-sm"><span class="font-semibold">${esc(a.title)} <span class="text-xs text-slate-400">กำหนดส่ง ${esc(a.due||'-')}</span></span><span>ส่งแล้ว ${d}/${n} | ค้าง ${Math.max(0,n-d)}</span></div><div class="h-2 bg-slate-100 rounded-full mt-2"><div class="h-2 bg-emerald-500 rounded-full" style="width:${p}%"></div></div></div>`}).join(''):'<p class="text-slate-400 text-sm">ยังไม่มีงานที่สั่ง</p>'}</section>`}
-function tRep(){return `<section class="c"><div class="flex justify-between items-center mb-2">${ttl('bg-blue-500','รายงานรายบุคคล')}<button data-a="ex" class="g text-sm"><i class="fa-solid fa-copy mr-1"></i>คัดลอก JSON</button></div>
+ <section class="c">${ttl('bg-brand-600','ติดตามงานค้าง')}${S.a.length?S.a.map(a=>{const d=S.s.filter(x=>x.assignmentId==a.id).length,p=n?Math.min(100,d/n*100):0,pn=S.u.filter(u=>!S.s.some(x=>x.assignmentId==a.id&&x.uid==u.id));
+  return `<div class="py-3 border-b border-slate-100"><div class="flex justify-between items-center gap-2 text-sm"><span class="font-semibold">${esc(a.title)} <span class="text-xs text-slate-400">กำหนดส่ง ${esc(a.due||'-')}</span></span><span class="flex items-center gap-3 shrink-0">ส่งแล้ว ${d}/${n}<button data-a="da" data-id="${a.id}" title="ลบงาน" class="text-slate-400 hover:text-rose-600"><i class="fa-solid fa-trash"></i></button></span></div>
+  <div class="h-2 bg-slate-100 rounded-full mt-2"><div class="h-2 bg-emerald-500 rounded-full" style="width:${p}%"></div></div>
+  ${pn.length?`<div class="flex flex-wrap gap-1 mt-2">${pn.slice(0,12).map(u=>`<span class="text-[11px] bg-amber-50 text-amber-700 rounded-full px-2 py-0.5">${esc(u.name)}</span>`).join('')}${pn.length>12?`<span class="text-[11px] text-slate-400">และอีก ${pn.length-12} คน</span>`:''}</div>`:''}</div>`}).join(''):'<p class="text-slate-400 text-sm">ยังไม่มีงานที่สั่ง</p>'}</section>`}
+function tRep(){return `<section class="c"><div class="flex justify-between items-center mb-2 gap-2">${ttl('bg-blue-500','รายงานรายบุคคล')}<div class="flex gap-2"><button data-a="csv" class="g text-sm"><i class="fa-solid fa-file-csv mr-1"></i>CSV</button><button data-a="ex" class="g text-sm"><i class="fa-solid fa-copy mr-1"></i>JSON</button></div></div>
  <div class="overflow-x-auto"><table class="w-full text-sm"><tr class="text-left text-slate-400"><th class="py-2">ชื่อ</th><th>รหัส</th><th>ชั้น</th><th>เข้าเรียน (ครั้ง)</th><th>งานค้าง</th></tr>${S.u.map(u=>`<tr class="border-t border-slate-100"><td class="py-2 font-medium">${esc(u.name)}</td><td>${esc(u.studentId)}</td><td>${esc(u.grade||'-')}</td><td>${S.l.filter(l=>l.uid==u.id).length}</td><td>${Math.max(0,S.a.length-S.s.filter(x=>x.uid==u.id).length)}</td></tr>`).join('')||'<tr><td class="py-3 text-slate-400">ยังไม่มีนักเรียนในระบบ</td></tr>'}</table></div></section>`}
-function tSet(){const f=(k,l,p)=>`<label class="text-sm font-semibold">${l}</label><input data-k="${k}" class="i" placeholder="${p}" value="${esc(Dr[k]??ST[k]??'')}">`;
- return `<section class="c max-w-xl">${ttl('bg-purple-600','สตูดิโอปรับแต่ง (Custom Studio)')}${f('logo','ลิงก์รูปโลโก้โรงเรียน','วาง URL รูปภาพ')}${f('tname','ชื่อคุณครูผู้สอน','เช่น คุณครูวรพงศ์')}${f('timg','ลิงก์รูปโปรไฟล์ครู','วาง URL รูปภาพ')}
- <div class="flex flex-wrap gap-2 mt-2"><button data-a="sv" class="b">บันทึกการเปลี่ยนแปลง</button><button data-a="fb" class="g"><i class="fa-solid fa-database mr-2"></i>ตั้งค่า Firebase</button></div></section>`}
+function tSet(){const hue=Dr.hue??G.hue??268,lg=Dr.logo??G.logo,ph=Dr.timg??me.photo;
+ return `<section class="c max-w-xl">${ttl('bg-brand-600','สตูดิโอปรับแต่ง (Custom Studio)')}
+ <div class="font-semibold text-sm mb-2">ตราโรงเรียน (ทุกเครื่องเห็นเหมือนกัน)</div><div class="flex items-center gap-3 mb-5">${crest('w-16 h-16',lg)}<label class="g cursor-pointer"><i class="fa-solid fa-upload mr-2"></i>อัปโหลดรูป<input type="file" accept="image/*" data-up="logo" class="hidden"></label><button data-a="rl" class="g">ใช้ตราเดิม</button></div>
+ <div class="font-semibold text-sm mb-2">สีธีม</div><div class="flex flex-wrap gap-3 mb-5">${THEMES.map(([n,h])=>`<button data-a="hue" data-h="${h}" title="${n}" class="w-10 h-10 rounded-full ${h==hue?'ring-4 ring-offset-2 ring-slate-300':''}" style="background:hsl(${h} 80% 50%)"></button>`).join('')}</div>
+ <div class="font-semibold text-sm mb-2">โปรไฟล์ครู</div><input data-k="tname" class="i" placeholder="ชื่อคุณครู" value="${esc(Dr.tname??me.name)}"><div class="flex items-center gap-3 mb-5">${av(ph,me.name,'w-14 h-14')}<label class="g cursor-pointer"><i class="fa-solid fa-upload mr-2"></i>อัปโหลดรูปโปรไฟล์<input type="file" accept="image/*" data-up="timg" class="hidden"></label></div>
+ <div class="flex flex-wrap gap-2"><button data-a="sv" class="b">บันทึกการเปลี่ยนแปลง</button><button data-a="fb" class="g"><i class="fa-solid fa-database mr-2"></i>ตั้งค่า Firebase</button></div></section>`}
 
 // ---------- boot ----------
-if(cloud){const a=initializeApp(cfg);auth=getAuth(a);fs=getFirestore(a);D=Cloud;onAuthStateChanged(auth,u=>u?enter({uid:u.uid,displayName:u.displayName,photoURL:u.photoURL}):landing())}else landing();
+(async()=>{
+ if(cloud){const a=initializeApp(cfg);auth=getAuth(a);fs=getFirestore(a);D=Cloud}
+ try{G=(await D.get('settings','studio'))||{}}catch{}
+ theme(G.hue);
+ if(cloud)onAuthStateChanged(auth,u=>u?enter({uid:u.uid,displayName:u.displayName,photoURL:u.photoURL}):landing());else landing();
+})();
 </script></body></html>
