@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MACHECK - ระบบเช็กชื่อ & ติดตามงาน โรงเรียนโยธินนุกูล</title>
+    <title>MACHECK - ระบบเช็กชื่ออัจฉริยะ & ติดตามงาน โรงเรียนโยธินนุกูล</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -15,19 +15,19 @@
     <!-- Google Fonts: Prompt -->
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Prompt', sans-serif; background-color: #f8fafc; }
+        body { font-family: 'Prompt', sans-serif; background-color: #faf5ff; }
         .yn-title-gradient {
-            background: linear-gradient(135deg, #0f2447 0%, #1e40af 45%, #b48327 80%, #d4af37 100%);
+            background: linear-gradient(135deg, #3b0764 0%, #6b21a8 45%, #b48327 80%, #d4af37 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         .yn-gold-btn {
-            background: linear-gradient(135deg, #0f2447 0%, #1e3a8a 100%);
+            background: linear-gradient(135deg, #4c1d95 0%, #6b21a8 100%);
             border: 1.5px solid #e5be69;
-            box-shadow: 0 4px 15px rgba(15, 36, 71, 0.35);
+            box-shadow: 0 4px 15px rgba(76, 29, 149, 0.35);
         }
         .yn-gold-btn:hover {
-            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+            background: linear-gradient(135deg, #581c87 0%, #7e22ce 100%);
         }
         .clip-left-panel { clip-path: polygon(0 0, 100% 0, 72% 100%, 0% 100%); }
         .clip-center-card { clip-path: polygon(10% 0, 100% 0, 90% 100%, 0% 100%); }
@@ -41,46 +41,46 @@
 <body class="min-h-screen flex flex-col text-slate-800">
 
     <!-- Toast Notification -->
-    <div id="toast-box" class="fixed top-5 right-5 z-[100] hidden max-w-sm w-full bg-[#0f2447]/95 backdrop-blur-md text-white px-4 py-3.5 rounded-2xl shadow-2xl border border-amber-400/50 flex items-center justify-between transition-all duration-300">
+    <div id="toast-box" class="fixed top-5 right-5 z-[100] hidden max-w-sm w-full bg-[#3b0764]/95 backdrop-blur-md text-white px-4 py-3.5 rounded-2xl shadow-2xl border border-amber-400/50 flex items-center justify-between transition-all duration-300">
         <div class="flex items-center gap-3">
             <div id="toast-icon-bg" class="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center">
                 <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
             </div>
             <span id="toast-msg" class="text-xs font-medium leading-relaxed">ดำเนินการสำเร็จ</span>
         </div>
-        <button onclick="hideToast()" class="text-slate-400 hover:text-white ml-3 p-1"><i class="fa-solid fa-xmark"></i></button>
+        <button onclick="hideToast()" class="text-purple-300 hover:text-white ml-3 p-1"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
     <!-- Top Official School Header -->
-    <div class="bg-white border-b border-slate-200 py-2.5 px-4">
+    <div class="bg-white border-b border-purple-200 py-2.5 px-4 shadow-sm">
         <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-3">
             <div class="flex items-center gap-3">
                 <div class="relative group cursor-pointer" onclick="openCustomizerModal()" title="คลิกเพื่อเปลี่ยนโลโก้และตกแต่งเว็บ">
-                    <img id="brand-logo-img" src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23ffffff'/%3E%3Cstop offset='100%25' stop-color='%23e2e8f0'/%3E%3C/linearGradient%3E%3ClinearGradient id='chk1' x1='0' y1='1' x2='1' y2='0'%3E%3Cstop offset='0%25' stop-color='%230f2447'/%3E%3Cstop offset='100%25' stop-color='%231d4ed8'/%3E%3C/linearGradient%3E%3ClinearGradient id='chk2' x1='0' y1='1' x2='1' y2='0'%3E%3Cstop offset='0%25' stop-color='%232563eb'/%3E%3Cstop offset='100%25' stop-color='%237dd3fc'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='10' y='10' width='180' height='180' rx='44' fill='url(%23bg)' stroke='%23cbd5e1' stroke-width='3'/%3E%3Cpath d='M52 102 L82 132 L144 64' fill='none' stroke='url(%23chk1)' stroke-width='26' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M60 100 L88 128 L150 60' fill='none' stroke='url(%23chk2)' stroke-width='22' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" alt="MACHECK Logo" class="w-11 h-11 rounded-xl object-cover border-2 border-[#0f2447]/30 shadow-sm bg-white">
-                    <span class="absolute -bottom-1 -right-1 bg-[#0f2447] text-amber-400 text-[8px] w-4 h-4 rounded-full flex items-center justify-center shadow">
+                    <img id="brand-logo-img" src="unnamed.jpg" onerror="this.src='data:image/svg+xml;utf8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 200 200\'%3E%3Ccircle cx=\'100\' cy=\'100\' r=\'95\' fill=\'%236b21a8\' stroke=\'%23bae6fd\' stroke-width=\'10\'/%3E%3Ctext x=\'100\' y=\'115\' font-size=\'52\' font-weight=\'bold\' fill=\'%23ffffff\' text-anchor=\'middle\' font-family=\'sans-serif\'%3Eยน%3C/text%3E%3C/svg%3E'" alt="ตราโรงเรียนโยธินนุกูล" class="w-12 h-12 rounded-full object-cover border-2 border-[#6b21a8] shadow-sm bg-white">
+                    <span class="absolute -bottom-1 -right-1 bg-[#4c1d95] text-amber-300 text-[8px] w-4 h-4 rounded-full flex items-center justify-center shadow">
                         <i class="fa-solid fa-pen"></i>
                     </span>
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
-                        <span id="header-brand-title" class="font-bold text-lg text-[#0f2447] tracking-tight leading-none">MACHECK</span>
-                        <span class="text-[10px] bg-blue-900 text-amber-300 px-2 py-0.5 rounded font-bold tracking-wide">YOTHINNUKUL OFFICIAL</span>
+                        <span id="header-brand-title" class="font-bold text-lg text-[#4c1d95] tracking-tight leading-none">MACHECK • โรงเรียนโยธินนุกูล</span>
+                        <span class="text-[10px] bg-[#6b21a8] text-amber-300 px-2 py-0.5 rounded font-bold tracking-wide">รั้วม่วง-ขาว</span>
                     </div>
-                    <p id="header-brand-sub" class="text-[11px] text-slate-600 mt-0.5 font-medium">โรงเรียนโยธินนุกูล • สังกัดเทศบาลตำบลหนองไผ่ล้อม จ.นครราชสีมา</p>
+                    <p id="header-brand-sub" class="text-[11px] text-slate-600 mt-0.5 font-medium">ใฝ่รู้ ใฝ่ดี • สังกัดเทศบาลตำบลหนองไผ่ล้อม จังหวัดนครราชสีมา</p>
                 </div>
             </div>
 
             <div class="flex items-center gap-4 text-xs">
                 <div class="hidden xl:flex items-center gap-2 text-slate-600">
-                    <i class="fa-solid fa-location-dot text-[#991b1b] text-sm"></i>
+                    <i class="fa-solid fa-location-dot text-[#7e22ce] text-sm"></i>
                     <span id="header-school-address">187 ถ.ปาณิกบุตร ต.หนองไผ่ล้อม อ.เมือง จ.นครราชสีมา 30000</span>
                 </div>
-                <div class="hidden md:flex items-center gap-2 text-slate-600 border-l pl-4 border-slate-200">
-                    <i class="fa-solid fa-phone text-[#0f2447] text-sm"></i>
-                    <a href="http://yothinnukul.ac.th/th" target="_blank" class="hover:text-blue-700 font-medium underline decoration-amber-400">044-252727 | yothinnukul.ac.th</a>
+                <div class="hidden md:flex items-center gap-2 text-slate-600 border-l pl-4 border-purple-200">
+                    <i class="fa-solid fa-phone text-[#4c1d95] text-sm"></i>
+                    <a href="http://yothinnukul.ac.th/th" target="_blank" class="hover:text-purple-700 font-medium underline decoration-amber-400">044-252727</a>
                 </div>
 
-                <button onclick="openCustomizerModal()" class="bg-gradient-to-r from-[#0f2447] to-[#1e3a8a] hover:from-blue-900 hover:to-blue-800 text-amber-300 border border-amber-400/50 font-bold px-3.5 py-2 rounded-xl shadow-md flex items-center gap-1.5 transition active:scale-95">
+                <button onclick="openCustomizerModal()" class="bg-gradient-to-r from-[#4c1d95] to-[#6b21a8] text-amber-300 border border-amber-400/50 font-bold px-3.5 py-2 rounded-xl shadow-md flex items-center gap-1.5 transition active:scale-95">
                     <i class="fa-solid fa-wand-magic-sparkles"></i>
                     <span>ตกแต่งเว็บ / อัปโหลดรูป</span>
                 </button>
@@ -89,32 +89,38 @@
     </div>
 
     <!-- Navigation Bar -->
-    <nav class="bg-[#0f2447] text-white shadow-md sticky top-0 z-50 border-b-2 border-[#d4af37]">
+    <nav class="bg-[#4c1d95] text-white shadow-md sticky top-0 z-50 border-b-2 border-[#d4af37]">
         <div class="max-w-7xl mx-auto px-4 flex items-center justify-between overflow-x-auto">
             <div class="flex items-center text-xs md:text-sm font-medium whitespace-nowrap">
-                <button onclick="scrollToWorkspace('hero')" class="bg-[#991b1b] text-white px-4 py-3 font-bold border-r border-blue-800/60">
+                <button onclick="scrollToWorkspace('hero')" class="bg-[#7e22ce] text-white px-4 py-3 font-bold border-r border-purple-700/60">
                     หน้าหลัก
                 </button>
-                <button onclick="scrollToWorkspace('scan')" class="hover:bg-blue-900/80 px-4 py-3 transition border-r border-blue-800/60">
-                    <i class="fa-solid fa-qrcode mr-1.5 text-amber-400"></i>สแกนเช็กชื่อ
+                <button onclick="scrollToWorkspace('scan')" class="hover:bg-purple-800/80 px-4 py-3 transition border-r border-purple-700/60">
+                    <i class="fa-solid fa-qrcode mr-1.5 text-amber-300"></i>สแกนเช็กชื่อ
                 </button>
-                <button onclick="scrollToWorkspace('tasks')" class="hover:bg-blue-900/80 px-4 py-3 transition border-r border-blue-800/60">
-                    <i class="fa-solid fa-list-check mr-1.5 text-amber-400"></i>ติดตามงานค้าง
+                <button onclick="scrollToWorkspace('tasks')" class="hover:bg-purple-800/80 px-4 py-3 transition border-r border-purple-700/60">
+                    <i class="fa-solid fa-list-check mr-1.5 text-amber-300"></i>ติดตามงานค้าง
                 </button>
-                <button onclick="scrollToWorkspace('profile')" class="hover:bg-blue-900/80 px-4 py-3 transition border-r border-blue-800/60">
-                    <i class="fa-solid fa-id-card mr-1.5 text-amber-400"></i>บัตรนักเรียนดิจิทัล
+                <button onclick="scrollToWorkspace('profile')" class="hover:bg-purple-800/80 px-4 py-3 transition border-r border-purple-700/60">
+                    <i class="fa-solid fa-id-card mr-1.5 text-amber-300"></i>บัตรนักเรียนดิจิทัล
                 </button>
-                <button onclick="scrollToWorkspace('school-db')" class="hover:bg-blue-900/80 px-4 py-3 transition">
-                    <i class="fa-solid fa-school mr-1.5 text-amber-400"></i>ฐานข้อมูลโรงเรียน
+                <button onclick="scrollToWorkspace('teacher-tools')" id="nav-teacher-btn" class="hidden hover:bg-purple-800/80 px-4 py-3 transition border-r border-purple-700/60 bg-purple-950 text-amber-300 font-bold">
+                    <i class="fa-solid fa-chalkboard-user mr-1.5 text-amber-300"></i>โหมดครู (สร้าง QR)
+                </button>
+                <button onclick="scrollToWorkspace('school-db')" class="hover:bg-purple-800/80 px-4 py-3 transition">
+                    <i class="fa-solid fa-school mr-1.5 text-amber-300"></i>ข่าวสาร & ฐานข้อมูล
                 </button>
             </div>
 
             <div class="flex items-center gap-2 pl-3 shrink-0">
-                <button onclick="toggleFirebaseModal()" id="db-status" class="text-[11px] bg-blue-950 hover:bg-blue-900 text-amber-300 px-2.5 py-1 rounded-lg border border-amber-400/40 font-semibold flex items-center gap-1.5 transition">
+                <button onclick="toggleFirebaseModal()" id="db-status" class="text-[11px] bg-purple-950 hover:bg-purple-900 text-amber-300 px-2.5 py-1 rounded-lg border border-amber-400/40 font-semibold flex items-center gap-1.5 transition">
                     <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
                     <span class="hidden sm:inline">เชื่อมต่อ Cloud</span>
                 </button>
-                <button onclick="logoutUser()" id="btn-logout" class="hidden text-xs bg-rose-700 hover:bg-rose-800 text-white px-2.5 py-1 rounded-lg transition" title="ออกจากระบบ">
+                <button onclick="openAuthModal()" id="btn-login-trigger" class="text-xs bg-amber-400 hover:bg-amber-500 text-purple-950 font-bold px-3 py-1.5 rounded-lg transition shadow">
+                    <i class="fa-solid fa-right-to-bracket mr-1"></i> เข้าสู่ระบบ
+                </button>
+                <button onclick="logoutUser()" id="btn-logout" class="hidden text-xs bg-rose-700 hover:bg-rose-800 text-white px-2.5 py-1.5 rounded-lg transition" title="ออกจากระบบ">
                     <i class="fa-solid fa-right-from-bracket"></i>
                 </button>
             </div>
@@ -122,28 +128,28 @@
     </nav>
 
     <!-- Slanted Collage Hero Banner -->
-    <section id="hero-banner-section" class="relative w-full bg-white border-b-4 border-[#0f2447] overflow-hidden shadow-lg">
-        <div class="max-w-[1440px] mx-auto relative min-h-[390px] md:min-h-[440px] flex flex-col md:flex-row items-stretch">
+    <section id="hero-banner-section" class="relative w-full bg-white border-b-4 border-[#4c1d95] overflow-hidden shadow-lg">
+        <div class="max-w-[1440px] mx-auto relative min-h-[400px] md:min-h-[450px] flex flex-col md:flex-row items-stretch">
             
-            <!-- Panel 1 -->
-            <div class="hidden md:block w-[24%] relative overflow-hidden clip-left-panel bg-[#0f2447] group cursor-pointer" onclick="openCustomizerModal()">
-                <img id="banner-img-1" src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=800&q=80" alt="Yothinnukul Campus 1" class="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-85">
-                <div class="absolute inset-0 bg-gradient-to-t from-[#0f2447]/80 via-transparent to-transparent"></div>
-                <span class="absolute bottom-3 left-3 text-[10px] bg-[#0f2447]/80 text-amber-300 border border-amber-400/30 px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition">
-                    <i class="fa-solid fa-camera mr-1"></i> เปลี่ยนรูปช่องที่ 1
+            <!-- Panel 1: ภาพหน้าเสาธงและป้ายโรงเรียนโยธินนุกูล -->
+            <div class="hidden md:block w-[25%] relative overflow-hidden clip-left-panel bg-[#3b0764] group cursor-pointer" onclick="openCustomizerModal()">
+                <img id="banner-img-1" src="895544466_1675609701029438_1046798962342111964_n.jpg" onerror="this.src='https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=800&q=80'" alt="กิจกรรมหน้าเสาธง โรงเรียนโยธินนุกูล" class="w-full h-full object-cover object-center group-hover:scale-105 transition duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-[#3b0764]/75 via-transparent to-transparent"></div>
+                <span class="absolute bottom-3 left-3 text-[10px] bg-[#3b0764]/90 text-amber-300 border border-amber-400/30 px-2.5 py-1 rounded-lg">
+                    <i class="fa-solid fa-camera mr-1"></i> บรรยากาศหน้าเสาธง
                 </span>
             </div>
 
             <!-- Center Content -->
             <div class="flex-1 md:-ml-14 md:-mr-14 z-20 bg-white/95 md:bg-white md:clip-center-card px-6 py-8 md:px-16 flex flex-col items-center justify-center text-center relative shadow-2xl">
-                <span class="text-[10px] font-bold tracking-widest uppercase text-[#991b1b] bg-red-50 border border-red-200 px-3 py-0.5 rounded-full mb-2">
-                    "สุขภาพเยี่ยม เปี่ยมคุณธรรม เลิศล้ำปัญญา มีคุณค่าต่อสังคม"
+                <span class="text-[10px] font-bold tracking-widest uppercase text-[#6b21a8] bg-purple-50 border border-purple-200 px-3.5 py-1 rounded-full mb-2">
+                    "ยินดีต้อนรับกลับเข้าสู่รั้วม่วง-ขาว • ใฝ่รู้ ใฝ่ดี"
                 </span>
                 
-                <h2 id="hero-main-title" class="font-serif-gold text-4xl sm:text-5xl md:text-6xl font-extrabold yn-title-gradient tracking-wider drop-shadow-sm">
+                <h2 id="hero-main-title" class="text-4xl sm:text-5xl md:text-6xl font-extrabold yn-title-gradient tracking-wider drop-shadow-sm">
                     MACHECK
                 </h2>
-                <p id="hero-sub-title" class="text-xs sm:text-sm tracking-[0.25em] text-[#0f2447] font-bold uppercase mt-1">
+                <p id="hero-sub-title" class="text-xs sm:text-sm tracking-[0.22em] text-[#4c1d95] font-bold uppercase mt-1">
                     YOTHINNUKUL SCHOOL • KORAT
                 </p>
 
@@ -153,50 +159,49 @@
                     ระบบเช็กชื่ออัจฉริยะ โรงเรียนโยธินนุกูล
                 </h3>
                 <p id="hero-description" class="text-xs text-slate-600 max-w-md mt-1 leading-relaxed">
-                    ฐานข้อมูลกลางสำหรับนักเรียนและบุคลากร สังกัดเทศบาลตำบลหนองไผ่ล้อม เช็กชื่อด้วย Unique QR Code และติดตามงานค้างแบบ Real-time
+                    เรียนรู้ อย่างมีคุณภาพ • ดูแลด้วยหัวใจ เสริมสร้างอนาคต • สร้างคนดีสู่สังคม ระบบเช็กชื่อเข้าเรียนและติดตามงานค้างออนไลน์
                 </p>
 
-                <div class="mt-4 bg-[#0f2447] text-white px-7 py-3 clip-contact-box border-b-2 border-[#d4af37] shadow-lg max-w-md w-full">
+                <div class="mt-4 bg-[#4c1d95] text-white px-7 py-3 clip-contact-box border-b-2 border-[#d4af37] shadow-lg max-w-md w-full">
                     <p id="hero-box-line1" class="text-xs sm:text-sm font-semibold text-amber-300">
-                        นักเรียน: นายปิยวัฒน์ ศรีสอาด (รหัส 6701)
+                        ผู้ใช้งาน: นายปิยวัฒน์ ศรีสอาด (รหัส 6701)
                     </p>
-                    <p id="hero-box-line2" class="text-[11px] sm:text-xs text-blue-100 mt-0.5">
-                        ระดับชั้น ม.6/2 • โทร: 044-252727 (yothinnukul.ac.th)
+                    <p id="hero-box-line2" class="text-[11px] sm:text-xs text-purple-100 mt-0.5">
+                        ระดับชั้น ม.6/2 • สังกัดเทศบาลตำบลหนองไผ่ล้อม จ.นครราชสีมา
                     </p>
                 </div>
 
                 <div class="mt-4 flex flex-wrap justify-center gap-3">
                     <button onclick="scrollToWorkspace('scan')" class="yn-gold-btn text-amber-200 font-bold text-sm px-8 py-2.5 rounded-xl tracking-wide transition transform hover:-translate-y-0.5 active:scale-95">
-                        <i class="fa-solid fa-qrcode mr-2 text-amber-400"></i>เช็กชื่อเข้าเรียนทันที
+                        <i class="fa-solid fa-qrcode mr-2 text-amber-300"></i>เช็กชื่อเข้าเรียนทันที
                     </button>
-                    <a href="http://yothinnukul.ac.th/th" target="_blank" class="bg-white hover:bg-slate-50 text-[#0f2447] border border-slate-300 font-bold text-xs px-5 py-2.5 rounded-xl flex items-center gap-1.5 shadow-sm transition">
-                        <i class="fa-solid fa-globe text-blue-700"></i> เว็บไซต์หลักโรงเรียน
+                    <a href="http://yothinnukul.ac.th/th" target="_blank" class="bg-purple-50 hover:bg-purple-100 text-[#4c1d95] border border-purple-200 font-bold text-xs px-5 py-2.5 rounded-xl flex items-center gap-1.5 shadow-sm transition">
+                        <i class="fa-solid fa-globe text-purple-700"></i> เว็บไซต์โรงเรียน
                     </a>
                 </div>
             </div>
 
-            <!-- Panel 2 -->
-            <div class="hidden md:block w-[22%] relative overflow-hidden clip-right-1 bg-[#1e3a8a] group cursor-pointer border-l-4 border-[#d4af37]" onclick="openCustomizerModal()">
-                <img id="banner-img-2" src="https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=800&q=80" alt="Yothinnukul Campus 2" class="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-85">
-                <div class="absolute inset-0 bg-gradient-to-t from-[#0f2447]/80 via-transparent to-transparent"></div>
-                <span class="absolute bottom-4 left-6 text-[10px] bg-[#0f2447]/80 text-amber-300 px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition">
-                    <i class="fa-solid fa-camera mr-1"></i> เปลี่ยนรูปช่องที่ 2
+            <!-- Panel 2: ภาพอาคารเรียนและสนามบาสเกตบอล -->
+            <div class="hidden md:block w-[22%] relative overflow-hidden clip-right-1 bg-[#581c87] group cursor-pointer border-l-4 border-[#d4af37]" onclick="openCustomizerModal()">
+                <img id="banner-img-2" src="893427890_1675610297696045_3758691852108602598_n.jpg" onerror="this.src='https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=800&q=80'" alt="อาคารเรียนโยธินนุกูล" class="w-full h-full object-cover object-center group-hover:scale-105 transition duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-[#3b0764]/75 via-transparent to-transparent"></div>
+                <span class="absolute bottom-4 left-6 text-[10px] bg-[#3b0764]/90 text-amber-300 px-2.5 py-1 rounded-lg">
+                    <i class="fa-solid fa-school mr-1"></i> อาคารเรียนโยธินนุกูล
                 </span>
             </div>
 
-            <!-- Panel 3 & Official Badge -->
-            <div class="hidden md:block w-[22%] -ml-10 relative overflow-hidden clip-right-2 bg-[#0f2447] group cursor-pointer" onclick="openCustomizerModal()">
-                <img id="banner-img-3" src="https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=800&q=80" alt="Yothinnukul Campus 3" class="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-85">
-                <div class="absolute inset-0 bg-gradient-to-t from-[#0f2447]/80 via-transparent to-transparent"></div>
+            <!-- Panel 3 & Official School Crest -->
+            <div class="hidden md:block w-[23%] -ml-10 relative overflow-hidden clip-right-2 bg-[#3b0764] group cursor-pointer" onclick="openCustomizerModal()">
+                <img id="banner-img-3" src="858319969_1658554702734938_649735766944740746_n.jpg" onerror="this.src='https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=800&q=80'" alt="ประชาสัมพันธ์โรงเรียนโยธินนุกูล" class="w-full h-full object-cover object-right group-hover:scale-105 transition duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-[#3b0764]/75 via-transparent to-transparent"></div>
                 
-                <div class="absolute top-4 right-4 w-20 h-20 rounded-full bg-[#0f2447]/95 border-2 border-[#d4af37] shadow-xl flex flex-col items-center justify-center p-2 text-center">
-                    <img id="badge-circle-img" src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23ffffff'/%3E%3Cstop offset='100%25' stop-color='%23e2e8f0'/%3E%3C/linearGradient%3E%3ClinearGradient id='chk1' x1='0' y1='1' x2='1' y2='0'%3E%3Cstop offset='0%25' stop-color='%230f2447'/%3E%3Cstop offset='100%25' stop-color='%231d4ed8'/%3E%3C/linearGradient%3E%3ClinearGradient id='chk2' x1='0' y1='1' x2='1' y2='0'%3E%3Cstop offset='0%25' stop-color='%232563eb'/%3E%3Cstop offset='100%25' stop-color='%237dd3fc'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='10' y='10' width='180' height='180' rx='44' fill='url(%23bg)' stroke='%23cbd5e1' stroke-width='3'/%3E%3Cpath d='M52 102 L82 132 L144 64' fill='none' stroke='url(%23chk1)' stroke-width='26' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M60 100 L88 128 L150 60' fill='none' stroke='url(%23chk2)' stroke-width='22' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" class="w-8 h-8 object-contain mb-0.5 rounded-lg">
-                    <span class="text-[9px] font-bold text-amber-300 tracking-wider leading-none">MACHECK</span>
-                    <span class="text-[7px] text-white/90 tracking-widest mt-0.5">YOTHINNUKUL</span>
+                <!-- ตราประจำโรงเรียนโยธินนุกูล -->
+                <div class="absolute top-4 right-4 w-24 h-24 rounded-full bg-white/95 border-2 border-[#d4af37] shadow-2xl flex flex-col items-center justify-center p-1 text-center">
+                    <img id="badge-circle-img" src="unnamed.jpg" onerror="this.src='data:image/svg+xml;utf8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 200 200\'%3E%3Ccircle cx=\'100\' cy=\'100\' r=\'95\' fill=\'%236b21a8\'/%3E%3Ctext x=\'100\' y=\'115\' font-size=\'52\' font-weight=\'bold\' fill=\'%23ffffff\' text-anchor=\'middle\'%3Eยน%3C/text%3E%3C/svg%3E'" class="w-full h-full object-cover rounded-full">
                 </div>
 
-                <span class="absolute bottom-4 right-4 text-[10px] bg-[#0f2447]/80 text-amber-300 px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition">
-                    <i class="fa-solid fa-camera mr-1"></i> เปลี่ยนรูปช่องที่ 3
+                <span class="absolute bottom-4 right-4 text-[10px] bg-[#3b0764]/90 text-amber-300 px-2.5 py-1 rounded-lg">
+                    <i class="fa-solid fa-bullhorn mr-1"></i> ประชาสัมพันธ์เปิดภาคเรียน
                 </span>
             </div>
         </div>
@@ -205,82 +210,82 @@
     <!-- Main Workspace -->
     <main class="max-w-7xl mx-auto w-full px-4 py-8 space-y-8 flex-1">
         <div class="text-center space-y-1">
-            <p class="text-xs font-bold text-[#991b1b] tracking-widest uppercase">Yothinnukul Smart School Management System</p>
-            <h2 class="font-serif-gold text-2xl md:text-3xl font-bold text-[#0f2447] tracking-wide">
+            <p class="text-xs font-bold text-[#7e22ce] tracking-widest uppercase">Yothinnukul Smart School Management System</p>
+            <h2 class="text-2xl md:text-3xl font-bold text-[#3b0764] tracking-wide">
                 MACHECK ATTENDANCE & TASKS PORTAL
             </h2>
-            <div class="w-32 h-1 bg-gradient-to-r from-[#0f2447] via-[#d4af37] to-[#991b1b] mx-auto mt-2 rounded-full"></div>
+            <div class="w-32 h-1 bg-gradient-to-r from-[#4c1d95] via-[#d4af37] to-[#7e22ce] mx-auto mt-2 rounded-full"></div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <!-- 1. Scanner -->
-            <div id="sec-scan" class="lg:col-span-4 bg-white rounded-3xl border border-slate-200 shadow-md overflow-hidden flex flex-col">
-                <div class="bg-[#0f2447] text-white px-5 py-4 flex justify-between items-center border-b-2 border-[#d4af37]">
+            <div id="sec-scan" class="lg:col-span-4 bg-white rounded-3xl border border-purple-200/80 shadow-md overflow-hidden flex flex-col">
+                <div class="bg-[#4c1d95] text-white px-5 py-4 flex justify-between items-center border-b-2 border-[#d4af37]">
                     <div class="flex items-center gap-2.5">
-                        <i class="fa-solid fa-qrcode text-amber-400 text-lg"></i>
+                        <i class="fa-solid fa-qrcode text-amber-300 text-lg"></i>
                         <div>
                             <h3 class="font-bold text-sm">1. ระบบเช็กชื่อเข้าเรียน</h3>
-                            <p class="text-[10px] text-blue-200">สแกน QR หน้าห้องหรือกรอกรหัสคาบ</p>
+                            <p class="text-[10px] text-purple-200">สแกน QR หน้าห้องหรือกรอกรหัสคาบ</p>
                         </div>
                     </div>
                     <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 rounded-full font-bold">LIVE</span>
                 </div>
 
                 <div class="p-5 space-y-4 flex-1 flex flex-col justify-between">
-                    <div class="bg-slate-950 rounded-2xl overflow-hidden aspect-square max-h-[250px] mx-auto w-full relative flex items-center justify-center border-2 border-[#0f2447] shadow-inner">
+                    <div class="bg-slate-950 rounded-2xl overflow-hidden aspect-square max-h-[250px] mx-auto w-full relative flex items-center justify-center border-2 border-[#4c1d95] shadow-inner">
                         <div id="m-reader" class="w-full h-full"></div>
-                        <div id="m-cam-overlay" class="absolute inset-0 flex flex-col items-center justify-center p-5 text-center bg-[#0f2447]/95">
+                        <div id="m-cam-overlay" class="absolute inset-0 flex flex-col items-center justify-center p-5 text-center bg-[#3b0764]/95">
                             <div class="w-14 h-14 bg-amber-400/20 text-amber-300 rounded-2xl flex items-center justify-center text-2xl mb-3 border border-amber-400/40">
                                 <i class="fa-solid fa-camera"></i>
                             </div>
                             <p class="text-white font-bold text-sm">เปิดกล้องสแกน QR เช็กชื่อ</p>
-                            <p class="text-blue-200 text-[11px] mt-1 mb-4">รองรับกล้องมือถือและเว็บแคมคอมพิวเตอร์</p>
+                            <p class="text-purple-200 text-[11px] mt-1 mb-4">สแกน QR จากหน้าจอครูผู้สอน</p>
                             <button onclick="startMobileScanner()" class="yn-gold-btn text-amber-200 font-bold text-xs px-5 py-2.5 rounded-xl transition">
                                 เปิดกล้องสแกนทันที
                             </button>
                         </div>
                     </div>
 
-                    <div class="space-y-2 pt-2 border-t border-slate-100">
-                        <label class="text-[11px] font-bold text-[#0f2447] block">หรือกรอกรหัสคาบเรียน (Session ID):</label>
+                    <div class="space-y-2 pt-2 border-t border-purple-100">
+                        <label class="text-[11px] font-bold text-[#4c1d95] block">หรือกรอกรหัสคาบเรียน (Session ID):</label>
                         <div class="flex gap-2">
-                            <input type="text" id="d-manual-session" value="YN_2569_01" class="flex-1 border border-slate-300 bg-slate-50 rounded-xl px-3 py-2 text-xs font-mono focus:outline-none focus:border-[#0f2447]">
-                            <button onclick="submitCheckIn(document.getElementById('d-manual-session').value)" class="bg-[#991b1b] hover:bg-red-800 text-white text-xs font-bold px-4 py-2 rounded-xl shadow transition">
+                            <input type="text" id="d-manual-session" value="YN_2569_02" class="flex-1 border border-purple-200 bg-purple-50/40 rounded-xl px-3 py-2 text-xs font-mono focus:outline-none focus:border-[#4c1d95]">
+                            <button onclick="submitCheckIn(document.getElementById('d-manual-session').value)" class="bg-[#6b21a8] hover:bg-[#581c87] text-white text-xs font-bold px-4 py-2 rounded-xl shadow transition">
                                 เช็กชื่อ
                             </button>
                         </div>
                     </div>
 
-                    <div class="bg-slate-50 rounded-2xl p-3 border border-slate-200/70 space-y-2 max-h-36 overflow-y-auto">
-                        <p class="text-[10px] font-bold text-[#0f2447] uppercase tracking-wider">บันทึกเวลาล่าสุด</p>
+                    <div class="bg-purple-50/50 rounded-2xl p-3 border border-purple-200/70 space-y-2 max-h-36 overflow-y-auto">
+                        <p class="text-[10px] font-bold text-[#4c1d95] uppercase tracking-wider">บันทึกเวลาล่าสุดของฉัน</p>
                         <div id="d-logs-feed" class="space-y-1.5 text-xs"></div>
                     </div>
                 </div>
             </div>
 
             <!-- 2. Tasks -->
-            <div id="sec-tasks" class="lg:col-span-4 bg-white rounded-3xl border border-slate-200 shadow-md overflow-hidden flex flex-col">
-                <div class="bg-[#991b1b] text-white px-5 py-4 flex justify-between items-center border-b-2 border-[#d4af37]">
+            <div id="sec-tasks" class="lg:col-span-4 bg-white rounded-3xl border border-purple-200/80 shadow-md overflow-hidden flex flex-col">
+                <div class="bg-[#6b21a8] text-white px-5 py-4 flex justify-between items-center border-b-2 border-[#d4af37]">
                     <div class="flex items-center gap-2.5">
                         <i class="fa-solid fa-list-check text-amber-300 text-lg"></i>
                         <div>
                             <h3 class="font-bold text-sm">2. ระบบติดตามงานค้าง</h3>
-                            <p class="text-[10px] text-red-100">อัปเดตสถานะการส่งงานแบบเรียลไทม์</p>
+                            <p class="text-[10px] text-purple-100">อัปเดตสถานะการส่งงานแบบเรียลไทม์</p>
                         </div>
                     </div>
-                    <button id="btn-add-task-teacher" onclick="addNewTaskToCloud()" class="text-[11px] bg-black/30 hover:bg-black/50 text-amber-300 border border-amber-300/40 font-bold px-2.5 py-1 rounded-lg transition">
-                        + สั่งงาน
+                    <button id="btn-add-task-teacher" onclick="addNewTaskToCloud()" class="hidden text-[11px] bg-black/30 hover:bg-black/50 text-amber-300 border border-amber-300/40 font-bold px-2.5 py-1 rounded-lg transition">
+                        + สั่งงานใหม่
                     </button>
                 </div>
 
                 <div class="p-5 space-y-4 flex-1 flex flex-col">
-                    <div class="bg-blue-50/70 p-3.5 rounded-2xl border border-blue-200/80 space-y-2">
+                    <div class="bg-purple-50/80 p-3.5 rounded-2xl border border-purple-200/80 space-y-2">
                         <div class="flex justify-between items-center text-xs font-bold">
-                            <span class="text-[#0f2447]">ความคืบหน้าการส่งงาน</span>
-                            <span id="d-progress-text" class="text-[#991b1b] font-mono">0%</span>
+                            <span class="text-[#4c1d95]">ความคืบหน้าการส่งงาน</span>
+                            <span id="d-progress-text" class="text-[#7e22ce] font-mono">0%</span>
                         </div>
-                        <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
-                            <div id="d-progress-bar" class="bg-gradient-to-r from-[#0f2447] via-blue-600 to-emerald-500 h-full transition-all duration-500" style="width: 0%"></div>
+                        <div class="w-full bg-purple-200/60 h-2.5 rounded-full overflow-hidden">
+                            <div id="d-progress-bar" class="bg-gradient-to-r from-[#4c1d95] via-purple-600 to-emerald-500 h-full transition-all duration-500" style="width: 0%"></div>
                         </div>
                     </div>
 
@@ -289,31 +294,31 @@
             </div>
 
             <!-- 3. Profile & Unique QR -->
-            <div id="sec-profile" class="lg:col-span-4 bg-white rounded-3xl border border-slate-200 shadow-md overflow-hidden flex flex-col">
-                <div class="bg-[#0f2447] text-white px-5 py-4 flex justify-between items-center border-b-2 border-[#d4af37]">
+            <div id="sec-profile" class="lg:col-span-4 bg-white rounded-3xl border border-purple-200/80 shadow-md overflow-hidden flex flex-col">
+                <div class="bg-[#4c1d95] text-white px-5 py-4 flex justify-between items-center border-b-2 border-[#d4af37]">
                     <div class="flex items-center gap-2.5">
-                        <i class="fa-solid fa-id-card text-amber-400 text-lg"></i>
+                        <i class="fa-solid fa-id-card text-amber-300 text-lg"></i>
                         <div>
                             <h3 class="font-bold text-sm">3. บัตรนักเรียน & ข้อมูล</h3>
-                            <p class="text-[10px] text-blue-200">Unique Non-Repeating QR Pass</p>
+                            <p class="text-[10px] text-purple-200">Unique Non-Repeating QR Pass</p>
                         </div>
                     </div>
-                    <button onclick="exportStudentJSON()" class="text-[10px] bg-[#d4af37] hover:bg-amber-500 text-slate-950 font-bold px-2.5 py-1 rounded-lg transition">
+                    <button onclick="exportStudentJSON()" class="text-[10px] bg-[#d4af37] hover:bg-amber-500 text-purple-950 font-bold px-2.5 py-1 rounded-lg transition">
                         Export JSON
                     </button>
                 </div>
 
                 <div class="p-5 space-y-4 flex-1 flex flex-col justify-between">
-                    <div class="bg-gradient-to-br from-[#0f2447] via-[#1e3a8a] to-[#0f2447] text-white rounded-2xl p-4 shadow-lg border border-[#d4af37] relative overflow-hidden">
+                    <div class="bg-gradient-to-br from-[#3b0764] via-[#6b21a8] to-[#4c1d95] text-white rounded-2xl p-4 shadow-lg border border-[#d4af37] relative overflow-hidden">
                         <div class="flex items-center gap-3.5">
                             <div class="relative group cursor-pointer shrink-0" onclick="openCustomizerModal()">
                                 <img id="student-avatar-img" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Student Photo" class="w-16 h-16 rounded-2xl object-cover border-2 border-[#d4af37] bg-white">
-                                <span class="absolute -bottom-1 -right-1 bg-[#d4af37] text-slate-950 text-[9px] w-5 h-5 rounded-full flex items-center justify-center font-bold shadow">
+                                <span class="absolute -bottom-1 -right-1 bg-[#d4af37] text-purple-950 text-[9px] w-5 h-5 rounded-full flex items-center justify-center font-bold shadow">
                                     <i class="fa-solid fa-camera"></i>
                                 </span>
                             </div>
                             <div class="min-w-0 flex-1">
-                                <span class="text-[9px] bg-[#d4af37] text-slate-950 font-bold px-2 py-0.5 rounded uppercase">Yothinnukul Student ID</span>
+                                <span class="text-[9px] bg-[#d4af37] text-purple-950 font-bold px-2 py-0.5 rounded uppercase">Yothinnukul Student ID</span>
                                 <h4 id="d-card-name" class="font-bold text-sm truncate mt-1">นายปิยวัฒน์ ศรีสอาด</h4>
                                 <p id="d-card-meta" class="text-[11px] text-amber-300 font-mono">ID: 6701 • ห้อง ม.6/2</p>
                             </div>
@@ -321,57 +326,127 @@
 
                         <div class="mt-4 bg-white rounded-xl p-3 flex items-center justify-between text-slate-900">
                             <div>
-                                <p class="text-[11px] font-bold text-[#0f2447]">QR ประจำตัวนักเรียน</p>
+                                <p class="text-[11px] font-bold text-[#4c1d95]">QR ประจำตัวนักเรียน</p>
                                 <p class="text-[10px] text-slate-500">รหัสเฉพาะบุคคลไม่ซ้ำกัน</p>
-                                <p id="unique-qr-text" class="text-[10px] font-mono font-bold text-[#991b1b] mt-1">YN-6701-UNIQUE</p>
+                                <p id="unique-qr-text" class="text-[10px] font-mono font-bold text-[#6b21a8] mt-1">YN-6701-UNIQUE</p>
                             </div>
-                            <div id="d-student-qr" class="p-1 bg-white border border-slate-200 rounded-lg"></div>
+                            <div id="d-student-qr" class="p-1 bg-white border border-purple-200 rounded-lg"></div>
                         </div>
                     </div>
 
-                    <div class="space-y-2 text-xs bg-slate-50 p-3.5 rounded-2xl border border-slate-200/70">
-                        <div class="flex justify-between py-1 border-b border-slate-200/60">
+                    <div class="space-y-2 text-xs bg-purple-50/50 p-3.5 rounded-2xl border border-purple-200/70">
+                        <div class="flex justify-between py-1 border-b border-purple-200/60">
                             <span class="text-slate-500">สถานศึกษา:</span>
-                            <span class="font-bold text-[#0f2447]">โรงเรียนโยธินนุกูล</span>
+                            <span class="font-bold text-[#4c1d95]">โรงเรียนโยธินนุกูล</span>
                         </div>
-                        <div class="flex justify-between py-1 border-b border-slate-200/60">
+                        <div class="flex justify-between py-1 border-b border-purple-200/60">
                             <span class="text-slate-500">ต้นสังกัด:</span>
                             <span class="font-bold text-slate-800">เทศบาลตำบลหนองไผ่ล้อม</span>
                         </div>
                         <div class="flex justify-between py-1">
                             <span class="text-slate-500">สิทธิ์การใช้งาน:</span>
-                            <span id="profile-role-label" class="font-bold text-[#991b1b]">นักเรียน / ผู้ใช้งานทั่วไป</span>
+                            <span id="profile-role-label" class="font-bold text-[#6b21a8]">นักเรียน (Student)</span>
                         </div>
                     </div>
 
-                    <button onclick="openAuthModal()" class="w-full py-2.5 bg-[#0f2447] hover:bg-blue-950 text-amber-300 font-bold text-xs rounded-xl border border-[#d4af37]/50 shadow transition">
+                    <button onclick="openAuthModal()" class="w-full py-2.5 bg-[#4c1d95] hover:bg-[#3b0764] text-amber-300 font-bold text-xs rounded-xl border border-[#d4af37]/50 shadow transition">
                         <i class="fa-brands fa-google mr-1.5"></i> เข้าสู่ระบบด้วย Google (นักเรียน / ครู)
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- School Database Section -->
-        <section id="sec-school-db" class="bg-white rounded-3xl border border-slate-200 shadow-md overflow-hidden">
-            <div class="bg-gradient-to-r from-[#0f2447] via-[#1e3a8a] to-[#0f2447] text-white px-6 py-4 flex flex-wrap justify-between items-center gap-2 border-b-2 border-[#d4af37]">
+        <!-- Teacher Command Center -->
+        <div id="sec-teacher-tools" class="hidden bg-white rounded-3xl border-2 border-[#d4af37] shadow-xl overflow-hidden p-6 space-y-6">
+            <div class="flex flex-wrap justify-between items-center border-b border-purple-200 pb-4">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-amber-400/20 border border-amber-400/40 flex items-center justify-center text-amber-300">
-                        <i class="fa-solid fa-database"></i>
+                    <div class="w-12 h-12 bg-[#4c1d95] text-amber-300 rounded-2xl flex items-center justify-center text-xl shadow">
+                        <i class="fa-solid fa-chalkboard-user"></i>
                     </div>
                     <div>
-                        <h3 class="font-bold text-sm md:text-base">ฐานข้อมูลสารสนเทศ โรงเรียนโยธินนุกูล (Yothinnukul Database)</h3>
-                        <p class="text-[11px] text-blue-200">ข้อมูลอ้างอิงจากระบบสารสนเทศสถานศึกษา yothinnukul.ac.th</p>
+                        <h3 class="font-bold text-lg text-[#4c1d95]">ศูนย์ควบคุมสำหรับครูผู้สอน (Teacher Command Center)</h3>
+                        <p class="text-xs text-slate-500">สร้าง QR Code ประจำคาบเรียน และตรวจสอบรายชื่อนักเรียนที่เช็กชื่อเข้ามาแบบ Real-time</p>
                     </div>
                 </div>
-                <a href="http://yothinnukul.ac.th/th" target="_blank" class="text-xs bg-[#d4af37] hover:bg-amber-500 text-slate-950 font-bold px-3.5 py-1.5 rounded-xl transition">
+                <span class="bg-purple-100 text-purple-900 border border-purple-300 text-xs font-bold px-3 py-1 rounded-full">
+                    <i class="fa-solid fa-shield-halved mr-1"></i> Admin Authorized
+                </span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-purple-50/40 p-5 rounded-2xl border border-purple-200 space-y-4 flex flex-col items-center text-center">
+                    <h4 class="font-bold text-sm text-[#4c1d95] self-start flex items-center gap-2">
+                        <i class="fa-solid fa-qrcode text-[#7e22ce]"></i> สร้าง QR Code สำหรับเปิดหน้าจอโปรเจกต์เตอร์
+                    </h4>
+                    <div class="w-full space-y-2 text-left text-xs">
+                        <label class="font-semibold text-slate-700">รหัสคาบเรียน (Session ID):</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="teacher-session-input" value="YN_MATH_M6_01" class="flex-1 border border-purple-300 rounded-xl px-3 py-2 font-mono text-xs bg-white">
+                            <button onclick="generateTeacherQRCode()" class="bg-[#4c1d95] hover:bg-[#3b0764] text-amber-300 font-bold px-4 py-2 rounded-xl shadow transition">
+                                สร้าง QR
+                            </button>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-white border border-purple-200 rounded-2xl shadow-sm">
+                        <div id="teacher-generated-qr" class="mx-auto flex justify-center"></div>
+                        <p id="teacher-qr-label" class="text-xs font-mono font-bold text-[#6b21a8] mt-2">YN_MATH_M6_01</p>
+                    </div>
+                </div>
+
+                <div class="bg-purple-50/40 p-5 rounded-2xl border border-purple-200 space-y-3 flex flex-col">
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-bold text-sm text-[#4c1d95] flex items-center gap-2">
+                            <i class="fa-solid fa-users text-purple-700"></i> รายชื่อผู้เช็กชื่อเข้าเรียน (Real-time)
+                        </h4>
+                        <span id="teacher-total-checkins" class="text-xs font-bold bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full">0 คน</span>
+                    </div>
+                    <div class="flex-1 bg-white rounded-2xl border border-purple-200 p-3 overflow-y-auto max-h-[240px] space-y-2">
+                        <div id="teacher-attendance-list" class="space-y-1.5 text-xs">
+                            <p class="text-slate-400 text-center py-6">ยังไม่มีข้อมูลการเช็กชื่อในระบบ</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- School News, Gallery & Database Section -->
+        <section id="sec-school-db" class="bg-white rounded-3xl border border-purple-200 shadow-md overflow-hidden">
+            <div class="bg-gradient-to-r from-[#3b0764] via-[#6b21a8] to-[#4c1d95] text-white px-6 py-4 flex flex-wrap justify-between items-center gap-2 border-b-2 border-[#d4af37]">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-amber-400/20 border border-amber-400/40 flex items-center justify-center text-amber-300">
+                        <i class="fa-solid fa-school"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm md:text-base">ประชาสัมพันธ์ & ฐานข้อมูลสารสนเทศ โรงเรียนโยธินนุกูล</h3>
+                        <p class="text-[11px] text-purple-200">เรียนรู้ อย่างมีคุณภาพ • ดูแลด้วยหัวใจ เสริมสร้างอนาคต • สร้างคนดีสู่สังคม</p>
+                    </div>
+                </div>
+                <a href="http://yothinnukul.ac.th/th" target="_blank" class="text-xs bg-[#d4af37] hover:bg-amber-500 text-purple-950 font-bold px-3.5 py-1.5 rounded-xl transition">
                     เปิดดูเว็บไซต์ทางการ <i class="fa-solid fa-arrow-up-right-from-square ml-1"></i>
                 </a>
             </div>
 
+            <!-- Featured School Announcement & Leadership Banner -->
+            <div class="p-6 border-b border-purple-100 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center bg-purple-50/30">
+                <div class="lg:col-span-8 rounded-2xl overflow-hidden border-2 border-[#6b21a8]/30 shadow-md">
+                    <img src="858319969_1658554702734938_649735766944740746_n.jpg" alt="แจ้งวันเปิดภาคเรียนที่ 2/2569 โรงเรียนโยธินนุกูล" class="w-full h-auto object-cover">
+                </div>
+                <div class="lg:col-span-4 bg-white p-4 rounded-2xl border border-purple-200 shadow-sm flex flex-col items-center text-center space-y-3">
+                    <div class="w-40 h-48 rounded-2xl overflow-hidden border-2 border-[#d4af37] shadow">
+                        <img src="901821989_1679485473975194_4407182413148951571_n.jpg" alt="ผู้บริหารโรงเรียนโยธินนุกูล" class="w-full h-full object-cover object-top">
+                    </div>
+                    <div>
+                        <span class="text-[10px] bg-purple-100 text-[#4c1d95] font-bold px-2.5 py-0.5 rounded-full">คณะผู้บริหารและบุคลากร</span>
+                        <h4 class="font-bold text-sm text-[#3b0764] mt-1.5">โรงเรียนโยธินนุกูล</h4>
+                        <p class="text-[11px] text-slate-600 mt-0.5">"เรียนดี มีความสุข สร้างอนาคตไปด้วยกัน"</p>
+                    </div>
+                </div>
+            </div>
+
             <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
-                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-2.5">
-                    <h4 class="font-bold text-sm text-[#0f2447] flex items-center gap-2 border-b border-slate-200 pb-2">
-                        <i class="fa-solid fa-building-columns text-[#991b1b]"></i> ข้อมูลพื้นฐานสถานศึกษา
+                <div class="bg-purple-50/40 p-4 rounded-2xl border border-purple-200/80 space-y-2.5">
+                    <h4 class="font-bold text-sm text-[#4c1d95] flex items-center gap-2 border-b border-purple-200 pb-2">
+                        <i class="fa-solid fa-building-columns text-[#7e22ce]"></i> ข้อมูลพื้นฐานสถานศึกษา
                     </h4>
                     <p><span class="font-semibold text-slate-600">ชื่อสถานศึกษา:</span> โรงเรียนโยธินนุกูล (Yothinnukul School)</p>
                     <p><span class="font-semibold text-slate-600">ที่ตั้ง:</span> 187 หมู่ที่ 1 ถ.ปาณิกบุตร ต.หนองไผ่ล้อม อ.เมือง จ.นครราชสีมา 30000</p>
@@ -380,28 +455,28 @@
                     <p><span class="font-semibold text-slate-600">โทรศัพท์:</span> 044-252727</p>
                 </div>
 
-                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-2.5">
-                    <h4 class="font-bold text-sm text-[#0f2447] flex items-center gap-2 border-b border-slate-200 pb-2">
-                        <i class="fa-solid fa-award text-amber-600"></i> คำขวัญและปรัชญาโรงเรียน
+                <div class="bg-purple-50/40 p-4 rounded-2xl border border-purple-200/80 space-y-2.5">
+                    <h4 class="font-bold text-sm text-[#4c1d95] flex items-center gap-2 border-b border-purple-200 pb-2">
+                        <i class="fa-solid fa-award text-amber-600"></i> คำขวัญและเอกลักษณ์รั้วม่วง-ขาว
                     </h4>
-                    <div class="bg-[#0f2447] text-amber-300 p-3 rounded-xl font-semibold text-center border border-[#d4af37]/50">
-                        "สุขภาพเยี่ยม เปี่ยมคุณธรรม เลิศล้ำปัญญา มีคุณค่าต่อสังคม"
+                    <div class="bg-[#4c1d95] text-amber-300 p-3 rounded-xl font-semibold text-center border border-[#d4af37]/50">
+                        "ใฝ่รู้ ใฝ่ดี • สุขภาพเยี่ยม เปี่ยมคุณธรรม เลิศล้ำปัญญา มีคุณค่าต่อสังคม"
                     </div>
                     <p class="text-slate-600 leading-relaxed">
-                        <span class="font-bold text-[#0f2447]">ปรัชญา:</span> มุ่งเน้นการจัดการศึกษาที่สนองความต้องการของชุมชน พัฒนาความรู้ควบคู่คุณธรรม จริยธรรม และเทคโนโลยี
+                        <span class="font-bold text-[#4c1d95]">สีประจำโรงเรียน:</span> สีม่วง – สีขาว มุ่งเน้นการจัดการศึกษาที่ทันสมัย ควบคู่คุณธรรม จริยธรรม และเทคโนโลยี
                     </p>
                 </div>
 
-                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-2.5">
-                    <h4 class="font-bold text-sm text-[#0f2447] flex items-center gap-2 border-b border-slate-200 pb-2">
-                        <i class="fa-solid fa-link text-blue-700"></i> ลิงก์ระบบงานภายในโรงเรียน
+                <div class="bg-purple-50/40 p-4 rounded-2xl border border-purple-200/80 space-y-2.5">
+                    <h4 class="font-bold text-sm text-[#4c1d95] flex items-center gap-2 border-b border-purple-200 pb-2">
+                        <i class="fa-solid fa-link text-purple-700"></i> ลิงก์ระบบงานภายในโรงเรียน
                     </h4>
                     <div class="space-y-2">
-                        <a href="http://yothinnukul.ac.th/th" target="_blank" class="flex items-center justify-between p-2.5 bg-white hover:bg-blue-50 rounded-xl border border-slate-200 transition">
+                        <a href="http://yothinnukul.ac.th/th" target="_blank" class="flex items-center justify-between p-2.5 bg-white hover:bg-purple-50 rounded-xl border border-purple-200 transition">
                             <span class="font-semibold text-slate-800">หน้าหลักเว็บไซต์โรงเรียนโยธินนุกูล</span>
                             <i class="fa-solid fa-chevron-right text-slate-400"></i>
                         </a>
-                        <a href="https://www.nongpailomcity.go.th" target="_blank" class="flex items-center justify-between p-2.5 bg-white hover:bg-blue-50 rounded-xl border border-slate-200 transition">
+                        <a href="https://www.nongpailomcity.go.th" target="_blank" class="flex items-center justify-between p-2.5 bg-white hover:bg-purple-50 rounded-xl border border-purple-200 transition">
                             <span class="font-semibold text-slate-800">เทศบาลตำบลหนองไผ่ล้อม (ต้นสังกัด)</span>
                             <i class="fa-solid fa-chevron-right text-slate-400"></i>
                         </a>
@@ -416,23 +491,23 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-[#0f2447] text-blue-200 text-xs py-5 px-4 border-t-2 border-[#d4af37] mt-8">
+    <footer class="bg-[#3b0764] text-purple-200 text-xs py-5 px-4 border-t-2 border-[#d4af37] mt-8">
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
             <p class="font-semibold text-white">© 2026 MACHECK • ระบบเช็กชื่อและติดตามงาน โรงเรียนโยธินนุกูล จ.นครราชสีมา</p>
-            <p class="text-[11px]">พัฒนาเพื่อยกระดับการศึกษาไทย • เชื่อมต่อฐานข้อมูล Cloud Real-time</p>
+            <p class="text-[11px]">รั้วม่วง-ขาว • เชื่อมต่อฐานข้อมูล Cloud Real-time</p>
         </div>
     </footer>
 
     <!-- Customizer Modal -->
     <div id="customizer-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4 z-[95] overflow-y-auto">
         <div class="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border-2 border-[#d4af37] space-y-5 my-auto">
-            <div class="flex justify-between items-center border-b border-slate-200 pb-3">
+            <div class="flex justify-between items-center border-b border-purple-200 pb-3">
                 <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-xl bg-blue-100 text-[#0f2447] flex items-center justify-center text-base">
+                    <div class="w-9 h-9 rounded-xl bg-purple-100 text-[#4c1d95] flex items-center justify-center text-base">
                         <i class="fa-solid fa-palette"></i>
                     </div>
                     <div>
-                        <h3 class="font-bold text-[#0f2447] text-base">สตูดิโอตกแต่งเว็บไซต์ MACHECK</h3>
+                        <h3 class="font-bold text-[#4c1d95] text-base">สตูดิโอตกแต่งเว็บไซต์ MACHECK</h3>
                         <p class="text-[11px] text-slate-500">อัปโหลดรูปภาพจากเครื่องของคุณและปรับแต่งข้อมูลได้ทันที</p>
                     </div>
                 </div>
@@ -440,25 +515,25 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                <div class="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
-                    <h4 class="font-bold text-[#0f2447] flex items-center gap-1.5">
-                        <i class="fa-solid fa-cloud-arrow-up text-[#991b1b]"></i> อัปโหลดรูปภาพจากเครื่อง
+                <div class="space-y-3 bg-purple-50/40 p-4 rounded-2xl border border-purple-200">
+                    <h4 class="font-bold text-[#4c1d95] flex items-center gap-1.5">
+                        <i class="fa-solid fa-cloud-arrow-up text-[#7e22ce]"></i> อัปโหลดรูปภาพจากเครื่อง
                     </h4>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">1. รูปโลโก้เว็บ & ตราวงกลม</label>
-                        <input type="file" accept="image/*" onchange="handleImageUpload(event, 'logo')" class="w-full text-[11px] file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:font-bold file:bg-blue-100 file:text-[#0f2447]">
+                        <input type="file" accept="image/*" onchange="handleImageUpload(event, 'logo')" class="w-full text-[11px] file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:font-bold file:bg-purple-100 file:text-[#4c1d95]">
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">2. รูปแบนเนอร์ช่องที่ 1</label>
-                        <input type="file" accept="image/*" onchange="handleImageUpload(event, 'banner1')" class="w-full text-[11px] file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:font-bold file:bg-blue-100 file:text-[#0f2447]">
+                        <input type="file" accept="image/*" onchange="handleImageUpload(event, 'banner1')" class="w-full text-[11px] file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:font-bold file:bg-purple-100 file:text-[#4c1d95]">
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">3. รูปแบนเนอร์ช่องที่ 2</label>
-                        <input type="file" accept="image/*" onchange="handleImageUpload(event, 'banner2')" class="w-full text-[11px] file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:font-bold file:bg-blue-100 file:text-[#0f2447]">
+                        <input type="file" accept="image/*" onchange="handleImageUpload(event, 'banner2')" class="w-full text-[11px] file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:font-bold file:bg-purple-100 file:text-[#4c1d95]">
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">4. รูปแบนเนอร์ช่องที่ 3</label>
-                        <input type="file" accept="image/*" onchange="handleImageUpload(event, 'banner3')" class="w-full text-[11px] file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:font-bold file:bg-blue-100 file:text-[#0f2447]">
+                        <input type="file" accept="image/*" onchange="handleImageUpload(event, 'banner3')" class="w-full text-[11px] file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:font-bold file:bg-purple-100 file:text-[#4c1d95]">
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">5. รูปโปรไฟล์บัตรนักเรียน</label>
@@ -466,35 +541,35 @@
                     </div>
                 </div>
 
-                <div class="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
-                    <h4 class="font-bold text-[#0f2447] flex items-center gap-1.5">
+                <div class="space-y-3 bg-purple-50/40 p-4 rounded-2xl border border-purple-200">
+                    <h4 class="font-bold text-[#4c1d95] flex items-center gap-1.5">
                         <i class="fa-solid fa-pen-to-square text-amber-600"></i> แก้ไขข้อความบนแบนเนอร์
                     </h4>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">ชื่อระบบ (Brand Title)</label>
-                        <input type="text" id="cust-main-title" value="MACHECK" class="w-full border border-slate-300 rounded-xl px-3 py-1.5 bg-white">
+                        <input type="text" id="cust-main-title" value="MACHECK" class="w-full border border-purple-200 rounded-xl px-3 py-1.5 bg-white">
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">คำโปรยรอง (Subtitle)</label>
-                        <input type="text" id="cust-sub-title" value="YOTHINNUKUL SCHOOL • KORAT" class="w-full border border-slate-300 rounded-xl px-3 py-1.5 bg-white">
+                        <input type="text" id="cust-sub-title" value="YOTHINNUKUL SCHOOL • KORAT" class="w-full border border-purple-200 rounded-xl px-3 py-1.5 bg-white">
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">หัวข้อหลัก (Headline)</label>
-                        <input type="text" id="cust-headline" value="ระบบเช็กชื่ออัจฉริยะ โรงเรียนโยธินนุกูล" class="w-full border border-slate-300 rounded-xl px-3 py-1.5 bg-white">
+                        <input type="text" id="cust-headline" value="ระบบเช็กชื่ออัจฉริยะ โรงเรียนโยธินนุกูล" class="w-full border border-purple-200 rounded-xl px-3 py-1.5 bg-white">
                     </div>
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">ที่อยู่โรงเรียน</label>
-                        <input type="text" id="cust-address" value="187 ถ.ปาณิกบุตร ต.หนองไผ่ล้อม อ.เมือง จ.นครราชสีมา 30000" class="w-full border border-slate-300 rounded-xl px-3 py-1.5 bg-white">
+                        <input type="text" id="cust-address" value="187 ถ.ปาณิกบุตร ต.หนองไผ่ล้อม อ.เมือง จ.นครราชสีมา 30000" class="w-full border border-purple-200 rounded-xl px-3 py-1.5 bg-white">
                     </div>
                 </div>
             </div>
 
-            <div class="flex flex-wrap justify-between items-center gap-2 pt-2 border-t border-slate-200">
-                <button onclick="resetCustomization()" class="text-xs text-[#991b1b] hover:underline font-bold px-3 py-2">
+            <div class="flex flex-wrap justify-between items-center gap-2 pt-2 border-t border-purple-200">
+                <button onclick="resetCustomization()" class="text-xs text-[#7e22ce] hover:underline font-bold px-3 py-2">
                     <i class="fa-solid fa-rotate-left mr-1"></i> คืนค่าเริ่มต้น
                 </button>
                 <div class="flex gap-2">
-                    <button onclick="saveTextCustomization()" class="bg-[#0f2447] hover:bg-blue-900 text-amber-300 font-bold text-xs px-5 py-2.5 rounded-xl shadow transition">
+                    <button onclick="saveTextCustomization()" class="bg-[#4c1d95] hover:bg-[#3b0764] text-amber-300 font-bold text-xs px-5 py-2.5 rounded-xl shadow transition">
                         <i class="fa-solid fa-check mr-1"></i> บันทึกการตกแต่ง
                     </button>
                     <button onclick="closeCustomizerModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs px-4 py-2.5 rounded-xl transition">
@@ -511,25 +586,25 @@
             <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700"><i class="fa-solid fa-xmark text-lg"></i></button>
             
             <div class="text-center space-y-1">
-                <h2 class="font-serif-gold font-bold text-2xl yn-title-gradient">MACHECK LOGIN</h2>
+                <h2 class="font-bold text-2xl yn-title-gradient">MACHECK LOGIN</h2>
                 <p class="text-xs text-slate-500">เลือกช่องทางเข้าสู่ระบบโรงเรียนโยธินนุกูล</p>
             </div>
 
-            <div class="grid grid-cols-2 gap-1.5 bg-slate-100 p-1.5 rounded-2xl">
-                <button onclick="selectLoginRole('student')" id="auth-tab-student" class="py-2 text-xs font-bold rounded-xl bg-white text-[#0f2447] shadow-sm transition">
-                    <i class="fa-solid fa-user-graduate text-blue-700 mr-1"></i> นักเรียน
+            <div class="grid grid-cols-2 gap-1.5 bg-purple-100/70 p-1.5 rounded-2xl">
+                <button onclick="selectLoginRole('student')" id="auth-tab-student" class="py-2 text-xs font-bold rounded-xl bg-white text-[#4c1d95] shadow-sm transition">
+                    <i class="fa-solid fa-user-graduate text-purple-700 mr-1"></i> นักเรียน
                 </button>
                 <button onclick="selectLoginRole('teacher')" id="auth-tab-teacher" class="py-2 text-xs font-bold rounded-xl text-slate-500 transition">
-                    <i class="fa-solid fa-shield-halved text-[#991b1b] mr-1"></i> ครู / ผู้สร้าง
+                    <i class="fa-solid fa-shield-halved text-[#7e22ce] mr-1"></i> ครู / ผู้สร้าง
                 </button>
             </div>
 
             <div id="auth-panel-student" class="space-y-3">
                 <div>
                     <label class="block text-[11px] font-bold text-slate-700 mb-1">รหัสประจำตัวนักเรียน</label>
-                    <input type="text" id="login-student-id" value="6701" class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm font-mono">
+                    <input type="text" id="login-student-id" value="6701" class="w-full border border-purple-200 rounded-xl px-3.5 py-2 text-sm font-mono">
                 </div>
-                <button onclick="loginWithGoogle('student')" class="w-full py-3 bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs rounded-xl border-2 border-slate-200 shadow-sm flex items-center justify-center gap-2 transition">
+                <button onclick="loginWithGoogle('student')" class="w-full py-3 bg-white hover:bg-purple-50 text-slate-800 font-bold text-xs rounded-xl border-2 border-purple-200 shadow-sm flex items-center justify-center gap-2 transition">
                     <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-4 h-4">
                     <span>เข้าสู่ระบบนักเรียนด้วย Google</span>
                 </button>
@@ -538,9 +613,9 @@
             <div id="auth-panel-teacher" class="hidden space-y-3">
                 <div>
                     <label class="block text-[11px] font-bold text-slate-700 mb-1">รหัสลับแอดมิน (เฉพาะผู้สร้างเท่านั้นที่รู้)</label>
-                    <input type="password" id="admin-secret-input" placeholder="กรอกรหัสลับแอดมิน..." class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm font-mono">
+                    <input type="password" id="admin-secret-input" placeholder="กรอกรหัสลับแอดมิน..." class="w-full border border-purple-200 rounded-xl px-3.5 py-2 text-sm font-mono">
                 </div>
-                <button onclick="loginWithGoogle('teacher')" class="w-full py-3 bg-[#0f2447] hover:bg-blue-950 text-amber-300 font-bold text-xs rounded-xl shadow flex items-center justify-center gap-2 transition">
+                <button onclick="loginWithGoogle('teacher')" class="w-full py-3 bg-[#4c1d95] hover:bg-[#3b0764] text-amber-300 font-bold text-xs rounded-xl shadow flex items-center justify-center gap-2 transition">
                     <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-4 h-4 bg-white rounded-full p-0.5">
                     <span>ยืนยันสิทธิ์ผู้สร้าง & ล็อกอิน Google</span>
                 </button>
@@ -550,12 +625,12 @@
 
     <!-- Firebase Config Modal -->
     <div id="firebase-config-modal" class="fixed inset-0 bg-slate-950/75 backdrop-blur-sm hidden items-center justify-center p-4 z-[90]">
-        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
-            <div class="flex justify-between items-center border-b pb-3">
-                <h3 class="font-bold text-[#0f2447] text-sm"><i class="fa-solid fa-fire text-amber-500 mr-1.5"></i>เชื่อมต่อฐานข้อมูล MACHECK1</h3>
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-purple-200 space-y-4">
+            <div class="flex justify-between items-center border-b border-purple-100 pb-3">
+                <h3 class="font-bold text-[#4c1d95] text-sm"><i class="fa-solid fa-fire text-amber-500 mr-1.5"></i>เชื่อมต่อฐานข้อมูล MACHECK1</h3>
                 <button onclick="toggleFirebaseModal()" class="text-slate-400 hover:text-slate-700"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <p class="text-xs text-slate-600">วางโค้ด <code class="bg-blue-50 text-[#0f2447] px-1.5 py-0.5 rounded font-mono">firebaseConfig</code> จาก Firebase Console เพื่อซิงค์ข้อมูลแบบ Real-time</p>
+            <p class="text-xs text-slate-600">วางโค้ด <code class="bg-purple-50 text-[#4c1d95] px-1.5 py-0.5 rounded font-mono">firebaseConfig</code> จาก Firebase Console เพื่อซิงค์ข้อมูลแบบ Real-time</p>
             <textarea id="firebase-config-input" rows="6" class="w-full bg-slate-900 text-emerald-400 font-mono text-xs p-3 rounded-2xl border border-slate-700" placeholder='{
   "apiKey": "AIzaSy...",
   "authDomain": "macheck1.firebaseapp.com",
@@ -565,7 +640,7 @@
   "appId": "..."
 }'></textarea>
             <div class="flex justify-end gap-2 pt-2">
-                <button onclick="saveAndConnectFirebase()" class="bg-[#0f2447] hover:bg-blue-900 text-amber-300 font-bold text-xs px-5 py-2.5 rounded-xl shadow transition">บันทึกและเชื่อมต่อทันที</button>
+                <button onclick="saveAndConnectFirebase()" class="bg-[#4c1d95] hover:bg-[#3b0764] text-amber-300 font-bold text-xs px-5 py-2.5 rounded-xl shadow transition">บันทึกและเชื่อมต่อทันที</button>
                 <button onclick="toggleFirebaseModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl transition">ยกเลิก</button>
             </div>
         </div>
@@ -622,6 +697,7 @@
 
                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'school_info', 'yothinnukul'), window.appState.schoolDatabase, { merge: true });
                 showToast("เชื่อมต่อฐานข้อมูลโรงเรียนโยธินนุกูลสำเร็จ!", "success");
+                setupRealtimeListeners();
             } catch (err) {
                 showToast("เชื่อมต่อ Firebase ไม่สำเร็จ: " + err.message, "error");
             }
@@ -667,10 +743,18 @@
 
                 updateStudentUI();
                 closeAuthModal();
+                document.getElementById("btn-login-trigger").classList.add("hidden");
                 document.getElementById("btn-logout").classList.remove("hidden");
+
+                if (selectedRole === 'teacher') {
+                    document.getElementById("nav-teacher-btn").classList.remove("hidden");
+                    document.getElementById("sec-teacher-tools").classList.remove("hidden");
+                    document.getElementById("btn-add-task-teacher").classList.remove("hidden");
+                    window.generateTeacherQRCode();
+                }
+
                 setupRealtimeListeners();
                 generateUniqueStudentQRs();
-
                 showToast(`ยินดีต้อนรับ ${window.appState.student.name}`, "success");
             } catch (error) {
                 showToast("เข้าสู่ระบบไม่สำเร็จ: " + error.message, "error");
@@ -680,39 +764,64 @@
         window.logoutUser = async function() {
             if (auth) await signOut(auth);
             currentUser = null;
+            window.appState.role = "student";
             document.getElementById("btn-logout").classList.add("hidden");
+            document.getElementById("btn-login-trigger").classList.remove("hidden");
+            document.getElementById("nav-teacher-btn").classList.add("hidden");
+            document.getElementById("sec-teacher-tools").classList.add("hidden");
+            document.getElementById("btn-add-task-teacher").classList.add("hidden");
+            updateStudentUI();
             showToast("ออกจากระบบเรียบร้อยแล้ว", "success");
         };
 
         function updateStudentUI() {
             document.getElementById("d-card-name").innerText = window.appState.student.name;
             document.getElementById("d-card-meta").innerText = `ID: ${window.appState.student.studentId} • ห้อง ${window.appState.student.classRoom}`;
-            document.getElementById("hero-box-line1").innerText = `นักเรียน: ${window.appState.student.name} (รหัส ${window.appState.student.studentId})`;
+            document.getElementById("hero-box-line1").innerText = `ผู้ใช้งาน: ${window.appState.student.name} (รหัส ${window.appState.student.studentId})`;
             document.getElementById("profile-role-label").innerText = window.appState.role === 'teacher' ? "ครู / ผู้สร้างระบบ (Admin)" : "นักเรียน (Student)";
         }
 
         function setupRealtimeListeners() {
-            if (!db || !currentUser) return;
+            if (!db) return;
 
             const logsCol = collection(db, 'artifacts', appId, 'public', 'data', 'attendance_logs');
             onSnapshot(logsCol, (snapshot) => {
                 const cloudLogs = [];
+                const teacherAllLogs = [];
                 snapshot.forEach((docSnap) => {
                     const data = docSnap.data();
+                    teacherAllLogs.push(data);
                     if (data.studentId === window.appState.student.studentId || window.appState.role === 'teacher') {
-                        cloudLogs.push({
-                            sessionId: data.sessionId,
-                            studentName: data.studentName || data.studentId,
-                            time: data.timeString || "บันทึกแล้ว",
-                            createdAt: data.createdAt || 0
-                        });
+                        if (data.studentId === window.appState.student.studentId) {
+                            cloudLogs.push({
+                                sessionId: data.sessionId,
+                                time: data.timeString || "บันทึกแล้ว",
+                                createdAt: data.createdAt || 0
+                            });
+                        }
                     }
                 });
-                if (cloudLogs.length > 0) {
+
+                if (window.appState.role === 'student' && cloudLogs.length > 0) {
                     cloudLogs.sort((a, b) => b.createdAt - a.createdAt);
                     window.appState.logs = cloudLogs;
-                    renderAllUI();
                 }
+
+                if (window.appState.role === 'teacher') {
+                    teacherAllLogs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                    document.getElementById("teacher-total-checkins").innerText = `${teacherAllLogs.length} คน`;
+                    document.getElementById("teacher-attendance-list").innerHTML = teacherAllLogs.map(l => `
+                        <div class="p-2 bg-white rounded-xl border border-purple-200 flex justify-between items-center text-xs">
+                            <div>
+                                <span class="font-bold text-[#4c1d95]">${l.studentName || l.studentId}</span>
+                                <span class="text-slate-500 ml-2 font-mono">(${l.sessionId})</span>
+                            </div>
+                            <span class="text-emerald-700 font-bold">${l.timeString}</span>
+                        </div>
+                    `).join('') || '<p class="text-slate-400 text-center py-4">ยังไม่มีนักเรียนเช็กชื่อ</p>';
+                }
+
+                renderAllUI();
             });
 
             const tasksCol = collection(db, 'artifacts', appId, 'public', 'data', 'assignments');
@@ -730,6 +839,22 @@
                 }
             });
         }
+
+        let teacherQRInstance = null;
+        window.generateTeacherQRCode = function() {
+            const sessionVal = document.getElementById("teacher-session-input").value.trim() || "YN_MATH_M6_01";
+            document.getElementById("teacher-qr-label").innerText = sessionVal;
+            const container = document.getElementById("teacher-generated-qr");
+            container.innerHTML = "";
+            teacherQRInstance = new QRCode(container, {
+                text: sessionVal,
+                width: 160,
+                height: 160,
+                colorDark: "#4c1d95",
+                colorLight: "#ffffff"
+            });
+            showToast(`สร้าง QR Code สำหรับคาบ ${sessionVal} สำเร็จ!`, "success");
+        };
 
         window.submitCheckIn = async function(sessionId) {
             if (!sessionId || sessionId.trim() === "") {
@@ -813,7 +938,7 @@
             window.initFirebaseConnection(JSON.parse(__firebase_config));
         }
 
-        const dStudentQR = new QRCode(document.getElementById("d-student-qr"), { width: 68, height: 68, colorDark: "#0f2447", colorLight: "#ffffff" });
+        const dStudentQR = new QRCode(document.getElementById("d-student-qr"), { width: 68, height: 68, colorDark: "#4c1d95", colorLight: "#ffffff" });
         function generateUniqueStudentQRs() {
             const uniqueHash = (typeof crypto !== 'undefined' && crypto.randomUUID) 
                 ? crypto.randomUUID().split('-')[0].toUpperCase() 
@@ -921,16 +1046,16 @@
             document.getElementById("d-progress-bar").style.width = `${progressPercent}%`;
 
             document.getElementById("d-tasks-list").innerHTML = window.appState.tasks.map(t => `
-                <div class="p-3.5 rounded-2xl border ${t.status === 'PENDING' ? 'bg-white border-slate-200 hover:border-[#0f2447]' : 'bg-slate-50 border-slate-100 opacity-70'} flex justify-between items-center gap-2 transition">
+                <div class="p-3.5 rounded-2xl border ${t.status === 'PENDING' ? 'bg-white border-purple-200 hover:border-[#4c1d95]' : 'bg-slate-50 border-slate-100 opacity-70'} flex justify-between items-center gap-2 transition">
                     <div class="space-y-0.5 min-w-0">
-                        <span class="inline-block text-[10px] font-bold ${t.status === 'PENDING' ? 'text-[#991b1b] bg-red-50' : 'text-emerald-700 bg-emerald-50'} px-2 py-0.5 rounded">
+                        <span class="inline-block text-[10px] font-bold ${t.status === 'PENDING' ? 'text-[#7e22ce] bg-purple-50' : 'text-emerald-700 bg-emerald-50'} px-2 py-0.5 rounded">
                             ${t.status === 'PENDING' ? 'ค้างส่ง • ' + t.due : '✓ ส่งงานแล้ว'}
                         </span>
                         <h4 class="font-bold text-xs text-slate-900 truncate">${t.title}</h4>
                         <p class="text-[11px] text-slate-500 truncate">${t.subject}</p>
                     </div>
                     ${t.status === 'PENDING' ? `
-                        <button onclick="completeTask('${t.id}')" class="bg-[#0f2447] hover:bg-blue-900 text-amber-300 text-xs font-bold px-3 py-1.5 rounded-xl shadow-sm shrink-0 transition">
+                        <button onclick="completeTask('${t.id}')" class="bg-[#4c1d95] hover:bg-[#3b0764] text-amber-300 text-xs font-bold px-3 py-1.5 rounded-xl shadow-sm shrink-0 transition">
                             ส่งงาน
                         </button>
                     ` : `<i class="fa-solid fa-circle-check text-emerald-600 text-base shrink-0"></i>`}
@@ -938,9 +1063,9 @@
             `).join('');
 
             document.getElementById("d-logs-feed").innerHTML = window.appState.logs.map(l => `
-                <div class="p-2.5 bg-white rounded-xl border border-slate-200 flex justify-between items-center">
+                <div class="p-2.5 bg-white rounded-xl border border-purple-200 flex justify-between items-center">
                     <div>
-                        <p class="font-bold text-[#0f2447] font-mono text-[11px]">${l.sessionId}</p>
+                        <p class="font-bold text-[#4c1d95] font-mono text-[11px]">${l.sessionId}</p>
                         <p class="text-[10px] text-slate-500">${l.time} น.</p>
                     </div>
                     <span class="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">มาเรียน</span>
@@ -985,11 +1110,11 @@
             const panelStd = document.getElementById("auth-panel-student");
             const panelTch = document.getElementById("auth-panel-teacher");
             if (role === 'student') {
-                tabStd.className = "py-2 text-xs font-bold rounded-xl bg-white text-[#0f2447] shadow-sm transition";
+                tabStd.className = "py-2 text-xs font-bold rounded-xl bg-white text-[#4c1d95] shadow-sm transition";
                 tabTch.className = "py-2 text-xs font-bold rounded-xl text-slate-500 transition";
                 panelStd.classList.remove("hidden"); panelTch.classList.add("hidden");
             } else {
-                tabTch.className = "py-2 text-xs font-bold rounded-xl bg-[#0f2447] text-amber-300 shadow-sm transition";
+                tabTch.className = "py-2 text-xs font-bold rounded-xl bg-[#4c1d95] text-amber-300 shadow-sm transition";
                 tabStd.className = "py-2 text-xs font-bold rounded-xl text-slate-500 transition";
                 panelTch.classList.remove("hidden"); panelStd.classList.add("hidden");
             }
@@ -1024,7 +1149,7 @@
                 () => {}
             ).catch(() => {
                 document.getElementById("m-cam-overlay").classList.remove("hidden");
-                showToast("ไม่สามารถเปิดกล้องได้ กรุณาตรวจสอบสิทธิ์เบราว์เซอร์", "error");
+                showToast("ไม่สามารถเปิดกล้องได้ กรุณาตรวจสอบสิทธิ์กล้องบนเบราว์เซอร์", "error");
             });
         }
 
