@@ -24,7 +24,7 @@
     <!-- Desktop Window Container (ถอดแบบตรงตามภาพต้นฉบับทุกประการ) -->
     <div class="w-full max-w-[1366px] h-screen md:h-[840px] bg-[#f8fafc] md:rounded-3xl shadow-2xl flex overflow-hidden border border-purple-900/30 relative">
         
-        <!-- 1. LEFT SIDEBAR (แถบเมนูด้านซ้ายสีม่วงเข้ม) -->
+        <!-- 1. LEFT SIDEBAR (แถบเมนูด้านซ้ายสีม่วงเข้มประจำโรงเรียน) -->
         <aside class="w-72 bg-[#3b0764] text-white flex flex-col justify-between p-6 shadow-2xl z-20">
             <div>
                 <!-- Logo & School Name -->
@@ -80,7 +80,7 @@
                 </div>
                 <div class="flex items-center gap-4">
                     <!-- Connect Firebase Button -->
-                    <button onclick="openFirebaseModal()" class="text-xs bg-purple-50 hover:bg-purple-100 text-purple-700 font-semibold px-4 py-2 rounded-xl border border-purple-200 transition flex items-center gap-2">
+                    <button onclick="openFirebaseModal()" class="text-xs bg-purple-50 hover:bg-purple-100 text-purple-700 font-semibold px-4 py-2 rounded-xl border border-purple-200 transition flex items-center gap-2 shadow-sm">
                         <i class="fa-solid fa-database"></i> ตั้งค่า Firebase
                     </button>
                     <!-- Notification Bell -->
@@ -102,7 +102,7 @@
             <!-- Dashboard Body Content -->
             <div class="p-8 space-y-6">
                 
-                <!-- CARD 1: เช็กชื่อประจำคาบเรียน (ตรงตามภาพต้นฉบับ) -->
+                <!-- CARD 1: เช็กชื่อประจำคาบเรียน -->
                 <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-7 transition hover:shadow-md">
                     <!-- Card Header -->
                     <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
@@ -136,7 +136,7 @@
                     </div>
                 </div>
 
-                <!-- CARD 2: สรุปการเช็กชื่อ (ตรงตามภาพต้นฉบับทุกประการ) -->
+                <!-- CARD 2: สรุปการเช็กชื่อ -->
                 <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-7">
                     <!-- Card Header -->
                     <div class="mb-6 pb-4 border-b border-gray-100">
@@ -166,7 +166,7 @@
                             </div>
                         </div>
 
-                        <!-- Legend Stats Items (ตรงตามภาพต้นฉบับ 34 / 1 / 0) -->
+                        <!-- Legend Stats Items (34 / 1 / 0) -->
                         <div class="md:col-span-2 grid grid-cols-3 gap-4 border-t md:border-t-0 md:border-l border-gray-100 pt-4 md:pt-0 md:pl-8">
                             <!-- Item 1: มาเรียน -->
                             <div class="flex items-center gap-3">
@@ -262,7 +262,7 @@
         let db = null;
         let auth = null;
 
-        // โหลดค่าปรับแต่งจาก LocalStorage (ถ้ามี)
+        // โหลดค่าปรับแต่งจาก LocalStorage
         window.addEventListener('DOMContentLoaded', () => {
             const savedLogo = localStorage.getItem('macheck_logo');
             const savedName = localStorage.getItem('macheck_teacher_name');
@@ -311,7 +311,7 @@
             const qrBox = document.getElementById('qr-code-box');
             qrBox.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${sessionId}" alt="Session QR Code" class="w-full h-full object-contain animate-fade-in">`;
             
-            // บันทึกลง Firebase ถ้าเชื่อมต่ออยู่
+            // บันทึกลงคอลเลกชัน attendance_sessions ตามกฎ Firestore
             if(db) {
                 db.collection("attendance_sessions").doc(sessionId).set({
                     className: "ม.6/2",
@@ -320,6 +320,8 @@
                     active: true
                 }).then(() => {
                     console.log("บันทึกเซสชันลง Cloud สำเร็จ:", sessionId);
+                }).catch(err => {
+                    console.error("Firebase Error:", err);
                 });
             }
             alert("🚀 สร้าง QR Code คาบเรียนใหม่สำเร็จ! รหัสเซสชัน: " + sessionId);
@@ -348,7 +350,6 @@
         function initFirebaseFromInput() {
             const rawText = document.getElementById('firebase-config-input').value;
             try {
-                // Parse firebaseConfig object from text input
                 const match = rawText.match(/\{[\s\S]*\}/);
                 if (!match) throw new Error("ไม่พบรูปแบบ firebaseConfig ที่ถูกต้อง");
                 const firebaseConfig = eval('(' + match[0] + ')');
