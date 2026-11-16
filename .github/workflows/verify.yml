@@ -1,0 +1,23 @@
+name: Verify MACHECK
+on:
+  pull_request:
+  push:
+    branches: [main, macheck-v3-review]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify release structure and frontend syntax
+        run: node scripts/verify-release.mjs
+      - name: Install Functions dependencies
+        run: npm install --prefix functions --ignore-scripts --no-audit --no-fund
+      - name: Lint and test Functions
+        run: |
+          npm --prefix functions run lint
+          npm --prefix functions test

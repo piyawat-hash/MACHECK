@@ -1,0 +1,112 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function userPath() {
+      return /databases/$(database)/documents/users/$(request.auth.uid);
+    }
+
+    function hasProfile() {
+      return signedIn() && exists(userPath());
+    }
+
+    function profile() {
+      return get(userPath()).data;
+    }
+
+    function activeProfile() {
+      return hasProfile() && profile().status == 'active';
+    }
+
+    function belongsToSchool(schoolId) {
+      return activeProfile() && profile().schoolId == schoolId;
+    }
+
+    function isTeacher(schoolId) {
+      return belongsToSchool(schoolId) && profile().role in ['teacher', 'admin'];
+    }
+
+    function isStudent(schoolId) {
+      return belongsToSchool(schoolId) && profile().role == 'student';
+    }
+
+    function isAdmin(schoolId) {
+      return belongsToSchool(schoolId) && profile().role == 'admin';
+    }
+
+    match /users/{uid} {
+      allow get: if signedIn() && request.auth.uid == uid
+        || isTeacher(resource.data.schoolId);
+      // Client queries must include schoolId == the signed-in user's school.
+      allow list: if isTeacher(resource.data.schoolId);
+      allow create, delete: if false;
+      // Roster fields and authorization attributes are server-managed.
+      allow update: if signedIn()
+        && request.auth.uid == uid
+        // Only display name/photo can be changed by the account owner.
+        // Role, status, studentId, grade, track and schoolId are server-managed.
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'photo']);
+    }
+
+    match /settings/{settingId} {
+      allow read: if belongsToSchool(resource.data.schoolId);
+      allow create: if isTeacher(request.resource.data.schoolId)
+        && request.resource.data.keys().hasOnly(['schoolId', 'logo', 'hue', 'ts']);
+      allow update: if isTeacher(resource.data.schoolId)
+        && request.resource.data.schoolId == resource.data.schoolId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['logo', 'hue', 'ts']);
+      allow delete: if isTeacher(resource.data.schoolId);
+    }
+
+    match /assignments/{assignmentId} {
+      allow read: if belongsToSchool(resource.data.schoolId);
+      allow create: if isTeacher(request.resource.data.schoolId)
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 160
+        && request.resource.data.keys().hasOnly(['schoolId', 'createdBy', 'title', 'due', 'ts']);
+      allow update: if isTeacher(resource.data.schoolId)
+        && (resource.data.createdBy == request.auth.uid || isAdmin(resource.data.schoolId))
+        && request.resource.data.schoolId == resource.data.schoolId
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'due', 'ts']);
+      allow delete: if isTeacher(resource.data.schoolId)
+        && (resource.data.createdBy == request.auth.uid || isAdmin(resource.data.schoolId));
+    }
+
+    match /submissions/{submissionId} {
+      allow read: if isTeacher(resource.data.schoolId)
+        || (isStudent(resource.data.schoolId) && resource.data.uid == request.auth.uid);
+      allow create: if isStudent(request.resource.data.schoolId)
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.studentId == profile().studentId
+        && request.resource.data.status == 'COMPLETED'
+        && request.resource.data.score == null
+        && submissionId == request.resource.data.assignmentId + '_' + profile().studentId
+        && exists(/databases/$(database)/documents/assignments/$(request.resource.data.assignmentId))
+        && get(/databases/$(database)/documents/assignments/$(request.resource.data.assignmentId)).data.schoolId == profile().schoolId
+        && request.resource.data.keys().hasOnly(['schoolId', 'assignmentId', 'studentId', 'uid', 'status', 'score', 'ts']);
+      allow update, delete: if false;
+    }
+
+    // QR session lifecycle and attendance writes are server-only.
+    match /attendance_sessions/{sessionId} {
+      allow read: if isTeacher(resource.data.schoolId);
+      allow write: if false;
+    }
+
+    match /attendance_logs/{recordId} {
+      allow read: if isTeacher(resource.data.schoolId)
+        || (isStudent(resource.data.schoolId) && resource.data.uid == request.auth.uid);
+      allow write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

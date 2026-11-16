@@ -1,5 +1,5 @@
-<!DOCTYPE html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#3b0764"><title>MACHECK | โรงเรียนโยธินนุกูล</title>
-<link rel="manifest" href="manifest.json"><link rel="icon" href="icon-192.png">
+<!DOCTYPE html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#4c0b91"><meta name="description" content="MACHECK ระบบบริหารจัดการข้อมูลการเข้าเรียนและติดตามงาน โรงเรียนโยธินนุกูล"><meta name="application-name" content="MACHECK"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><title>MACHECK | โรงเรียนโยธินนุกูล</title>
+<link rel="manifest" href="./manifest.json"><link rel="icon" href="./icon-192.png"><link rel="apple-touch-icon" href="./icon-192.png">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
 const LV={50:'100% 98%',100:'91% 95%',200:'95% 92%',300:'95% 85%',400:'92% 76%',500:'90% 66%',600:'83% 58%',700:'70% 50%',800:'69% 42%',900:'70% 33%',950:'85% 20%'};
@@ -20,57 +20,149 @@ body{font-family:'Prompt',sans-serif;background:#f3f0fa;color:#1f2937}
 .sb .nv.on{@apply bg-white/15 text-white}
 .bn .nv{@apply flex-1 py-2.5 text-xs text-brand-300}
 .bn .nv.on{@apply text-brand-700 font-semibold}
+</style>
+<style>
+:root{--mc-purple:#4c0b91;--mc-violet:#7419d2;--mc-lilac:#f1e8ff;--mc-ink:#241044;--mc-gold:#f6c453}
+body{background:#f5f1fb;color:#25153d}button,input,textarea{font:inherit}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid rgba(124,58,237,.45);outline-offset:2px}
+.brand-logo{display:block;object-fit:contain;max-width:100%;height:auto}
+.brand-logo-hero{width:min(100%,430px);max-height:150px;filter:drop-shadow(0 10px 18px rgba(74,13,145,.13))}
+.brand-logo-student{width:205px;max-height:92px;margin-bottom:8px}
+.student-shell{width:100%;max-width:520px;background:#f5f1fb;padding-bottom:calc(88px + env(safe-area-inset-bottom));overflow:hidden}
+.student-hero{position:relative;min-height:248px;padding:16px 18px 64px;color:#fff;background:radial-gradient(circle at 82% 12%,rgba(255,255,255,.28),transparent 24%),linear-gradient(145deg,#31005e 0%,#5d10a9 48%,#922cf0 100%);border-radius:0 0 34px 34px;box-shadow:0 14px 36px rgba(75,15,145,.2)}
+.student-hero:after{content:"";position:absolute;width:230px;height:230px;border:1px solid rgba(255,255,255,.16);border-radius:50%;right:-75px;bottom:-110px;box-shadow:0 0 0 22px rgba(255,255,255,.035),0 0 0 46px rgba(255,255,255,.025)}
+.student-hero-top{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.student-school-lockup{display:flex;align-items:center;gap:10px;min-width:0}
+.student-school-lockup img{border:2px solid rgba(255,255,255,.7);box-shadow:0 2px 12px rgba(0,0,0,.15)}
+.student-icon-btn{width:38px;height:38px;border-radius:13px;border:1px solid rgba(255,255,255,.38);background:rgba(255,255,255,.12);color:white}
+.student-brand-lockup{position:relative;z-index:1;text-align:center;margin:16px auto 0}
+.student-header-logo{width:220px;max-height:104px;margin:0 auto;padding:7px 13px;box-sizing:border-box;background:#fff;border:1px solid rgba(255,255,255,.82);border-radius:18px;box-shadow:0 8px 22px rgba(20,0,45,.22);filter:none}
+.student-main{position:relative;z-index:2;margin:-54px 14px 0}
+.student-pass-card{background:#fff;border:1px solid rgba(108,45,177,.1);border-radius:28px;padding:19px 17px 18px;text-align:center;box-shadow:0 14px 36px rgba(60,20,110,.15)}
+.student-pass-heading{display:flex;justify-content:space-between;align-items:center;text-align:left;gap:10px;margin-bottom:16px}
+.student-live-pill{display:inline-flex;align-items:center;gap:6px;background:#f0fff5;color:#16834d;border:1px solid #bfead0;border-radius:999px;padding:6px 10px;font-size:10px;font-weight:800;letter-spacing:.06em}
+.student-profile-panel{display:flex;align-items:center;gap:13px;padding:13px;background:linear-gradient(110deg,#f4edff,#fbf9ff);border:1px solid #eee3ff;border-radius:19px;text-align:left}
+.student-profile-panel img,.student-profile-panel>div:first-child{flex:none}
+.student-profile-panel img{width:68px;height:68px}
+.student-qr-caption{margin:19px 0 9px;color:#6b21a8;font-size:11px;font-weight:800;letter-spacing:.11em}
+.student-qr-frame{position:relative;display:grid;place-items:center;width:208px;height:208px;margin:0 auto 14px;border:1px solid #e9ddfa;border-radius:22px;background:#fff;box-shadow:inset 0 0 0 7px #faf7ff}
+.student-qr-frame #mq{padding:8px;background:#fff;border-radius:10px;line-height:0}
+.student-qr-frame #mq img,.student-qr-frame #mq canvas{display:block;max-width:100%;height:auto}
+.student-qr-check{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:38px;height:38px;border:4px solid #fff;border-radius:50%;display:grid;place-items:center;background:#6f16c8;color:#fff;font-size:16px;box-shadow:0 2px 8px rgba(60,0,120,.25);pointer-events:none}
+.student-attendance-status{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;background:#f4f1f8;color:#6b6277;padding:10px 18px;font-size:13px;font-weight:700}
+.student-attendance-status.is-checked{background:#e8fff1;color:#13864a}
+.student-scan-btn{width:100%;margin-top:15px;border:0;border-radius:15px;padding:14px 16px;background:linear-gradient(100deg,#5d0ba9,#8c27e7);color:#fff;font-weight:700;box-shadow:0 9px 20px rgba(94,20,165,.2)}
+.student-bottom-nav{position:fixed;z-index:40;left:50%;transform:translateX(-50%);bottom:0;width:min(100%,520px);padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:rgba(255,255,255,.96);backdrop-filter:blur(14px);border-top:1px solid #eee6f8;box-shadow:0 -8px 26px rgba(62,20,110,.1);border-radius:20px 20px 0 0;display:flex}
+.student-bottom-nav .nv{color:#887b9a}
+.student-bottom-nav .nv.on{color:#6413ad;font-weight:800}
+.teacher-shell{min-height:100dvh;background:linear-gradient(135deg,#f8f5fc,#f0eafa)}
+.teacher-sidebar{position:sticky;top:0;height:100dvh;background:radial-gradient(circle at 18% 2%,rgba(164,94,255,.25),transparent 28%),linear-gradient(180deg,#31005e,#4c0b91 58%,#26004d);box-shadow:8px 0 28px rgba(52,12,97,.12)}
+.teacher-brand-card{display:flex;flex-direction:column;align-items:center;padding:13px 12px 11px;background:#fff;border-radius:20px;box-shadow:0 9px 26px rgba(0,0,0,.12);margin:2px 0 26px}
+.teacher-sidebar-logo{width:176px;height:76px;object-fit:contain}
+.teacher-sidebar-label{font-size:10px;letter-spacing:.18em;color:#cbb3e9;font-weight:800;margin:0 0 10px 10px}
+.teacher-sidebar .nv{border:1px solid transparent}
+.teacher-sidebar .nv.on{background:linear-gradient(100deg,rgba(255,255,255,.2),rgba(255,255,255,.08));border-color:rgba(255,255,255,.12);box-shadow:inset 3px 0 #f4c75b;color:#fff}
+.teacher-school-status{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.1)}
+.teacher-topbar{position:sticky;top:0;z-index:25;min-height:76px;background:rgba(255,255,255,.91);backdrop-filter:blur(16px);border-bottom:1px solid #eee6f7;box-shadow:0 5px 20px rgba(60,20,100,.04)}
+.teacher-heading{min-width:0}
+.teacher-mode-chip .text-xs{background:#f0e5ff!important;color:#6013a8!important}
+.teacher-logout{width:40px;height:40px;border-radius:14px;background:#f4effa;color:#5a238b}
+.teacher-content{width:100%;max-width:1600px;margin:0 auto}
+.teacher-mobile-brand{display:flex;flex-direction:column;gap:0;align-items:flex-start}
+.teacher-mobile-brand img{width:112px;height:38px;object-fit:contain}
+.teacher-mobile-brand span{font-size:9px;font-weight:800;letter-spacing:.12em;color:#7c3db1}
+.teacher-mobile-nav{z-index:40;padding:7px 4px calc(7px + env(safe-area-inset-bottom));background:rgba(255,255,255,.97);backdrop-filter:blur(14px);border-top:1px solid #e9e0f2;box-shadow:0 -8px 25px rgba(55,15,95,.1)}
+.teacher-mobile-nav .nv{flex:1;min-width:0;color:#847991;font-size:10px}
+.teacher-mobile-nav .nv.on{color:#6413ad;font-weight:800}
+.teacher-content .c{border:1px solid rgba(105,54,153,.07);box-shadow:0 8px 28px rgba(65,23,112,.07)}
+.teacher-content button,.student-shell button{touch-action:manipulation}
+@media(min-width:1024px){.teacher-content{padding-top:24px}.teacher-sidebar{width:268px}}
+@media(max-width:1023px){.teacher-shell{display:block}.teacher-topbar{min-height:66px;padding-top:9px;padding-bottom:9px}.teacher-content{padding-top:18px}.teacher-content .c{padding:18px;border-radius:22px}}
+@media(max-width:640px){
+ body{background:#f5f1fb}
+ .student-hero{min-height:236px;padding:13px 14px 58px}
+ .student-brand-lockup{margin-top:14px}
+ .student-header-logo{width:190px;max-height:88px;padding:6px 11px;border-radius:16px}
+ .student-main{margin-left:10px;margin-right:10px}
+ .student-pass-card{padding:16px 13px;border-radius:24px}
+ .student-qr-frame{width:194px;height:194px}
+ .student-qr-frame #mq img,.student-qr-frame #mq canvas{width:164px!important;height:164px!important}
+ .teacher-content{padding-left:12px;padding-right:12px}
+ .teacher-content .c{padding:15px}
+ .teacher-mode-chip{display:none}
+}
+@media(prefers-reduced-motion:no-preference){.student-scan-btn,.teacher-sidebar .nv{transition:transform .18s ease,box-shadow .18s ease,background .18s ease}.student-scan-btn:active{transform:scale(.985)}}
 </style></head><body><div id="app"></div><div id="toasts" class="fixed top-3 inset-x-3 z-[60] flex flex-col gap-2 items-center pointer-events-none"></div>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-import {getAuth,GoogleAuthProvider,signInWithPopup,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-import {getFirestore,collection,doc,getDoc,setDoc,updateDoc,deleteDoc,onSnapshot,query,where,runTransaction,serverTimestamp} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import {getAuth,GoogleAuthProvider,signInWithPopup,signInWithRedirect,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+import {getFirestore,collection,doc,getDoc,setDoc,updateDoc,deleteDoc,onSnapshot,query,where,serverTimestamp} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import {getFunctions,httpsCallable} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
 
-const ADMIN_KEY="YN-CREATOR-2026"; // Creator Master Key (ต้องตรงกับ config/security.mk)
+// Pilot deployment: one school only. Do not reuse this build for another school
+// until tenant provisioning and tenant-isolation tests are completed.
+const SCHOOL_ID="yothin-nukul";
+const FUNCTION_REGION="asia-southeast1";
 const DEFAULT_CFG={apiKey:"AIzaSyB-96UvU8NsWXNYS4UV_GsFf2Nf3zQJAkQ",authDomain:"macheck1.firebaseapp.com",projectId:"macheck1",appId:"1:197384962959:web:0fbed0435594cdbb7c81fa"};
 const THEMES=[['ม่วง',268],['น้ำเงิน',217],['เขียว',152],['เขียวน้ำทะเล',180],['ชมพู',338],['ส้ม',24]];
 
 // ---------- helpers ----------
 const $=s=>document.querySelector(s),app=$('#app');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
-const fd=t=>new Date(t).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
-const ft=t=>new Date(t).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',hour12:false}).replace('.',':');
+const fd=t=>new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',day:'numeric',month:'short',year:'numeric'}).format(new Date(t));
+const ft=t=>new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(t));
+const schoolDayKey=t=>{const p=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(t));const v=Object.fromEntries(p.map(x=>[x.type,x.value]));return `${v.year}-${v.month}-${v.day}`};
 function toast(m,t='ok'){const e=document.createElement('div');e.className='px-4 py-3 rounded-2xl shadow-lg text-white text-sm '+{ok:'bg-emerald-600',err:'bg-rose-600',warn:'bg-amber-600'}[t];e.textContent=m;$('#toasts').append(e);setTimeout(()=>e.remove(),3500)}
-const err=e=>toast('เกิดข้อผิดพลาด: '+(e.code||e.message),'err');
+const err=e=>toast(e?.message||e?.code||'เกิดข้อผิดพลาด','err');
 function modal(h){const m=document.createElement('div');m.className='fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4';m.innerHTML=`<div class="bg-white rounded-3xl p-6 w-full max-w-md max-h-[90vh] overflow-auto">${h}</div>`;document.body.append(m);m.close=()=>m.remove();return m}
 const ask=q=>new Promise(r=>{const m=modal(`<p class="mb-5 font-medium">${q}</p><div class="flex gap-2 justify-end"><button class="g" id="n">ยกเลิก</button><button class="b" id="y">ยืนยัน</button></div>`);m.querySelector('#n').onclick=()=>{m.close();r(false)};m.querySelector('#y').onclick=()=>{m.close();r(true)}});
 const qr=(el,t,n)=>{if(!el)return;el.innerHTML='';new QRCode(el,{text:t,width:n,height:n,correctLevel:QRCode.CorrectLevel.H})};
 const theme=h=>document.documentElement.style.setProperty('--h',h??268);
 const img=(f,n)=>new Promise(r=>{const o=new FileReader();o.onload=()=>{const i=new Image();i.onload=()=>{const k=Math.min(1,n/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*k;c.height=i.height*k;c.getContext('2d').drawImage(i,0,0,c.width,c.height);r(c.toDataURL('image/webp',.85))};i.src=o.result};o.readAsDataURL(f)});
-let G={}; // ตั้งค่าสตูดิโอจาก Firestore: settings/studio
+let G={}; 
 const crest=(c='w-12 h-12',s=G.logo)=>`<img src="${s?esc(s):'crest.png'}" alt="โรงเรียนโยธินนุกูล" class="${c} rounded-full object-cover ring-2 ring-brand-300 bg-white">`;
 const av=(s,n,c)=>s?`<img src="${esc(s)}" referrerpolicy="no-referrer" class="${c} rounded-full object-cover ring-2 ring-brand-300">`:`<div class="${c} rounded-full bg-brand-200 text-brand-800 font-bold flex items-center justify-center ring-2 ring-brand-300 shrink-0">${esc((n||'?').replace(/^(นางสาว|นาย|นาง|ครู|คุณครู)/,'')[0]||'?')}</div>`;
-let Dr={}; // ค่าที่กำลังพิมพ์/เลือก
+let Dr={}; 
 document.addEventListener('input',e=>{const k=e.target.dataset.k;if(k)Dr[k]=e.target.value});
 document.addEventListener('change',async e=>{const k=e.target.dataset.up,f=e.target.files?.[0];if(k&&f){Dr[k]=await img(f,k=='logo'?256:160);R()}});
 
-// ---------- data layer: Cloud (Firestore) / Local (โหมดทดสอบ) ----------
-let fs,auth,cfg=JSON.parse(localStorage.mc_cfg||'null')||DEFAULT_CFG;
+// ---------- data layer ----------
+function readStoredJson(key,fallback){try{const raw=localStorage.getItem(key);return raw?JSON.parse(raw):fallback}catch(e){console.warn('Invalid local storage value:',key);localStorage.removeItem(key);return fallback}}
+let fs,auth,functions,cfg=readStoredJson('mc_cfg',DEFAULT_CFG);
 const cloud=!!cfg.apiKey&&localStorage.mc_mode!=='demo';
-const Cloud={
- sub(n,cb,w){return onSnapshot(w?query(collection(fs,n),where(w[0],'==',w[1])):collection(fs,n),s=>cb(s.docs.map(d=>{const v=d.data(),t=v.ts??v.createdAt;return{id:d.id,...v,ts:t?.toMillis?t.toMillis():t||Date.now()}}).sort((a,b)=>b.ts-a.ts)),e=>toast('โหลดข้อมูลไม่ได้: '+e.code,'err'))},
- async get(n,id){const s=await getDoc(doc(fs,n,id));return s.exists()?{id,...s.data()}:null},
- set(n,id,d,k='ts'){return setDoc(doc(fs,n,id),{...d,[k]:serverTimestamp()})},
- upd(n,id,d){return updateDoc(doc(fs,n,id),d)},
- del(n,id){return deleteDoc(doc(fs,n,id))},
- checkin(id,d){const r=doc(fs,'attendance_logs',id);return runTransaction(fs,async t=>{if((await t.get(r)).exists())return false;t.set(r,{...d,ts:serverTimestamp()});return true})}
+if(cloud){
+  const fbApp=initializeApp(cfg);
+  fs=getFirestore(fbApp);
+  auth=getAuth(fbApp);
+  functions=getFunctions(fbApp,FUNCTION_REGION);
+}
+const callServer=async(name,data={})=>{
+  if(!cloud||!functions)throw new Error('Cloud Functions ยังไม่ได้เชื่อมต่อ');
+  const callable=httpsCallable(functions,name);
+  const result=await callable(data);
+  return result.data;
 };
-const store=JSON.parse(localStorage.mc_demo||'{}'),ls=[];
+const Cloud={
+ sub(n,cb,w){
+  const constraints=[where('schoolId','==',SCHOOL_ID)];
+  if(w)constraints.push(where(w[0],'==',w[1]));
+  return onSnapshot(query(collection(fs,n),...constraints),s=>cb(s.docs.map(d=>{const v=d.data(),t=v.ts??v.createdAt;return{id:d.id,...v,ts:t?.toMillis?t.toMillis():t||Date.now()}}).sort((a,b)=>b.ts-a.ts)),e=>toast('โหลดข้อมูลไม่ได้: '+e.code,'err'))
+ },
+ async get(n,id){const s=await getDoc(doc(fs,n,id));if(!s.exists())return null;const v=s.data();if(v.schoolId!==SCHOOL_ID) return null;return{id:s.id,...v}},
+ async set(n,id,d,k='ts'){return setDoc(doc(fs,n,id),{...d,schoolId:SCHOOL_ID,[k]:serverTimestamp()})},
+ async upd(n,id,d){return updateDoc(doc(fs,n,id),d)},
+ async del(n,id){return deleteDoc(doc(fs,n,id))}
+};
+const store=readStoredJson('mc_demo',{}),ls=[];
 const flush=()=>{localStorage.mc_demo=JSON.stringify(store);ls.forEach(f=>f())};
 const Local={
  sub(n,cb,w){const run=()=>{let a=Object.entries(store[n]||{}).map(([id,d])=>({id,...d,ts:d.ts??d.createdAt}));if(w)a=a.filter(x=>x[w[0]]==w[1]);cb(a.sort((x,y)=>y.ts-x.ts))};ls.push(run);run();return()=>ls.splice(ls.indexOf(run),1)},
  async get(n,id){const d=(store[n]||{})[id];return d?{id,...d}:null},
  async set(n,id,d,k='ts'){(store[n]=store[n]||{})[id]={...d,[k]:Date.now()};flush()},
- async upd(n,id,d){Object.assign(store[n][id],d);flush()},
+ async upd(n,id,d){if(!store[n]||!store[n][id])throw new Error('ไม่พบข้อมูลที่ต้องการแก้ไข');Object.assign(store[n][id],d);flush()},
  async del(n,id){delete store[n][id];flush()},
  async checkin(id,d){const l=store.attendance_logs=store.attendance_logs||{};if(l[id])return false;l[id]={...d,ts:Date.now()};flush();return true}
 };
-let D=Local,me,pending,unsubs=[],S={a:[],s:[],l:[],u:[],ss:[],tab:'home',cur:null};
+let D=cloud?Cloud:Local,me,pending,unsubs=[],qrExpiryTimer=null,S={a:[],s:[],l:[],u:[],ss:[],tab:'home',cur:null,sessionQr:null,qrSessionId:null,sessionQrExpiresAt:null};
 const unsub=()=>{unsubs.forEach(f=>f());unsubs=[]};
 const R=()=>me&&(me.role=='student'?renderS():renderT());
 const subG=()=>D.sub('settings',x=>{const s=x.find(i=>i.id=='studio');if(s){G=s;theme(G.hue);R()}});
@@ -83,18 +175,30 @@ const A={
  lo:async()=>{if(await ask('ต้องการออกจากระบบหรือไม่?')){if(cloud)await signOut(auth);else landing()}},
  fb:()=>fbModal(),
  pick:b=>{S.cur=b.dataset.id;R()},
- ns:()=>{const s=cs(),m=modal(`<h3 class="font-bold text-lg mb-3">สร้าง QR Code คาบใหม่</h3><input id="nc" class="i" placeholder="ห้องเรียน เช่น ม.6/2" value="${esc(s?.className||'')}"><input id="nb" class="i" placeholder="วิชา เช่น วิทยาการคำนวณ" value="${esc(s?.subject||'')}"><div class="flex gap-2 justify-end mt-2"><button id="x" class="g">ยกเลิก</button><button id="y" class="b">สร้างคาบ</button></div>`);
+ ns:()=>{const s=cs(),m=modal(`<h3 class="font-bold text-lg mb-3">สร้าง QR Code คาบใหม่</h3><input id="nc" class="i" maxlength="40" placeholder="ห้องเรียน เช่น ม.6/2" value="${esc(s?.className||'')}"><input id="nb" class="i" maxlength="80" placeholder="วิชา เช่น วิทยาการคำนวณ" value="${esc(s?.subject||'')}"><p class="text-xs text-slate-500 mb-3">QR Code จะมีอายุ 30 นาที และสามารถต่ออายุได้จากหน้าครู</p><div class="flex gap-2 justify-end mt-2"><button id="x" class="g">ยกเลิก</button><button id="y" class="b">สร้างคาบ</button></div>`);
   m.querySelector('#x').onclick=m.close;
-  m.querySelector('#y').onclick=async()=>{const c=m.querySelector('#nc').value.trim()||'ห้องเรียน',b=m.querySelector('#nb').value.trim()||'ไม่ระบุวิชา',id=crypto.randomUUID().slice(0,8);m.close();
-   try{await D.set('attendance_sessions',id,{className:c,subject:b,active:true},'createdAt');S.cur=id;S.tab='home';toast('สร้าง QR Code คาบใหม่แล้ว');R()}catch(e){err(e)}}},
- tg:async()=>{const s=cs();if(!s)return;try{await D.upd('attendance_sessions',s.id,{active:!s.active})}catch(e){err(e)}},
+  m.querySelector('#y').onclick=async()=>{const c=m.querySelector('#nc').value.trim()||'ห้องเรียน',b=m.querySelector('#nb').value.trim()||'ไม่ระบุวิชา';m.close();
+   try{
+    if(cloud){const result=await callServer('createAttendanceSession',{className:c,subject:b});S.cur=result.sessionId;S.sessionQr=result.qrPayload;S.qrSessionId=result.sessionId;S.sessionQrExpiresAt=result.expiresAt;}
+    else{const id=crypto.randomUUID(),token=crypto.randomUUID()+crypto.randomUUID(),payload=`MACHECK|${id}|${token}`;await D.set('attendance_sessions',id,{className:c,subject:b,createdBy:me.uid,active:true,qrPayload:payload,qrExpiresAt:Date.now()+30*60*1000},'createdAt');S.cur=id;S.sessionQr=payload;S.qrSessionId=id;S.sessionQrExpiresAt=Date.now()+30*60*1000;}
+    S.tab='home';toast('สร้าง QR Code คาบใหม่แล้ว');R()
+   }catch(e){err(e)}}},
+ tg:async()=>{const s=cs();if(!s)return;if(me.role!=='admin'&&s.createdBy!==me.uid)return toast('คาบนี้สร้างโดยครูท่านอื่น จึงไม่สามารถแก้ไขได้','warn');try{
+  if(cloud){const result=await callServer('setAttendanceSessionActive',{sessionId:s.id,active:!s.active});S.sessionQr=result.qrPayload||null;S.qrSessionId=s.id;S.sessionQrExpiresAt=result.expiresAt||null;}
+  else{const active=!s.active,token=crypto.randomUUID()+crypto.randomUUID(),payload=active?`MACHECK|${s.id}|${token}`:null;await D.upd('attendance_sessions',s.id,{active,qrPayload:payload,qrExpiresAt:active?Date.now()+30*60*1000:null});S.sessionQr=payload;S.qrSessionId=s.id;S.sessionQrExpiresAt=active?Date.now()+30*60*1000:null;}
+  toast(s.active?'ปิดคาบเรียนแล้ว':'เปิดคาบเรียนแล้ว');R()
+ }catch(e){err(e)}},
+ qr:async()=>{const s=cs();if(!s||!s.active)return;if(me.role!=='admin'&&s.createdBy!==me.uid)return toast('คาบนี้สร้างโดยครูท่านอื่น จึงไม่สามารถต่ออายุ QR ได้','warn');try{
+  if(cloud){const result=await callServer('refreshAttendanceQr',{sessionId:s.id});S.sessionQr=result.qrPayload;S.qrSessionId=s.id;S.sessionQrExpiresAt=result.expiresAt;}
+  else{const token=crypto.randomUUID()+crypto.randomUUID(),payload=`MACHECK|${s.id}|${token}`;await D.upd('attendance_sessions',s.id,{qrPayload:payload,qrExpiresAt:Date.now()+30*60*1000});S.sessionQr=payload;S.qrSessionId=s.id;S.sessionQrExpiresAt=Date.now()+30*60*1000;}
+  toast('ออก QR Code ใหม่แล้ว');R()
+ }catch(e){err(e)}},
  na:async()=>{const t=(Dr.at||'').trim();if(!t)return toast('กรอกชื่องานก่อน','warn');
-  try{await D.set('assignments',crypto.randomUUID().slice(0,8),{title:t,due:Dr.ad||''});Dr.at='';Dr.ad='';toast('สั่งงานแล้ว');R()}catch(e){err(e)}},
- da:async b=>{if(!await ask('ลบงานนี้ออกจากระบบ?'))return;try{await D.del('assignments',b.dataset.id);toast('ลบงานแล้ว')}catch(e){err(e)}},
+  try{await D.set('assignments',crypto.randomUUID().slice(0,8),{title:t,due:Dr.ad||'',createdBy:me.uid});Dr.at='';Dr.ad='';toast('สั่งงานแล้ว');R()}catch(e){err(e)}},
+ da:async b=>{const item=S.a.find(x=>x.id===b.dataset.id);if(!item)return;if(me.role!=='admin'&&item.createdBy!==me.uid)return toast('คุณไม่มีสิทธิ์ลบงานที่ครูท่านอื่นสร้าง','warn');if(!await ask('ลบงานนี้ออกจากระบบ?'))return;try{await D.del('assignments',b.dataset.id);toast('ลบงานแล้ว')}catch(e){err(e)}},
  sub:async b=>{if(!await ask('ยืนยันส่งงานนี้?'))return;
   try{await D.set('submissions',b.dataset.id+'_'+me.studentId,{assignmentId:b.dataset.id,studentId:me.studentId,uid:me.uid,status:'COMPLETED',score:null});toast('ส่งงานแล้ว')}catch(e){err(e)}},
  sc:()=>scan(),
- sp:async()=>{const p={grade:(Dr.grade??me.grade??'').trim(),track:(Dr.track??me.track??'').trim()};try{await D.upd('users',me.uid,p);Object.assign(me,p);Dr={};toast('บันทึกข้อมูลแล้ว');R()}catch(e){err(e)}},
  ex:()=>navigator.clipboard.writeText(JSON.stringify(me.role=='student'?{profile:me,attendance:S.l,submissions:S.s}:{students:S.u,sessions:S.ss,attendance:S.l,assignments:S.a,submissions:S.s},null,2)).then(()=>toast('คัดลอก JSON แล้ว'),()=>toast('คัดลอกไม่ได้','err')),
  csv:()=>{const q=v=>`"${String(v).replace(/^[=+\-@]/,"'$&").replace(/"/g,'""')}"`;
   const r=[['ชื่อ','รหัส','ชั้น','แผนการเรียน','เข้าเรียน (ครั้ง)','งานค้าง']].concat(S.u.map(u=>[u.name,u.studentId,u.grade||'',u.track||'',S.l.filter(l=>l.uid==u.id).length,Math.max(0,S.a.length-S.s.filter(x=>x.uid==u.id).length)]));
@@ -115,120 +219,239 @@ function fbModal(){const m=modal(`<h3 class="font-bold text-lg mb-1"><i class="f
  m.querySelector('#cl').onclick=()=>{localStorage.removeItem('mc_cfg');location.reload()};m.querySelector('#x').onclick=m.close}
 
 // ---------- landing / login ----------
-const FEATS=[['fa-bolt','รวดเร็ว ทันสมัย','ด้วยสถาปัตยกรรม Single-file และ Tailwind CSS โหลดไว ใช้งานลื่นไหล'],['fa-shield-halved','ปลอดภัย มั่นใจได้','Google Sign-In และ Creator Master Key ป้องกันการเข้าถึงโดยไม่ได้รับอนุญาต'],['fa-cloud-arrow-up','ข้อมูลเรียลไทม์','ด้วย Firebase Cloud Firestore ซิงค์ข้อมูลทันที ป้องกันข้อมูลสูญหาย'],['fa-laptop-mobile','ใช้งานได้ 2 ระบบ','Mobile Fast-Pass และ Teacher Command Center ในหน้าจอเดียว'],['fa-palette','ปรับแต่งได้อิสระ','Custom Studio อัปโหลดรูปภาพ เปลี่ยนธีมได้ทันที'],['fa-qrcode','QR Code เฉพาะตัว','ใช้ Unique Token ไม่ซ้ำกัน แม่นยำสูง']];
+const FEATS=[['fa-bolt','รวดเร็ว ทันสมัย','ออกแบบให้ใช้งานง่ายบนมือถือและคอมพิวเตอร์'],['fa-shield-halved','ควบคุมสิทธิ์ผู้ใช้','Google Sign-In และบัญชีที่โรงเรียนอนุมัติ'],['fa-cloud-arrow-up','ข้อมูลเรียลไทม์','ซิงค์ข้อมูลผ่าน Firebase Cloud Firestore'],['fa-laptop-mobile','ใช้งานได้ 2 ระบบ','Mobile Fast-Pass และ Teacher Command Center'],['fa-palette','ปรับแต่งได้','ตั้งค่าธีมและข้อมูลโรงเรียน'],['fa-qrcode','QR Code แบบมีอายุ','Token เฉพาะคาบเรียนและตรวจสอบฝั่ง Server']];
 function landing(){unsub();me=null;S.tab='home';
  app.innerHTML=`<div class="min-h-screen bg-gradient-to-b from-brand-100 via-brand-300 to-brand-700"><div class="max-w-6xl mx-auto px-4 py-5">
   <div class="flex items-center gap-3">${crest('w-14 h-14')}<div class="border-l-2 border-brand-700 pl-3 leading-tight"><div class="font-bold text-lg text-brand-950">โรงเรียนโยธินนุกูล</div><div class="text-xs font-semibold text-brand-700">YOTHIN NUKUL SCHOOL</div></div><div class="ml-auto flex gap-2">${cloud?'':chip()+`<button data-a="fb" class="w-9 h-9 rounded-full bg-white/60 text-brand-950"><i class="fa-solid fa-gear"></i></button>`}</div></div>
   <div class="grid lg:grid-cols-2 gap-8 items-center mt-8">
-   <div class="text-center lg:text-left"><img src="logo.png" alt="MACHECK" class="h-28 mx-auto lg:mx-0"><div class="text-brand-950 font-semibold mt-2">Smart Check, Simple Life</div><div class="text-3xl lg:text-4xl font-black italic text-brand-950 mt-4 leading-snug">เช็กง่าย แม่นยำ<br>ครบจบในที่เดียว</div><div class="mt-4 text-xl font-black italic text-brand-950">“ก้าวสู่โรงเรียนดิจิทัล ด้วย MACHECK”</div></div>
-   <div class="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-md mx-auto">${cloud?'':'<div class="text-xs bg-amber-50 text-amber-700 rounded-xl p-3 mb-3">โหมดทดสอบ: ข้อมูลเก็บในเบราว์เซอร์นี้เท่านั้น กดเฟืองเพื่อเชื่อม Firebase</div>'}
+   <div class="text-center lg:text-left"><img src="logo.png" alt="MACHECK" class="brand-logo brand-logo-hero mx-auto lg:mx-0"><div class="text-brand-950 font-semibold mt-2">Smart Check, Simple Life</div><div class="text-3xl lg:text-4xl font-black italic text-brand-950 mt-4 leading-snug">เช็กง่าย แม่นยำ<br>ครบจบในที่เดียว</div><div class="mt-4 text-xl font-black italic text-brand-950">“ก้าวสู่โรงเรียนดิจิทัล ด้วย MACHECK”</div></div>
+   <div class="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-md mx-auto">${cloud?'':'<div class="text-xs bg-amber-50 text-amber-700 rounded-xl p-3 mb-3">โหมดทดลองเท่านั้น: ข้อมูลเก็บในเบราว์เซอร์นี้ ไม่ใช่ฐานข้อมูลจริง และห้ามใช้ข้อมูลนักเรียนจริง</div>'}
     <div class="flex mb-4 bg-brand-50 rounded-xl p-1"><button id="ts" class="flex-1 py-2 rounded-lg font-semibold">นักเรียน</button><button id="tt" class="flex-1 py-2 rounded-lg font-semibold">ครู / แอดมิน</button></div><div id="pt"></div></div></div>
   <div class="mt-10 mx-auto w-fit bg-gradient-to-r from-brand-950 to-brand-600 text-white rounded-full px-8 py-3 font-black text-xl"><i class="fa-solid fa-trophy text-amber-300 mr-2"></i>จุดเด่นของระบบ MACHECK</div>
   <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">${FEATS.map(([i,t,d])=>`<div class="bg-white/90 rounded-3xl p-4 flex gap-4 items-center shadow"><div class="w-14 h-14 shrink-0 rounded-full bg-gradient-to-br from-brand-600 to-brand-950 text-white flex items-center justify-center text-2xl"><i class="fa-solid ${i}"></i></div><div><div class="font-bold text-brand-950">${t}</div><div class="text-xs text-slate-600">${d}</div></div></div>`).join('')}</div>
   <div class="mt-6 rounded-3xl bg-brand-950 text-white p-6"><div class="font-black text-xl text-amber-300 mb-3"><i class="fa-solid fa-star mr-2"></i>ข้อดีที่ได้รับ</div>${['ลดภาระงานครู เช็กชื่อและติดตามงานได้ง่ายขึ้น','นักเรียนใช้งานสะดวก รวดเร็ว ทุกที่ ทุกเวลา','ยกระดับการบริหารจัดการ สู่โรงเรียนดิจิทัลเต็มรูปแบบ'].map(x=>`<div class="flex gap-3 items-center py-1"><i class="fa-solid fa-circle-check text-amber-300 text-xl"></i>${x}</div>`).join('')}</div>
   <p class="text-center text-white font-bold italic text-xl mt-8 mb-4">MACHECK... มากกว่าการเช็กชื่อ <span class="text-amber-300">คืออนาคตของการศึกษาไทย</span></p><div class="flex items-center justify-center gap-3 bg-brand-950 text-white rounded-2xl py-3 px-4 mb-4 text-sm sm:text-base"><i class="fa-solid fa-circle-check text-amber-300 text-xl"></i><span><b class="text-amber-300">MACHECK :</b> ระบบเช็กชื่ออัจฉริยะ เพื่อโรงเรียนโยธินนุกูลในอนาคต</span></div></div></div>`;
  const pick=r=>{$('#ts').className='flex-1 py-2 rounded-lg font-semibold '+(r=='s'?'bg-brand-600 text-white shadow':'text-slate-500');$('#tt').className='flex-1 py-2 rounded-lg font-semibold '+(r=='t'?'bg-brand-600 text-white shadow':'text-slate-500');
-  $('#pt').innerHTML=r=='s'?`<p class="text-xs text-slate-500 mb-2">กรอกข้อมูลครั้งแรกเพื่อผูกบัญชี ครั้งต่อไปกดเข้าสู่ระบบได้เลย</p><input id="sid" inputmode="numeric" class="i" placeholder="รหัสนักเรียน"><input id="gr" class="i" placeholder="ระดับชั้น เช่น ม.6/2"><input id="tr" class="i" placeholder="แผนการเรียน เช่น วิทย์-คณิต"><button id="go" class="b w-full"><i class="fa-brands fa-google mr-2"></i>เข้าสู่ระบบด้วย Google</button>`
-   :`<input id="mk" type="password" class="i" placeholder="รหัสลับแอดมิน (Creator Master Key)"><button id="go" class="b w-full"><i class="fa-brands fa-google mr-2"></i>เข้าสู่ระบบครู ด้วย Google</button>`;
+  $('#pt').innerHTML=r=='s'?`${cloud?'<p class="text-xs text-slate-500 mb-2">เข้าสู่ระบบด้วยบัญชี Google ที่โรงเรียนอนุมัติและลงทะเบียนไว้</p>':'<p class="text-xs text-slate-500 mb-2">โหมดทดลอง: กรอกรหัสตัวอย่างเพื่อทดสอบหน้าจอเท่านั้น</p><input id="sid" inputmode="numeric" class="i" placeholder="รหัสนักเรียนตัวอย่าง" value="12345">'}<button id="go" class="b w-full"><i class="fa-brands fa-google mr-2"></i>${cloud?'เข้าสู่ระบบด้วย Google':'เข้าใช้งานโหมดทดลอง'}</button>`
+   :`<p class="text-xs text-slate-500 mb-2">สำหรับบัญชีครูหรือผู้ดูแลที่โรงเรียนอนุมัติไว้ในระบบเท่านั้น</p><button id="go" class="b w-full"><i class="fa-brands fa-google mr-2"></i>${cloud?'เข้าสู่ระบบครู / ผู้ดูแล':'เข้าใช้งานโหมดทดลอง'}</button>`;
   $('#go').onclick=()=>login(r)};
  $('#ts').onclick=()=>pick('s');$('#tt').onclick=()=>pick('t');pick('s')}
 async function login(r){
- if(r=='t'){if($('#mk').value!==ADMIN_KEY)return toast('รหัสลับแอดมินไม่ถูกต้อง','err');pending={role:'teacher'}}
- else pending={role:'student',studentId:$('#sid').value.trim(),grade:$('#gr').value.trim(),track:$('#tr').value.trim()};
+ if(r=='t')pending={role:'teacher'};
+ else if(cloud)pending={role:'student'};
+ else{
+  const studentId=$('#sid').value.trim();
+  if(!/^\d{3,10}$/.test(studentId))return toast('กรุณากรอกรหัสนักเรียน 3-10 หลัก','warn');
+  pending={role:'student',studentId};
+ }
  if(!cloud)return enter({uid:r+'-'+(pending.studentId||'demo'),displayName:r=='t'?'ครูทดสอบ':'นักเรียนทดสอบ'});
- try{await signInWithPopup(auth,new GoogleAuthProvider())}catch(e){toast('เข้าสู่ระบบไม่สำเร็จ ลองใหม่อีกครั้ง','err')}}
+ try{
+  // Store only the selected role across mobile redirect; no student personal ID is stored.
+  sessionStorage.setItem('mc_pending_role',pending.role);
+  const provider=new GoogleAuthProvider();
+  if(window.matchMedia('(max-width: 767px)').matches)await signInWithRedirect(auth,provider);
+  else await signInWithPopup(auth,provider);
+ }catch(e){pending=null;sessionStorage.removeItem('mc_pending_role');toast(e?.message||'เข้าสู่ระบบไม่สำเร็จ ลองใหม่อีกครั้ง','err')}}
 async function enter(u){
- try{let p=await D.get('users',u.uid);
-  if(!p){if(!pending||(pending.role=='student'&&!/^\d{3,10}$/.test(pending.studentId))){toast('ไม่พบบัญชี กรุณากรอกรหัสนักเรียนแล้วเข้าสู่ระบบอีกครั้ง','err');if(cloud)await signOut(auth);return landing()}
-   p=pending.role=='teacher'?{role:'teacher',name:u.displayName||'ครู',photo:u.photoURL||'',mk:ADMIN_KEY}:{role:'student',studentId:pending.studentId,grade:pending.grade,track:pending.track,name:u.displayName||'นักเรียน',photo:u.photoURL||'',qr:`YN-${pending.studentId}-${crypto.randomUUID()}`};
-   await D.set('users',u.uid,p)}
-  me={uid:u.uid,...p};pending=null;S.tab='home';me.role=='student'?studentView():teacherView()}
- catch(e){err(e);if(cloud)await signOut(auth)}}
+ try{
+  let p=await D.get('users',u.uid);
+  if(cloud){
+   if(!p||p.schoolId!==SCHOOL_ID)throw new Error('บัญชีนี้ยังไม่ได้รับอนุมัติจากโรงเรียน กรุณาติดต่อผู้ดูแลระบบ');
+   if(p.status!=='active')throw new Error('บัญชีนี้ยังไม่ได้รับอนุมัติหรือถูกระงับ กรุณาติดต่อผู้ดูแลระบบ');
+   if(!['student','teacher','admin'].includes(p.role))throw new Error('บัญชีนี้ไม่มีสิทธิ์ใช้งาน MACHECK');
+   const actualRole=p.role==='student'?'student':'teacher';
+   if(pending?.role&&pending.role!==actualRole)throw new Error('เลือกประเภทบัญชีไม่ตรงกับสิทธิ์ที่โรงเรียนกำหนด');
+  }else if(!p){
+   if(!pending)throw new Error('ไม่พบข้อมูลผู้ใช้ในโหมดทดลอง');
+   p=pending.role==='teacher'
+    ?{role:'teacher',schoolId:SCHOOL_ID,name:u.displayName||'ครูทดสอบ',photo:u.photoURL||''}
+    :{role:'student',schoolId:SCHOOL_ID,studentId:pending.studentId,grade:'',track:'',name:u.displayName||'นักเรียนทดสอบ',photo:u.photoURL||'',qr:`YN-${pending.studentId}-${crypto.randomUUID()}`};
+   await D.set('users',u.uid,p);
+  }
+  me={uid:u.uid,...p};pending=null;S.tab='home';me.role==='student'?studentView():teacherView();
+ }catch(e){toast(e.message||'ไม่สามารถเข้าสู่ระบบได้','err');pending=null;if(cloud&&auth.currentUser)await signOut(auth);landing()}}
+
+
+if(cloud){
+  onAuthStateChanged(auth,u=>{
+    if(u){
+      if(!pending){const role=sessionStorage.getItem('mc_pending_role');if(role==='student'||role==='teacher')pending={role};}
+      sessionStorage.removeItem('mc_pending_role');
+      enter(u);
+    }else{pending=null;sessionStorage.removeItem('mc_pending_role');landing()}
+  });
+}else{
+  landing();
+}
 
 // ---------- student: Mobile Fast-Pass ----------
 function studentView(){unsub();
- app.innerHTML=`<div class="max-w-md mx-auto min-h-screen bg-[#f3f0fa] pb-28 relative">
- <div class="h-52 bg-gradient-to-b from-brand-800 to-brand-500 rounded-b-[2.5rem] px-4 pt-4 flex justify-between items-start text-white"><button data-a="nav" data-t="home" class="w-10 h-10"><i class="fa-solid fa-arrow-left text-xl"></i></button>${cloud?'<button data-a="nav" data-t="set" class="w-9 h-9 rounded-full border border-white/50"><i class="fa-solid fa-gear"></i></button>':chip()}</div>
- <main id="main" class="px-4 -mt-36"></main>
- <nav class="bn fixed bottom-0 inset-x-0 max-w-md mx-auto bg-white rounded-t-3xl shadow-[0_-4px_20px_rgba(76,29,149,.15)] flex px-2">${[['home','fa-house','หน้าแรก'],['task','fa-clipboard-list','งานค้าง'],['set','fa-user','ตั้งค่า']].map(([k,i,t])=>`<button data-a="nav" data-t="${k}" class="nv"><i class="fa-solid ${i} text-xl block mb-0.5"></i>${t}${k=='task'?'<span id="bd"></span>':''}</button>`).join('')}</nav></div>`;
+ app.innerHTML=`<div class="student-shell min-h-screen mx-auto relative">
+  <header class="student-hero">
+   <div class="student-hero-top">
+    <div class="student-school-lockup">${crest('w-10 h-10')}<div><div class="font-bold text-sm">โรงเรียนโยธินนุกูล</div><div class="text-[10px] tracking-wide opacity-80">YOTHIN NUKUL SCHOOL</div></div></div>
+    <div class="flex items-center gap-2">${cloud?'<button data-a="nav" data-t="set" class="student-icon-btn" aria-label="ตั้งค่า"><i class="fa-solid fa-gear"></i></button>':chip()}<button data-a="lo" class="student-icon-btn" aria-label="ออกจากระบบ"><i class="fa-solid fa-right-from-bracket"></i></button></div>
+   </div>
+   <div class="student-brand-lockup"><img src="logo.png" alt="MACHECK" class="brand-logo student-header-logo"><div class="text-white/90 text-xs font-medium tracking-wide">SMART CHECK · SIMPLE LIFE</div></div>
+  </header>
+  <main id="main" class="student-main"></main>
+  <nav class="bn student-bottom-nav">${[['home','fa-house','หน้าแรก'],['task','fa-clipboard-list','งานค้าง'],['set','fa-user','บัญชี']].map(([k,i,t])=>`<button data-a="nav" data-t="${k}" class="nv"><i class="fa-solid ${i} text-lg block mb-1"></i>${t}${k=='task'?'<span id="bd"></span>':''}</button>`).join('')}</nav>
+ </div>`;
  unsubs.push(subG(),D.sub('assignments',a=>{S.a=a;R()}),D.sub('submissions',s=>{S.s=s;R()},['uid',me.uid]),D.sub('attendance_logs',l=>{S.l=l;R()},['uid',me.uid]));R()}
+
 function renderS(){
- const dn=new Set(S.s.map(x=>x.assignmentId)),pe=S.a.filter(a=>!dn.has(a.id)),l=S.l[0];
+ const dn=new Set(S.s.map(x=>x.assignmentId)),pe=S.a.filter(a=>!dn.has(a.id)),today=schoolDayKey(Date.now()),l=S.l.find(x=>schoolDayKey(x.ts)===today);
  $('#bd').textContent=pe.length||'';$('#bd').className=pe.length?'ml-1 bg-rose-500 text-white rounded-full px-1.5 text-[10px]':'';
  document.querySelectorAll('.nv').forEach(b=>b.classList.toggle('on',b.dataset.t==S.tab));
  const box='bg-white rounded-3xl p-5 shadow-[0_8px_30px_rgba(76,29,149,.15)]';
- $('#main').innerHTML=S.tab=='home'?`<div class="bg-white rounded-[2rem] p-5 shadow-[0_8px_30px_rgba(76,29,149,.18)] text-center"><img src="logo.png" alt="MACHECK" class="h-20 mx-auto">
-  <div class="flex items-center gap-3 bg-brand-50 rounded-2xl p-3 mt-3 text-left">${av(me.photo,me.name,'w-16 h-16')}<div class="min-w-0"><div class="font-bold truncate text-brand-950">${esc(me.name)}</div><div class="text-brand-700 font-semibold">${esc(me.grade||'-')}</div><div class="text-[11px] text-slate-400">รหัส ${esc(me.studentId)}</div></div></div>
-  <div class="relative w-fit mx-auto my-4 p-3 bg-white border border-brand-100 rounded-2xl"><div id="mq"></div><i class="fa-solid fa-circle-check absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-4xl text-brand-600 bg-white rounded-full"></i></div>
-  ${l?`<div class="mx-auto w-fit bg-emerald-500 text-white rounded-full px-8 py-2.5 font-bold shadow">เช็กชื่อสำเร็จ <i class="fa-solid fa-check ml-1"></i></div><div class="text-sm font-medium text-slate-600 mt-3">${fd(l.ts)} | ${ft(l.ts)} น.</div>`:'<div class="mx-auto w-fit bg-slate-100 text-slate-500 rounded-full px-8 py-2.5 font-bold">ยังไม่ได้เช็กชื่อ</div>'}
-  <button data-a="sc" class="b w-full mt-4 py-3.5"><i class="fa-solid fa-camera mr-2"></i>สแกน QR เช็กชื่อ</button></div>`
+ $('#main').innerHTML=S.tab=='home'?`<section class="student-pass-card">
+  <div class="student-pass-heading"><div><div class="text-xs font-semibold text-brand-600 tracking-wide">STUDENT FAST-PASS</div><h1 class="text-xl font-black text-brand-950">บัตรประจำตัวดิจิทัล</h1></div><span class="student-live-pill"><i class="fa-solid fa-circle text-[7px]"></i> ACTIVE</span></div>
+  <div class="student-profile-panel">${av(me.photo,me.name,'w-[68px] h-[68px]')}<div class="min-w-0 text-left"><div class="font-bold text-brand-950 text-base truncate">${esc(me.name)}</div><div class="text-brand-700 font-semibold">${esc(me.grade||'-')}</div><div class="text-[11px] text-slate-500">รหัสนักเรียน ${esc(me.studentId)}</div></div></div>
+  <div class="student-qr-caption">QR CODE ประจำตัวนักเรียน</div>
+  <div class="student-qr-frame"><div id="mq"></div><span class="student-qr-check"><i class="fa-solid fa-check"></i></span></div>
+  ${l?`<div class="student-attendance-status is-checked"><i class="fa-solid fa-circle-check mr-2"></i>เช็กชื่อสำเร็จ</div><div class="text-sm font-medium text-slate-500 mt-2">${fd(l.ts)} · ${ft(l.ts)} น.</div>`:'<div class="student-attendance-status"><i class="fa-regular fa-clock mr-2"></i>ยังไม่ได้เช็กชื่อวันนี้</div>'}
+  <button data-a="sc" class="student-scan-btn"><i class="fa-solid fa-camera mr-2"></i>สแกน QR เช็กชื่อ</button>
+  <p class="text-[11px] text-slate-400 mt-3">QR ประจำตัวสำหรับแสดงบัตรนักเรียน · สแกน QR ประจำคาบที่ครูสร้างเพื่อเช็กชื่อ</p>
+ </section>`
  :S.tab=='task'?(S.a.length?S.a.map(a=>{const ok=dn.has(a.id);return `<div class="${box} !p-4 mb-3 flex items-center gap-3"><div class="flex-1 min-w-0"><div class="font-semibold">${esc(a.title)}</div><div class="text-xs text-slate-500">กำหนดส่ง ${esc(a.due||'ไม่ระบุ')}</div></div>
    ${ok?'<span class="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 font-semibold">COMPLETED</span>':`<span class="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-700 font-semibold">PENDING</span><button data-a="sub" data-id="${a.id}" class="b !px-3 !py-1.5 text-sm">ส่งงาน</button>`}</div>`}).join(''):`<div class="${box} text-center text-slate-500">ยังไม่มีงานที่ครูสั่ง</div>`)
  :`<div class="${box} flex items-center gap-3 mb-3">${av(me.photo,me.name,'w-14 h-14')}<div><div class="font-bold">${esc(me.name)}</div><div class="text-sm text-slate-500">รหัส ${esc(me.studentId)}</div></div></div>
   <div class="grid grid-cols-3 gap-2 mb-3 text-center">${[['เข้าเรียน',S.l.length],['งานค้าง',pe.length],['ส่งแล้ว',dn.size]].map(([n,v])=>`<div class="bg-white rounded-2xl p-3 shadow"><div class="text-2xl font-black text-brand-700">${v}</div><div class="text-xs text-slate-500">${n}</div></div>`).join('')}</div>
-  <div class="${box} mb-3"><input data-k="grade" class="i" placeholder="ระดับชั้น เช่น ม.6/2" value="${esc(Dr.grade??me.grade??'')}"><input data-k="track" class="i" placeholder="แผนการเรียน" value="${esc(Dr.track??me.track??'')}"><button data-a="sp" class="b w-full">บันทึกข้อมูลของฉัน</button></div>
+  <div class="${box} mb-3"><div class="text-xs text-slate-500 mb-2">หากข้อมูลชั้นเรียนหรือแผนการเรียนไม่ถูกต้อง กรุณาติดต่อผู้ดูแลระบบ</div><div class="font-semibold">ชั้นเรียน: ${esc(me.grade||'-')}</div><div class="font-semibold">แผนการเรียน: ${esc(me.track||'-')}</div></div>
   <div class="${box} space-y-2"><button data-a="ex" class="g w-full"><i class="fa-solid fa-copy mr-2"></i>คัดลอกข้อมูล JSON</button><button data-a="lo" class="g w-full text-rose-600"><i class="fa-solid fa-right-from-bracket mr-2"></i>ออกจากระบบ</button></div>`;
- if(S.tab=='home')qr($('#mq'),me.qr,180)}
-function scan(){const m=modal(`<h3 class="font-bold mb-3">สแกน QR หน้าห้องเรียน</h3><div id="rd" class="rounded-2xl overflow-hidden"></div><input id="mc" class="i mt-3" placeholder="หรือพิมพ์รหัสคาบ (SES-...)"><div class="flex gap-2"><button id="ok" class="b flex-1">ยืนยันรหัส</button><button id="x" class="g">ปิด</button></div>`);
- const h=new Html5Qrcode('rd');let on=false,fin=false;
- const end=async()=>{try{if(on)await h.stop()}catch{}m.close()};
- const go=async t=>{if(fin)return;fin=true;await end();checkin(t)};
- h.start({facingMode:'environment'},{fps:10,qrbox:220},go).then(()=>on=true).catch(()=>toast('เปิดกล้องไม่ได้ ใช้การพิมพ์รหัสแทน','warn'));
- m.querySelector('#ok').onclick=()=>go(m.querySelector('#mc').value.trim());m.querySelector('#x').onclick=end}
-async function checkin(t){
- if(!/^SES-\w+$/.test(t))return toast('QR นี้ไม่ใช่ QR เช็กชื่อ','err');const sid=t.slice(4);
- try{const s=await D.get('attendance_sessions',sid);if(!s)return toast('ไม่พบคาบเรียนนี้','err');if(!s.active)return toast('คาบนี้ปิดแล้ว','warn');
-  const ok=await D.checkin(sid+'_'+me.studentId,{sessionId:sid,studentId:me.studentId,uid:me.uid,name:me.name,qr:me.qr});
-  ok?toast('เช็กชื่อสำเร็จ'):toast('คุณเช็กชื่อคาบนี้ไปแล้ว','warn')}catch(e){err(e)}}
+ if(S.tab=='home'){if(me.qr)qr($('#mq'),me.qr,180);else $('#mq').innerHTML='<div class="text-xs text-rose-600 p-4 text-center">ยังไม่มี QR ประจำตัว กรุณาติดต่อผู้ดูแลระบบโรงเรียน</div>';}}
+async function checkin(payload){
+ const match=/^MACHECK\|([A-Za-z0-9_-]{8,80})\|([A-Za-z0-9_-]{20,120})$/.exec(String(payload||'').trim());
+ if(!match)return toast('QR ไม่ถูกต้อง กรุณาสแกน QR จากหน้าครู','err');
+ const [,sessionId,token]=match;
+ try{
+  if(cloud){
+   const result=await callServer('checkIn',{sessionId,token});
+   if(result.alreadyCheckedIn)return toast('คุณเช็กชื่อคาบนี้ไปแล้ว','warn');
+   return toast(result.status==='late'?'เช็กชื่อสำเร็จ · มาสาย':'เช็กชื่อสำเร็จ');
+  }
+  const session=await D.get('attendance_sessions',sessionId);
+  if(!session)return toast('ไม่พบคาบเรียนนี้','err');
+  if(!session.active)return toast('คาบเรียนนี้ปิดแล้ว','warn');
+  if(!session.qrExpiresAt||Number(session.qrExpiresAt)<=Date.now())return toast('QR หมดอายุ กรุณาขอ QR ใหม่จากครู','warn');
+  if(session.qrPayload!==String(payload).trim())return toast('QR ไม่ถูกต้องหรือถูกเปลี่ยนแล้ว','err');
+  if(String(me.grade||'').trim()!==String(session.className||'').trim())return toast('QR นี้ไม่ได้สร้างสำหรับห้องเรียนของคุณ','err');
+  const status=Date.now()-Number(session.createdAt||Date.now())>15*60*1000?'late':'present';
+  const id=`${sessionId}_${me.uid}`;
+  const saved=await D.checkin(id,{schoolId:SCHOOL_ID,sessionId,uid:me.uid,studentId:me.studentId,name:me.name,status});
+  return saved?toast(status==='late'?'เช็กชื่อสำเร็จ · มาสาย':'เช็กชื่อสำเร็จ'):toast('คุณเช็กชื่อคาบนี้ไปแล้ว','warn');
+ }catch(e){err(e)}
+}
+
+function scan(){
+ const m=modal(`<h3 class="font-bold mb-2">สแกน QR หน้าห้องเรียน</h3><p class="text-xs text-slate-500 mb-3">อนุญาตให้ใช้กล้อง หรือวางข้อความจาก QR ที่ครูแสดง</p><div id="rd" class="rounded-2xl overflow-hidden bg-slate-50 min-h-24"></div><input id="mc" class="i mt-3" autocomplete="off" placeholder="วางรหัส QR ที่ได้รับจากครู"><div class="flex gap-2"><button id="ok" class="b flex-1">ยืนยันรหัส</button><button id="x" class="g">ปิด</button></div>`);
+ if(typeof Html5Qrcode==='undefined'){toast('โหลดระบบสแกนกล้องไม่สำเร็จ สามารถวางข้อความ QR ได้','warn');}
+ let h=null,started=false,starting=false,closing=false,finished=false;
+ const stopCamera=async()=>{closing=true;if(!h)return;if(started){try{await h.stop()}catch(e){console.warn('Camera stop:',e)}started=false;try{h.clear()}catch(e){}}};
+ const close=async()=>{await stopCamera();m.close()};
+ const go=async value=>{if(finished)return;const payload=String(value||'').trim();if(!payload)return toast('กรุณาสแกนหรือวาง QR ก่อน','warn');finished=true;await close();await checkin(payload)};
+ if(typeof Html5Qrcode==='function'){
+  h=new Html5Qrcode('rd');starting=true;
+  h.start({facingMode:'environment'},{fps:10,qrbox:220},decodedText=>go(decodedText))
+   .then(async()=>{starting=false;started=true;if(closing)await stopCamera()})
+   .catch(e=>{starting=false;toast('เปิดกล้องไม่ได้ ใช้การวางรหัสแทน','warn');console.warn('QR scanner:',e)});
+ }
+ m.querySelector('#ok').onclick=()=>go(m.querySelector('#mc').value);
+ m.querySelector('#x').onclick=close;
+}
 
 // ---------- teacher: Desktop Command Center ----------
 const NAV=[['home','fa-house','หน้าแรก'],['att','fa-clipboard-user','เช็กชื่อ'],['task','fa-box-archive','งานค้าง'],['rep','fa-chart-pie','รายงาน'],['set','fa-gear','ตั้งค่า']];
-const cs=()=>S.ss.find(x=>x.id==S.cur),cl=()=>S.l.filter(l=>l.sessionId==S.cur),late=l=>cs()&&l.ts-cs().ts>9e5;
+const cs=()=>S.ss.find(x=>x.id==S.cur),cl=()=>S.l.filter(l=>l.sessionId==S.cur),late=l=>l.status?l.status==='late':!!(cs()&&l.ts-cs().ts>9e5);
 function teacherView(){unsub();S.cur=null;
- app.innerHTML=`<div class="flex h-screen bg-[#f3f0fa]"><aside class="sb hidden lg:flex w-64 shrink-0 bg-gradient-to-b from-brand-950 to-brand-800 text-white flex-col justify-between p-5"><div><div class="text-center mb-8 mt-2"><img src="logo-white.png" alt="MACHECK" class="h-14 mx-auto"><div class="text-[10px] tracking-widest font-semibold text-brand-200 mt-1">YOTHIN NUKUL SCHOOL</div></div><nav class="space-y-1.5">${NAV.map(([k,i,t])=>`<button data-a="nav" data-t="${k}" class="nv"><i class="fa-solid ${i} w-5 text-center"></i>${t}</button>`).join('')}</nav></div>
-  <div id="sf" class="rounded-2xl p-3 text-center text-xs text-brand-200"></div></aside>
-  <div class="flex-1 flex flex-col min-w-0"><header id="hd" class="px-4 lg:px-8 py-3 flex items-center gap-2"></header><main id="main" class="flex-1 overflow-auto px-4 lg:px-8 pb-24 lg:pb-8"></main></div>
-  <nav class="bn lg:hidden fixed bottom-0 inset-x-0 bg-white shadow-[0_-4px_20px_rgba(76,29,149,.15)] flex">${NAV.map(([k,i,t])=>`<button data-a="nav" data-t="${k}" class="nv"><i class="fa-solid ${i} text-lg block mb-0.5"></i>${t}</button>`).join('')}</nav></div>`;
+ app.innerHTML=`<div class="teacher-shell flex min-h-screen bg-[#f3f0fa]">
+  <aside class="sb teacher-sidebar hidden lg:flex w-[268px] shrink-0 text-white flex-col justify-between p-5">
+   <div>
+    <div class="teacher-brand-card"><img src="logo.png" alt="MACHECK" class="brand-logo teacher-sidebar-logo"><div class="text-[10px] tracking-[.18em] font-semibold text-brand-800 mt-1">YOTHIN NUKUL SCHOOL</div></div>
+    <div class="teacher-sidebar-label">WORKSPACE</div>
+    <nav class="space-y-1.5">${NAV.map(([k,i,t])=>`<button data-a="nav" data-t="${k}" class="nv"><i class="fa-solid ${i} w-5 text-center"></i>${t}</button>`).join('')}</nav>
+   </div>
+   <div id="sf" class="teacher-school-status rounded-2xl p-3 text-center text-xs"></div>
+  </aside>
+  <div class="flex-1 flex flex-col min-w-0 min-h-screen">
+   <header id="hd" class="teacher-topbar px-4 lg:px-8 py-3 flex items-center gap-2"></header>
+   <main id="main" class="teacher-content flex-1 overflow-auto px-4 lg:px-8 pb-24 lg:pb-8"></main>
+  </div>
+  <nav class="bn teacher-mobile-nav lg:hidden fixed bottom-0 inset-x-0 flex">${NAV.map(([k,i,t])=>`<button data-a="nav" data-t="${k}" class="nv"><i class="fa-solid ${i} text-lg block mb-0.5"></i>${t}</button>`).join('')}</nav>
+ </div>`;
  unsubs.push(subG(),D.sub('attendance_sessions',x=>{S.ss=x;if(!S.cur&&x[0])S.cur=x[0].id;R()}),D.sub('assignments',x=>{S.a=x;R()}),D.sub('submissions',x=>{S.s=x;R()}),D.sub('users',x=>{S.u=x;R()},['role','student']),D.sub('attendance_logs',x=>{S.l=x;R()}));R()}
+
 function renderT(){
- $('#sf').innerHTML=`<div class="flex justify-center mb-2">${crest()}</div><b class="text-white">โรงเรียนโยธินนุกูล</b><div class="mt-1"><i class="fa-solid fa-circle text-[8px] ${cloud?'text-emerald-400':'text-amber-400'} mr-1"></i>${cloud?'Cloud Online':'Offline (Local Mode)'}</div>`;
- $('#hd').innerHTML=`<span class="[&>button]:!text-brand-800 [&>button]:!bg-brand-100">${chip()}</span><div class="flex items-center gap-4 ml-auto"><div class="flex items-center gap-2.5">${av(me.photo,me.name,'w-10 h-10')}<div class="leading-tight"><div class="text-sm font-bold text-brand-950">${esc(me.name)}</div><div class="text-xs text-slate-500">ครูผู้สอน</div></div></div>
-  <span class="relative w-10 h-10 rounded-full bg-white shadow flex items-center justify-center text-slate-600"><i class="fa-regular fa-bell text-lg"></i><i class="absolute top-2.5 right-3 w-2 h-2 bg-red-500 rounded-full"></i></span>
-  <button data-a="lo" title="ออกจากระบบ" class="w-10 h-10 rounded-full bg-white shadow text-slate-500"><i class="fa-solid fa-right-from-bracket"></i></button></div>`;
+ if(qrExpiryTimer){clearTimeout(qrExpiryTimer);qrExpiryTimer=null;}
+ $('#sf').innerHTML=`<div class="flex justify-center mb-2">${crest('w-11 h-11')}</div><b class="text-white">โรงเรียนโยธินนุกูล</b><div class="mt-1"><i class="fa-solid fa-circle text-[8px] ${cloud?'text-emerald-400':'text-amber-400'} mr-1"></i>${cloud?'Cloud Online':'Demo Mode'}</div>`;
+ $('#hd').innerHTML=`<div class="teacher-heading"><div class="teacher-mobile-brand lg:hidden"><img src="logo.png" alt="MACHECK" class="brand-logo"><span>TEACHER CENTER</span></div><div class="hidden lg:block"><div class="text-xs text-brand-600 font-semibold tracking-wider">MACHECK / YOTHIN NUKUL SCHOOL</div><div class="text-lg font-bold text-brand-950">${({home:(me.role==='admin'?'ภาพรวมผู้บริหาร':'ภาพรวมระบบ'),att:'จัดการการเช็กชื่อ',task:'ติดตามงานนักเรียน',rep:'รายงานและข้อมูล',set:'ตั้งค่าระบบ'})[S.tab]||'MACHECK Command Center'}</div></div></div>
+  <div class="flex items-center gap-3 ml-auto"><span class="teacher-mode-chip">${chip()}</span><div class="flex items-center gap-2.5">${av(me.photo,me.name,'w-9 h-9')}<div class="leading-tight hidden sm:block"><div class="text-sm font-bold text-brand-950">${esc(me.name)}</div><div class="text-xs text-slate-500">${me.role==='admin'?'ผู้ดูแลระบบ':'ครูผู้สอน'}</div></div></div>
+  <button data-a="lo" title="ออกจากระบบ" class="teacher-logout"><i class="fa-solid fa-right-from-bracket"></i></button></div>`;
  $('#main').innerHTML={home:tHome,att:tAtt,task:tTask,rep:tRep,set:tSet}[S.tab]();
  document.querySelectorAll('.nv').forEach(b=>b.classList.toggle('on',b.dataset.t==S.tab));
- if($('#mq')&&cs())qr($('#mq'),'SES-'+cs().id,150)}
+ if($('#mq')&&cs()){
+  const s=cs(),owns=me.role==='admin'||s.createdBy===me.uid,valid=S.qrSessionId===s.id&&S.sessionQr&&Number(S.sessionQrExpiresAt||0)>Date.now();
+  if(s.active&&valid){qr($('#mq'),S.sessionQr,150);const e=$('#qr-expiry');if(e)e.textContent='QR ใช้ได้ถึง '+ft(S.sessionQrExpiresAt)+' น.';qrExpiryTimer=setTimeout(()=>{if(me&&me.role!=='student')R()},Math.max(250,Number(S.sessionQrExpiresAt)-Date.now()+250));}
+  else if(s.active&&owns){$('#mq').innerHTML=`<button data-a="qr" class="g text-xs">${S.qrSessionId===s.id?'QR หมดอายุ · สร้างใหม่':'สร้าง / ต่ออายุ QR'}</button>`;const e=$('#qr-expiry');if(e)e.textContent='QR มีอายุ 30 นาที';}
+  else if(s.active){$('#mq').innerHTML='<span class="text-xs text-slate-400">QR ของครูผู้สร้างคาบ</span>';const e=$('#qr-expiry');if(e)e.textContent='คุณสามารถดูรายชื่อได้ แต่แก้ไขคาบนี้ไม่ได้';}
+  else{$('#mq').innerHTML='<span class="text-xs text-slate-400">คาบเรียนปิดอยู่</span>';const e=$('#qr-expiry');if(e)e.textContent='';}
+ }}
+
 const ttl=(c,t)=>`<h2 class="text-lg font-bold flex items-center gap-2 mb-4"><span class="w-2.5 h-6 ${c} rounded-full"></span>${t}</h2>`;
-function tHome(){const s=cs(),L=cl(),n=S.u.length,lt=L.filter(late).length,pr=L.length-lt,ab=Math.max(0,n-L.length),rate=n?Math.round(L.length/n*100):0;let o=0;
+function tHome(){
+ if(me.role==='admin')return tDirectorHome();
+ const s=cs(),L=cl(),n=s?S.u.filter(u=>String(u.grade||'').trim()===String(s.className||'').trim()).length:0,lt=L.filter(late).length,pr=L.length-lt,ab=Math.max(0,n-L.length),rate=n?Math.min(100,Math.round(L.length/n*100)):0;let o=0;
  const arc=[[pr,'#22c55e'],[lt,'#3b82f6'],[ab,'#f59e0b']].map(([v,c])=>{const k=n?v/n*100:0,r=`<circle cx="18" cy="18" r="15.9155" fill="none" stroke="${c}" stroke-width="4" stroke-dasharray="${k} ${100-k}" stroke-dashoffset="${-o}"/>`;o+=k;return r}).join('');
  return `<section class="rounded-3xl overflow-hidden bg-white shadow-[0_4px_24px_rgba(76,29,149,.08)] mb-6"><div class="bg-gradient-to-r from-brand-700 to-brand-500 text-white px-6 py-4 flex justify-between items-center gap-3"><h2 class="font-bold text-lg">เช็กชื่อประจำคาบเรียน</h2><button data-a="ns" class="bg-white text-brand-700 rounded-full px-5 py-2 font-semibold text-sm shadow shrink-0">สร้าง QR Code</button></div>
  <div class="p-6 md:px-10 flex justify-between items-center gap-6"><div class="min-w-0"><div class="text-5xl md:text-6xl font-black italic text-brand-950">${esc(s?.className||'ยังไม่มีคาบ')}</div><div class="text-lg text-slate-500 mt-2">${esc(s?.subject||'กดสร้าง QR Code เพื่อเริ่มคาบเรียน')}</div></div>
-  <div class="flex flex-col items-center gap-1.5 shrink-0">${s?'<div id="mq" class="p-1 bg-white"></div>':'<div class="w-[150px] h-[150px] bg-slate-50 rounded-xl flex items-center justify-center text-slate-300 text-5xl"><i class="fa-solid fa-qrcode"></i></div>'}
-  ${s?`<button data-a="tg" class="text-xs font-bold ${s.active?'text-emerald-600':'text-slate-400'}"><i class="fa-solid fa-circle-check mr-1"></i>${s.active?'ใช้งานอยู่':'ปิดคาบแล้ว'}</button><div class="text-[10px] text-slate-400">แตะเพื่อ${s.active?'ปิด':'เปิด'}คาบ</div>`:''}</div></div></section>
+  <div class="flex flex-col items-center gap-1.5 shrink-0">${s?'<div id="mq" class="p-1 bg-white"></div>':'<div class="w-[150px] h-[150px] bg-slate-50 rounded-xl flex items-center justify-center text-slate-300 text-5xl"><i class="fa-solid fa-qrcode"></i></div>'}<div id="qr-expiry" class="text-[10px] text-slate-400 text-center mt-1"></div>
+  ${s?`<button data-a="tg" ${me.role!=='admin'&&s.createdBy!==me.uid?'disabled':''} class="text-xs font-bold ${s.active?'text-emerald-600':'text-slate-400'}"><i class="fa-solid fa-circle-check mr-1"></i>${s.active?'ใช้งานอยู่':'ปิดคาบแล้ว'}</button><div class="text-[10px] text-slate-400">${me.role!=='admin'&&s.createdBy!==me.uid?'ดูได้เท่านั้น':'แตะเพื่อ'+(s.active?'ปิด':'เปิด')+'คาบ'}</div>`:''}</div></div></section>
  <section class="c"><h2 class="font-bold text-lg mb-4">สรุปการเช็กชื่อ</h2><div class="flex flex-col sm:flex-row items-center justify-center gap-8 sm:gap-16">
   <div class="text-center"><div class="relative w-36 h-36"><svg viewBox="0 0 36 36" class="w-full h-full -rotate-90"><circle cx="18" cy="18" r="15.9155" fill="none" stroke="#f1f5f9" stroke-width="4"/>${arc}</svg><div class="absolute inset-0 flex items-center justify-center text-3xl font-black text-brand-950">${rate}%</div></div><div class="text-xs text-slate-400 mt-2">รวมทั้งหมด ${n} คน</div></div>
   <div class="w-full sm:w-72 space-y-4">${[['มาเรียน',pr,'bg-emerald-500'],['ขาดเรียน',ab,'bg-amber-500'],['สาย',lt,'bg-blue-500']].map(([t,v,c])=>`<div class="flex items-center gap-3"><span class="w-4 h-4 rounded-full ${c} shrink-0"></span><span class="flex-1 font-medium">${t}</span><b class="text-brand-800">${v} คน</b></div>`).join('')}</div></div></section>`}
+function tDirectorHome(){
+ const today=schoolDayKey(Date.now());
+ const todaysSessions=S.ss.filter(session=>schoolDayKey(session.ts)===today);
+ const todayIds=new Set(todaysSessions.map(session=>session.id));
+ const todaysLogs=S.l.filter(log=>todayIds.has(log.sessionId));
+ const checkedIds=new Set(todaysLogs.map(log=>log.uid));
+ const total=S.u.length,checked=checkedIds.size,absent=Math.max(0,total-checked),rate=total?Math.min(100,Math.round(checked/total*100)):0;
+ const active=todaysSessions.filter(session=>session.active).length;
+ const classes=[...new Set(S.u.map(user=>String(user.grade||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'th'));
+ const classRows=classes.map(grade=>{
+  const roster=S.u.filter(user=>String(user.grade||'').trim()===grade);
+  const gradeLogs=todaysLogs.filter(log=>roster.some(user=>user.id===log.uid));
+  const gradeChecked=new Set(gradeLogs.map(log=>log.uid)).size;
+  const pct=roster.length?Math.round(gradeChecked/roster.length*100):0;
+  return {grade,total:roster.length,checked:gradeChecked,absent:Math.max(0,roster.length-gradeChecked),pct};
+ });
+ const recent=todaysSessions.slice(0,6).map(session=>{
+  const logs=todaysLogs.filter(log=>log.sessionId===session.id);
+  return `<tr class="border-t border-slate-100"><td class="py-3 pr-3"><div class="font-semibold text-brand-950">${esc(session.className||'-')}</div><div class="text-xs text-slate-500">${esc(session.subject||'-')}</div></td><td class="py-3 px-2 text-center font-semibold">${logs.length}</td><td class="py-3 px-2 text-center">${ft(session.ts)} น.</td><td class="py-3 pl-2 text-right"><span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${session.active?'bg-emerald-100 text-emerald-700':'bg-slate-100 text-slate-500'}">${session.active?'กำลังเปิด':'ปิดคาบ'}</span></td></tr>`;
+ }).join('');
+ const cards=[['นักเรียนทั้งหมด',total,'fa-user-graduate','text-violet-700','bg-violet-50'],['เช็กชื่อแล้ววันนี้',checked,'fa-user-check','text-emerald-700','bg-emerald-50'],['ยังไม่พบการเช็กชื่อ',absent,'fa-user-clock','text-amber-700','bg-amber-50'],['คาบที่เปิดอยู่',active,'fa-book-open','text-blue-700','bg-blue-50']];
+ return `<div class="mb-5 flex flex-wrap items-end justify-between gap-3"><div><div class="text-xs font-bold tracking-widest text-brand-600">DIRECTOR OVERVIEW</div><h1 class="text-2xl font-black text-brand-950">ภาพรวมการดำเนินงานของโรงเรียน</h1><p class="text-sm text-slate-500 mt-1">ข้อมูลวันที่ ${fd(Date.now())} · เขตเวลา Asia/Bangkok</p></div><button data-a="csv" class="b"><i class="fa-solid fa-file-csv mr-2"></i>ส่งออกรายงาน</button></div>
+ <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 mb-5">${cards.map(([label,value,icon,color,bg])=>`<article class="bg-white border border-violet-100 rounded-3xl p-5 shadow-sm"><div class="flex items-center justify-between gap-3"><div class="text-sm text-slate-500">${label}</div><div class="w-11 h-11 rounded-2xl ${bg} ${color} flex items-center justify-center text-lg"><i class="fa-solid ${icon}"></i></div></div><div class="text-3xl font-black text-brand-950 mt-3">${value.toLocaleString('th-TH')}</div></article>`).join('')}</section>
+ <section class="grid xl:grid-cols-3 gap-5 mb-5"><article class="c xl:col-span-2 !mb-0"><div class="flex items-center justify-between gap-3 mb-4"><h2 class="font-bold text-lg text-brand-950">อัตราการเช็กชื่อวันนี้</h2><span class="text-xs text-slate-400">นับนักเรียนไม่ซ้ำคน</span></div><div class="flex flex-col sm:flex-row items-center gap-7"><div class="relative w-40 h-40 shrink-0"><svg viewBox="0 0 36 36" class="w-full h-full -rotate-90"><circle cx="18" cy="18" r="15.9155" fill="none" stroke="#eee8f5" stroke-width="4"/><circle cx="18" cy="18" r="15.9155" fill="none" stroke="#22c55e" stroke-width="4" stroke-linecap="round" stroke-dasharray="${rate} ${100-rate}"/></svg><div class="absolute inset-0 flex flex-col items-center justify-center"><div class="text-3xl font-black text-brand-950">${rate}%</div><div class="text-[11px] text-slate-400">ของนักเรียนทั้งหมด</div></div></div><div class="flex-1 w-full grid grid-cols-2 gap-3"><div class="rounded-2xl bg-emerald-50 p-4"><div class="text-xs text-emerald-700">พบการเช็กชื่อ</div><div class="text-2xl font-black text-emerald-800">${checked} คน</div></div><div class="rounded-2xl bg-amber-50 p-4"><div class="text-xs text-amber-700">ยังไม่พบการเช็กชื่อ</div><div class="text-2xl font-black text-amber-800">${absent} คน</div></div><div class="col-span-2 text-xs text-slate-500 leading-relaxed">ตัวเลข “ยังไม่พบการเช็กชื่อ” เป็นเพียงการเปรียบเทียบกับบัญชีนักเรียนที่ลงทะเบียน ไม่ใช่การสรุปว่าขาดเรียน เพราะนักเรียนอาจยังไม่มีคาบเรียนหรือยังไม่ได้เปิดเช็กชื่อ</div></div></div></article><article class="c !mb-0"><h2 class="font-bold text-lg text-brand-950 mb-3">สถานะระบบวันนี้</h2><div class="space-y-3"><div class="flex items-center justify-between"><span class="text-sm text-slate-500">คาบเรียนทั้งหมด</span><b class="text-brand-950">${todaysSessions.length}</b></div><div class="flex items-center justify-between"><span class="text-sm text-slate-500">กำลังเปิด</span><b class="text-emerald-700">${active}</b></div><div class="flex items-center justify-between"><span class="text-sm text-slate-500">ปิดแล้ว</span><b class="text-slate-600">${Math.max(0,todaysSessions.length-active)}</b></div><div class="flex items-center justify-between"><span class="text-sm text-slate-500">ข้อมูลเช็กชื่อวันนี้</span><b class="text-brand-950">${todaysLogs.length} รายการ</b></div><div class="border-t border-slate-100 pt-3 text-xs text-slate-500">ข้อมูลอัปเดตจาก Firebase แบบเรียลไทม์เมื่อเชื่อมต่อ Cloud สำเร็จ</div></div></article></section>
+ <section class="grid xl:grid-cols-2 gap-5"><article class="c !mb-0"><h2 class="font-bold text-lg text-brand-950 mb-3">สรุปตามห้องเรียน</h2>${classRows.length?`<div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="text-left text-slate-400"><th class="pb-2">ห้องเรียน</th><th class="pb-2 text-center">ทั้งหมด</th><th class="pb-2 text-center">พบเช็กชื่อ</th><th class="pb-2 text-right">อัตรา</th></tr></thead><tbody>${classRows.map(row=>`<tr class="border-t border-slate-100"><td class="py-3 font-semibold">${esc(row.grade)}</td><td class="py-3 text-center">${row.total}</td><td class="py-3 text-center text-emerald-700 font-semibold">${row.checked}</td><td class="py-3 text-right">${row.pct}%</td></tr>`).join('')}</tbody></table></div>`:'<p class="text-sm text-slate-400">ยังไม่มีข้อมูลห้องเรียนในทะเบียน</p>'}</article><article class="c !mb-0"><h2 class="font-bold text-lg text-brand-950 mb-3">คาบเรียนล่าสุดวันนี้</h2>${recent?`<div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="text-left text-slate-400"><th class="pb-2">ชั้น / รายวิชา</th><th class="pb-2 text-center">เช็กชื่อ</th><th class="pb-2 text-center">เวลา</th><th class="pb-2 text-right">สถานะ</th></tr></thead><tbody>${recent}</tbody></table></div>`:'<p class="text-sm text-slate-400">ยังไม่มีคาบเรียนวันนี้</p>'}</article></section>`;
+}
+
 function tAtt(){const L=cl();return `<section class="c">${ttl('bg-brand-600','รายชื่อผู้เช็กชื่อ')}<div class="flex flex-wrap gap-2 mb-4">${S.ss.slice(0,8).map(s=>`<button data-a="pick" data-id="${s.id}" class="px-3 py-1.5 rounded-full text-xs font-semibold ${s.id==S.cur?'bg-brand-600 text-white':'bg-slate-100 text-slate-600'}">${esc(s.className)} ${esc(s.subject)} ${fd(s.ts)} ${ft(s.ts)}</button>`).join('')||'<span class="text-slate-400 text-sm">ยังไม่มีคาบเรียน</span>'}</div>
  ${L.length?L.map(l=>`<div class="flex justify-between items-center border-b border-slate-100 py-3 text-sm"><span class="font-medium">${esc(l.name)} <span class="text-slate-400">(${esc(l.studentId)})</span></span><span>${ft(l.ts)} น. <b class="ml-2 text-xs px-2 py-1 rounded-full ${late(l)?'bg-blue-100 text-blue-700':'bg-emerald-100 text-emerald-700'}">${late(l)?'สาย':'มาเรียน'}</b></span></div>`).join(''):'<p class="text-slate-400 text-sm">ยังไม่มีนักเรียนเช็กชื่อในคาบนี้</p>'}</section>`}
 function tTask(){const n=S.u.length;return `<section class="c">${ttl('bg-amber-500','สั่งงานใหม่')}<div class="grid md:grid-cols-3 gap-2"><input data-k="at" class="i md:col-span-2" placeholder="ชื่องาน" value="${esc(Dr.at||'')}"><input data-k="ad" type="date" class="i" value="${esc(Dr.ad||'')}"></div><button data-a="na" class="b">สั่งงาน</button></section>
- <section class="c">${ttl('bg-brand-600','ติดตามงานค้าง')}${S.a.length?S.a.map(a=>{const d=S.s.filter(x=>x.assignmentId==a.id).length,p=n?Math.min(100,d/n*100):0,pn=S.u.filter(u=>!S.s.some(x=>x.assignmentId==a.id&&x.uid==u.id));
-  return `<div class="py-3 border-b border-slate-100"><div class="flex justify-between items-center gap-2 text-sm"><span class="font-semibold">${esc(a.title)} <span class="text-xs text-slate-400">กำหนดส่ง ${esc(a.due||'-')}</span></span><span class="flex items-center gap-3 shrink-0">ส่งแล้ว ${d}/${n}<button data-a="da" data-id="${a.id}" title="ลบงาน" class="text-slate-400 hover:text-rose-600"><i class="fa-solid fa-trash"></i></button></span></div>
-  <div class="h-2 bg-slate-100 rounded-full mt-2"><div class="h-2 bg-emerald-500 rounded-full" style="width:${p}%"></div></div>
-  ${pn.length?`<div class="flex flex-wrap gap-1 mt-2">${pn.slice(0,12).map(u=>`<span class="text-[11px] bg-amber-50 text-amber-700 rounded-full px-2 py-0.5">${esc(u.name)}</span>`).join('')}${pn.length>12?`<span class="text-[11px] text-slate-400">และอีก ${pn.length-12} คน</span>`:''}</div>`:''}</div>`}).join(''):'<p class="text-slate-400 text-sm">ยังไม่มีงานที่สั่ง</p>'}</section>`}
-function tRep(){return `<section class="c"><div class="flex justify-between items-center mb-2 gap-2">${ttl('bg-blue-500','รายงานรายบุคคล')}<div class="flex gap-2"><button data-a="csv" class="g text-sm"><i class="fa-solid fa-file-csv mr-1"></i>CSV</button><button data-a="ex" class="g text-sm"><i class="fa-solid fa-copy mr-1"></i>JSON</button></div></div>
- <div class="overflow-x-auto"><table class="w-full text-sm"><tr class="text-left text-slate-400"><th class="py-2">ชื่อ</th><th>รหัส</th><th>ชั้น</th><th>เข้าเรียน (ครั้ง)</th><th>งานค้าง</th></tr>${S.u.map(u=>`<tr class="border-t border-slate-100"><td class="py-2 font-medium">${esc(u.name)}</td><td>${esc(u.studentId)}</td><td>${esc(u.grade||'-')}</td><td>${S.l.filter(l=>l.uid==u.id).length}</td><td>${Math.max(0,S.a.length-S.s.filter(x=>x.uid==u.id).length)}</td></tr>`).join('')||'<tr><td class="py-3 text-slate-400">ยังไม่มีนักเรียนในระบบ</td></tr>'}</table></div></section>`}
-function tSet(){const hue=Dr.hue??G.hue??268,lg=Dr.logo??G.logo,ph=Dr.timg??me.photo;
- return `<section class="c max-w-xl">${ttl('bg-brand-600','สตูดิโอปรับแต่ง (Custom Studio)')}
- <div class="font-semibold text-sm mb-2">ตราโรงเรียน (ทุกเครื่องเห็นเหมือนกัน)</div><div class="flex items-center gap-3 mb-5">${crest('w-16 h-16',lg)}<label class="g cursor-pointer"><i class="fa-solid fa-upload mr-2"></i>อัปโหลดรูป<input type="file" accept="image/*" data-up="logo" class="hidden"></label><button data-a="rl" class="g">ใช้ตราเดิม</button></div>
- <div class="font-semibold text-sm mb-2">สีธีม</div><div class="flex flex-wrap gap-3 mb-5">${THEMES.map(([n,h])=>`<button data-a="hue" data-h="${h}" title="${n}" class="w-10 h-10 rounded-full ${h==hue?'ring-4 ring-offset-2 ring-slate-300':''}" style="background:hsl(${h} 80% 50%)"></button>`).join('')}</div>
- <div class="font-semibold text-sm mb-2">โปรไฟล์ครู</div><input data-k="tname" class="i" placeholder="ชื่อคุณครู" value="${esc(Dr.tname??me.name)}"><div class="flex items-center gap-3 mb-5">${av(ph,me.name,'w-14 h-14')}<label class="g cursor-pointer"><i class="fa-solid fa-upload mr-2"></i>อัปโหลดรูปโปรไฟล์<input type="file" accept="image/*" data-up="timg" class="hidden"></label></div>
- <div class="flex flex-wrap gap-2"><button data-a="sv" class="b">บันทึกการเปลี่ยนแปลง</button><button data-a="fb" class="g"><i class="fa-solid fa-database mr-2"></i>ตั้งค่า Firebase</button></div></section>`}
-
-// ---------- boot ----------
-(async()=>{
- if(cloud){const a=initializeApp(cfg);auth=getAuth(a);fs=getFirestore(a);D=Cloud}
- try{G=(await D.get('settings','studio'))||{}}catch{}
- theme(G.hue);
- if(cloud)onAuthStateChanged(auth,u=>u?enter({uid:u.uid,displayName:u.displayName,photoURL:u.photoURL}):landing());else landing();
-})();
+ <section class="c">${ttl('bg-brand-600','ติดตามงานค้าง')}${S.a.length?S.a.map(a=>{const d=S.s.filter(x=>x.assignmentId==a.id).length,p=n?Math.min(100,d/n*100):0,pn=S.u.filter(u=>!S.s.some(x=>x.assignmentId==a.id&&x.uid==u.id)),canManage=me.role==='admin'||a.createdBy===me.uid;
+  return `<div class="border-b border-slate-100 pb-4 mb-4"><div class="flex justify-between items-start mb-2"><div><div class="font-bold text-brand-950">${esc(a.title)}</div><div class="text-xs text-slate-400">กำหนดส่ง ${esc(a.due||'ไม่ระบุ')}</div></div>${canManage?`<button data-a="da" data-id="${a.id}" class="text-rose-500 text-xs hover:underline"><i class="fa-solid fa-trash mr-1"></i>ลบงาน</button>`:'<span class="text-xs text-slate-400">ผู้สั่งงานท่านอื่น</span>'}</div>
+  <div class="flex items-center gap-3 text-sm mb-2"><div class="flex-1 bg-slate-100 rounded-full h-2.5 overflow-hidden"><div class="bg-emerald-500 h-full" style="width:${p}%"></div></div><span class="font-semibold text-slate-600">${d}/${n} คน (${Math.round(p)}%)</span></div>
+  ${pn.length?`<div class="text-xs text-slate-500">ยังไม่ส่ง: ${esc(pn.map(x=>x.name).join(', '))}</div>`:'<div class="text-xs text-emerald-600 font-semibold">ส่งครบทุกคนแล้ว!</div>'}</div>`}).join(''):'<p class="text-slate-400 text-sm">ยังไม่มีรายการสั่งงาน</p>'}</section>`}
+function tRep(){return `<section class="c flex justify-between items-center"><div class="font-bold text-lg">รายงานและส่งออกข้อมูล</div><div class="flex gap-2"><button data-a="csv" class="b"><i class="fa-solid fa-file-excel mr-2"></i>Export CSV</button><button data-a="ex" class="g"><i class="fa-solid fa-copy mr-2"></i>JSON</button></div></section>
+ <section class="c">${ttl('bg-brand-600',`รายชื่อนักเรียนทั้งหมด (${S.u.length} คน)`)}${S.u.length?`<div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead><tr class="border-b border-slate-200 text-slate-400"><th class="pb-3">รหัส</th><th class="pb-3">ชื่อ-นามสกุล</th><th class="pb-3">ชั้น</th><th class="pb-3">แผนการเรียน</th><th class="pb-3 text-center">เข้าเรียน</th><th class="pb-3 text-center">งานค้าง</th></tr></thead><tbody>
+ ${S.u.map(u=>{const at=S.l.filter(l=>l.uid==u.id).length,tk=Math.max(0,S.a.length-S.s.filter(x=>x.uid==u.id).length);
+ return `<tr class="border-b border-slate-100"><td class="py-3 font-medium text-slate-500">${esc(u.studentId)}</td><td class="py-3 font-bold">${esc(u.name)}</td><td class="py-3">${esc(u.grade||'-')}</td><td class="py-3">${esc(u.track||'-')}</td><td class="py-3 text-center font-semibold text-emerald-600">${at}</td><td class="py-3 text-center font-semibold ${tk?'text-rose-500':'text-slate-400'}">${tk}</td></tr>`}).join('')}
+ </tbody></table></div>`:'<p class="text-slate-400 text-sm">ยังไม่มีนักเรียนในระบบ</p>'}</section>`}
+function tSet(){return `<section class="c max-w-xl">${ttl('bg-brand-600','ตั้งค่าระบบ & สตูดิโอ')}<div class="space-y-4">
+ <div><label class="block text-xs font-semibold text-slate-600 mb-1">ชื่อผู้สอน</label><input data-k="tname" class="i" value="${esc(Dr.tname??me.name??'')}"></div>
+ <div><label class="block text-xs font-semibold text-slate-600 mb-1">URL รูปโปรไฟล์ครู</label><input data-k="timg" class="i" value="${esc(Dr.timg??me.photo??'')}"></div>
+ <div><label class="block text-xs font-semibold text-slate-600 mb-1">URL โลโก้โรงเรียน (ถ้ามี)</label><div class="flex gap-2"><input data-k="logo" class="i mb-0" value="${esc(Dr.logo??G.logo??'')}"><button data-a="rl" class="g text-xs shrink-0">รีเซ็ต</button></div></div>
+ <div><label class="block text-xs font-semibold text-slate-600 mb-1">เลือกธีมสีหลัก</label><div class="flex flex-wrap gap-2 pt-1">${THEMES.map(([n,h])=>`<button data-a="hue" data-h="${h}" class="px-4 py-2 rounded-xl text-xs font-semibold ${((Dr.hue??G.hue??268)==h)?'bg-brand-600 text-white':'bg-slate-100 text-slate-700'}">${n}</button>`).join('')}</div></div>
+ <button data-a="sv" class="b w-full mt-2">บันทึกการตั้งค่า</button></div></section>`}
 </script></body></html>
