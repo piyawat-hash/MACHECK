@@ -2,8 +2,8 @@
 <link rel="manifest" href="manifest.json"><link rel="icon" href="icon-192.png">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
-const L={50:'100% 98%',100:'91% 95%',200:'95% 92%',300:'95% 85%',400:'92% 76%',500:'90% 66%',600:'83% 58%',700:'70% 50%',800:'69% 42%',900:'70% 33%',950:'85% 20%'};
-tailwind.config={theme:{extend:{colors:{brand:Object.fromEntries(Object.entries(L).map(([k,v])=>[k,`hsl(var(--h) ${v} / <alpha-value>)`]))}}}}
+const LV={50:'100% 98%',100:'91% 95%',200:'95% 92%',300:'95% 85%',400:'92% 76%',500:'90% 66%',600:'83% 58%',700:'70% 50%',800:'69% 42%',900:'70% 33%',950:'85% 20%'};
+tailwind.config={theme:{extend:{colors:{brand:Object.fromEntries(Object.entries(LV).map(([k,v])=>[k,`hsl(var(--h) ${v} / <alpha-value>)`]))}}}}
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
@@ -117,7 +117,7 @@ function fbModal(){const m=modal(`<h3 class="font-bold text-lg mb-1"><i class="f
 const FEATS=[['fa-bolt','รวดเร็ว ทันสมัย','ด้วยสถาปัตยกรรม Single-file และ Tailwind CSS โหลดไว ใช้งานลื่นไหล'],['fa-shield-halved','ปลอดภัย มั่นใจได้','Google Sign-In และ Creator Master Key ป้องกันการเข้าถึงโดยไม่ได้รับอนุญาต'],['fa-cloud-arrow-up','ข้อมูลเรียลไทม์','ด้วย Firebase Cloud Firestore ซิงค์ข้อมูลทันที ป้องกันข้อมูลสูญหาย'],['fa-laptop-mobile','ใช้งานได้ 2 ระบบ','Mobile Fast-Pass และ Teacher Command Center ในหน้าจอเดียว'],['fa-palette','ปรับแต่งได้อิสระ','Custom Studio อัปโหลดรูปภาพ เปลี่ยนธีมได้ทันที'],['fa-qrcode','QR Code เฉพาะตัว','ใช้ Unique Token ไม่ซ้ำกัน แม่นยำสูง']];
 function landing(){unsub();me=null;S.tab='home';
  app.innerHTML=`<div class="min-h-screen bg-gradient-to-b from-brand-100 via-brand-300 to-brand-700"><div class="max-w-6xl mx-auto px-4 py-5">
-  <div class="flex items-center gap-3">${crest('w-14 h-14')}<div class="border-l-2 border-brand-700 pl-3 leading-tight"><div class="font-bold text-lg text-brand-950">โรงเรียนโยธินนุกูล</div><div class="text-xs font-semibold text-brand-700">YOTHIN NUKUL SCHOOL</div></div><div class="ml-auto flex gap-2">${chip()}<button data-a="fb" class="w-9 h-9 rounded-full bg-white/60 text-brand-950"><i class="fa-solid fa-gear"></i></button></div></div>
+  <div class="flex items-center gap-3">${crest('w-14 h-14')}<div class="border-l-2 border-brand-700 pl-3 leading-tight"><div class="font-bold text-lg text-brand-950">โรงเรียนโยธินนุกูล</div><div class="text-xs font-semibold text-brand-700">YOTHIN NUKUL SCHOOL</div></div><div class="ml-auto flex gap-2">${cloud?'':chip()+`<button data-a="fb" class="w-9 h-9 rounded-full bg-white/60 text-brand-950"><i class="fa-solid fa-gear"></i></button>`}</div></div>
   <div class="grid lg:grid-cols-2 gap-8 items-center mt-8">
    <div class="text-center lg:text-left"><img src="logo.png" alt="MACHECK" class="h-28 mx-auto lg:mx-0"><div class="text-brand-950 font-semibold mt-2">Smart Check, Simple Life</div><div class="text-3xl lg:text-4xl font-black italic text-brand-950 mt-4 leading-snug">เช็กง่าย แม่นยำ<br>ครบจบในที่เดียว</div><div class="inline-block mt-4 bg-brand-700 text-white rounded-full px-5 py-2 font-semibold">ก้าวสู่โรงเรียนดิจิทัลด้วย MACHECK</div></div>
    <div class="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-md mx-auto">${cloud?'':'<div class="text-xs bg-amber-50 text-amber-700 rounded-xl p-3 mb-3">โหมดทดสอบ: ข้อมูลเก็บในเบราว์เซอร์นี้เท่านั้น กดเฟืองเพื่อเชื่อม Firebase</div>'}
