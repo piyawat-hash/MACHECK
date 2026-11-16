@@ -29,3 +29,4 @@ V3 is for a supervised pilot at Yothin Nukul School. It is not yet a multi-schoo
 - Prepared GitHub Pages root entry/assets alongside Firebase Hosting `public/` output.
 - Removed `noindex` from the public Pages release and made manifest asset paths relative to the project site root.
 - Added CI checks for Pages entry point and Director Overview.
+- Added shareable Demo Mode (`?demo=1`) with synthetic school/class/attendance/task records isolated to browser localStorage and role selection for principal, teacher and student demonstrations.

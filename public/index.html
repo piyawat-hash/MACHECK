@@ -128,6 +128,9 @@ document.addEventListener('change',async e=>{const k=e.target.dataset.up,f=e.tar
 // ---------- data layer ----------
 function readStoredJson(key,fallback){try{const raw=localStorage.getItem(key);return raw?JSON.parse(raw):fallback}catch(e){console.warn('Invalid local storage value:',key);localStorage.removeItem(key);return fallback}}
 let fs,auth,functions,cfg=readStoredJson('mc_cfg',DEFAULT_CFG);
+const pageMode=new URLSearchParams(location.search).get('demo');
+if(pageMode==='1')localStorage.setItem('mc_mode','demo');
+if(pageMode==='0')localStorage.removeItem('mc_mode');
 const cloud=!!cfg.apiKey&&localStorage.mc_mode!=='demo';
 if(cloud){
   const fbApp=initializeApp(cfg);
@@ -162,6 +165,28 @@ const Local={
  async del(n,id){delete store[n][id];flush()},
  async checkin(id,d){const l=store.attendance_logs=store.attendance_logs||{};if(l[id])return false;l[id]={...d,ts:Date.now()};flush();return true}
 };
+function seedDemoData(){
+ if(store.__macheckDemoSeeded)return;
+ const now=Date.now();
+ store.users=store.users||{};store.assignments=store.assignments||{};store.submissions=store.submissions||{};store.attendance_sessions=store.attendance_sessions||{};store.attendance_logs=store.attendance_logs||{};
+ const students=Array.from({length:12},(_,index)=>({
+  uid:`demo-student-${String(index+1).padStart(2,'0')}`,
+  studentId:String(65001+index),
+  name:`นักเรียนตัวอย่าง ${String(index+1).padStart(2,'0')}`,
+  grade:index<7?'ม.6/2':'ม.6/3',track:index<7?'เทคโนโลยีมัลติมีเดีย-ภาษาจีน':'วิทยาศาสตร์-คณิตศาสตร์',
+  role:'student',schoolId:SCHOOL_ID,status:'active',qr:`YN-${65001+index}-DEMO`
+ }));
+ for(const student of students){const {uid,...profile}=student;store.users[uid]=profile;}
+ const sessionA='demo-session-m62',sessionB='demo-session-m63';
+ store.attendance_sessions[sessionA]={schoolId:SCHOOL_ID,className:'ม.6/2',subject:'วิทยาการคำนวณ',active:true,createdBy:'demo-admin',createdAt:now-35*60*1000,ts:now-35*60*1000};
+ store.attendance_sessions[sessionB]={schoolId:SCHOOL_ID,className:'ม.6/3',subject:'ภาษาอังกฤษ',active:false,createdBy:'demo-admin',createdAt:now-65*60*1000,ts:now-65*60*1000};
+ students.slice(0,5).forEach((student,index)=>{const id=`${sessionA}_${student.uid}`;store.attendance_logs[id]={schoolId:SCHOOL_ID,sessionId:sessionA,uid:student.uid,studentId:student.studentId,name:student.name,status:index===4?'late':'present',ts:now-(index+1)*60*1000}});
+ students.slice(7,10).forEach((student,index)=>{const id=`${sessionB}_${student.uid}`;store.attendance_logs[id]={schoolId:SCHOOL_ID,sessionId:sessionB,uid:student.uid,studentId:student.studentId,name:student.name,status:'present',ts:now-(index+12)*60*1000}});
+ const assignmentId='demo-assignment-01';
+ store.assignments[assignmentId]={schoolId:SCHOOL_ID,title:'ใบงานตัวอย่าง: การใช้เทคโนโลยีดิจิทัล',due:'',createdBy:'demo-admin',ts:now-20*60*1000};
+ students.slice(0,4).forEach(student=>{const id=`${assignmentId}_${student.studentId}`;store.submissions[id]={schoolId:SCHOOL_ID,assignmentId,studentId:student.studentId,uid:student.uid,status:'COMPLETED',score:null,ts:now-10*60*1000}});
+ store.__macheckDemoSeeded=true;flush();
+}
 let D=cloud?Cloud:Local,me,pending,unsubs=[],qrExpiryTimer=null,S={a:[],s:[],l:[],u:[],ss:[],tab:'home',cur:null,sessionQr:null,qrSessionId:null,sessionQrExpiresAt:null};
 const unsub=()=>{unsubs.forEach(f=>f());unsubs=[]};
 const R=()=>me&&(me.role=='student'?renderS():renderT());
@@ -204,6 +229,7 @@ const A={
   const r=[['ชื่อ','รหัส','ชั้น','แผนการเรียน','เข้าเรียน (ครั้ง)','งานค้าง']].concat(S.u.map(u=>[u.name,u.studentId,u.grade||'',u.track||'',S.l.filter(l=>l.uid==u.id).length,Math.max(0,S.a.length-S.s.filter(x=>x.uid==u.id).length)]));
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+r.map(x=>x.map(q).join(',')).join('\n')],{type:'text/csv'}));a.download='macheck-report.csv';a.click()},
  hue:b=>{Dr.hue=+b.dataset.h;theme(Dr.hue);R()},
+ dm:()=>{localStorage.setItem('mc_mode','demo');location.href=location.pathname+'?demo=1'},
  rl:()=>{Dr.logo='';R()},
  sv:async()=>{try{
   if(Dr.logo!==undefined||Dr.hue!==undefined)await D.set('settings','studio',{logo:Dr.logo??G.logo??'',hue:Dr.hue??G.hue??268});
@@ -222,7 +248,7 @@ function fbModal(){const m=modal(`<h3 class="font-bold text-lg mb-1"><i class="f
 const FEATS=[['fa-bolt','รวดเร็ว ทันสมัย','ออกแบบให้ใช้งานง่ายบนมือถือและคอมพิวเตอร์'],['fa-shield-halved','ควบคุมสิทธิ์ผู้ใช้','Google Sign-In และบัญชีที่โรงเรียนอนุมัติ'],['fa-cloud-arrow-up','ข้อมูลเรียลไทม์','ซิงค์ข้อมูลผ่าน Firebase Cloud Firestore'],['fa-laptop-mobile','ใช้งานได้ 2 ระบบ','Mobile Fast-Pass และ Teacher Command Center'],['fa-palette','ปรับแต่งได้','ตั้งค่าธีมและข้อมูลโรงเรียน'],['fa-qrcode','QR Code แบบมีอายุ','Token เฉพาะคาบเรียนและตรวจสอบฝั่ง Server']];
 function landing(){unsub();me=null;S.tab='home';
  app.innerHTML=`<div class="min-h-screen bg-gradient-to-b from-brand-100 via-brand-300 to-brand-700"><div class="max-w-6xl mx-auto px-4 py-5">
-  <div class="flex items-center gap-3">${crest('w-14 h-14')}<div class="border-l-2 border-brand-700 pl-3 leading-tight"><div class="font-bold text-lg text-brand-950">โรงเรียนโยธินนุกูล</div><div class="text-xs font-semibold text-brand-700">YOTHIN NUKUL SCHOOL</div></div><div class="ml-auto flex gap-2">${cloud?'':chip()+`<button data-a="fb" class="w-9 h-9 rounded-full bg-white/60 text-brand-950"><i class="fa-solid fa-gear"></i></button>`}</div></div>
+  <div class="flex items-center gap-3">${crest('w-14 h-14')}<div class="border-l-2 border-brand-700 pl-3 leading-tight"><div class="font-bold text-lg text-brand-950">โรงเรียนโยธินนุกูล</div><div class="text-xs font-semibold text-brand-700">YOTHIN NUKUL SCHOOL</div></div><div class="ml-auto flex gap-2 items-center"><button data-a="dm" class="px-3 py-2 rounded-xl bg-white/80 text-brand-900 text-xs font-bold shadow-sm">ทดลอง Demo</button>${cloud?'':chip()+`<button data-a="fb" class="w-9 h-9 rounded-full bg-white/60 text-brand-950"><i class="fa-solid fa-gear"></i></button>`}</div></div>
   <div class="grid lg:grid-cols-2 gap-8 items-center mt-8">
    <div class="text-center lg:text-left"><img src="logo.png" alt="MACHECK" class="brand-logo brand-logo-hero mx-auto lg:mx-0"><div class="text-brand-950 font-semibold mt-2">Smart Check, Simple Life</div><div class="text-3xl lg:text-4xl font-black italic text-brand-950 mt-4 leading-snug">เช็กง่าย แม่นยำ<br>ครบจบในที่เดียว</div><div class="mt-4 text-xl font-black italic text-brand-950">“ก้าวสู่โรงเรียนดิจิทัล ด้วย MACHECK”</div></div>
    <div class="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-md mx-auto">${cloud?'':'<div class="text-xs bg-amber-50 text-amber-700 rounded-xl p-3 mb-3">โหมดทดลองเท่านั้น: ข้อมูลเก็บในเบราว์เซอร์นี้ ไม่ใช่ฐานข้อมูลจริง และห้ามใช้ข้อมูลนักเรียนจริง</div>'}
@@ -232,12 +258,12 @@ function landing(){unsub();me=null;S.tab='home';
   <div class="mt-6 rounded-3xl bg-brand-950 text-white p-6"><div class="font-black text-xl text-amber-300 mb-3"><i class="fa-solid fa-star mr-2"></i>ข้อดีที่ได้รับ</div>${['ลดภาระงานครู เช็กชื่อและติดตามงานได้ง่ายขึ้น','นักเรียนใช้งานสะดวก รวดเร็ว ทุกที่ ทุกเวลา','ยกระดับการบริหารจัดการ สู่โรงเรียนดิจิทัลเต็มรูปแบบ'].map(x=>`<div class="flex gap-3 items-center py-1"><i class="fa-solid fa-circle-check text-amber-300 text-xl"></i>${x}</div>`).join('')}</div>
   <p class="text-center text-white font-bold italic text-xl mt-8 mb-4">MACHECK... มากกว่าการเช็กชื่อ <span class="text-amber-300">คืออนาคตของการศึกษาไทย</span></p><div class="flex items-center justify-center gap-3 bg-brand-950 text-white rounded-2xl py-3 px-4 mb-4 text-sm sm:text-base"><i class="fa-solid fa-circle-check text-amber-300 text-xl"></i><span><b class="text-amber-300">MACHECK :</b> ระบบเช็กชื่ออัจฉริยะ เพื่อโรงเรียนโยธินนุกูลในอนาคต</span></div></div></div>`;
  const pick=r=>{$('#ts').className='flex-1 py-2 rounded-lg font-semibold '+(r=='s'?'bg-brand-600 text-white shadow':'text-slate-500');$('#tt').className='flex-1 py-2 rounded-lg font-semibold '+(r=='t'?'bg-brand-600 text-white shadow':'text-slate-500');
-  $('#pt').innerHTML=r=='s'?`${cloud?'<p class="text-xs text-slate-500 mb-2">เข้าสู่ระบบด้วยบัญชี Google ที่โรงเรียนอนุมัติและลงทะเบียนไว้</p>':'<p class="text-xs text-slate-500 mb-2">โหมดทดลอง: กรอกรหัสตัวอย่างเพื่อทดสอบหน้าจอเท่านั้น</p><input id="sid" inputmode="numeric" class="i" placeholder="รหัสนักเรียนตัวอย่าง" value="12345">'}<button id="go" class="b w-full"><i class="fa-brands fa-google mr-2"></i>${cloud?'เข้าสู่ระบบด้วย Google':'เข้าใช้งานโหมดทดลอง'}</button>`
-   :`<p class="text-xs text-slate-500 mb-2">สำหรับบัญชีครูหรือผู้ดูแลที่โรงเรียนอนุมัติไว้ในระบบเท่านั้น</p><button id="go" class="b w-full"><i class="fa-brands fa-google mr-2"></i>${cloud?'เข้าสู่ระบบครู / ผู้ดูแล':'เข้าใช้งานโหมดทดลอง'}</button>`;
+  $('#pt').innerHTML=r=='s'?`${cloud?'<p class="text-xs text-slate-500 mb-2">เข้าสู่ระบบด้วยบัญชี Google ที่โรงเรียนอนุมัติและลงทะเบียนไว้</p>':'<p class="text-xs text-slate-500 mb-2">โหมดทดลอง: ใช้รหัสนักเรียนตัวอย่าง 12345 ข้อมูลทั้งหมดอยู่ในเบราว์เซอร์นี้</p><input id="sid" inputmode="numeric" class="i" placeholder="รหัสนักเรียนตัวอย่าง" value="12345">'}<button id="go" class="b w-full"><i class="fa-brands fa-google mr-2"></i>${cloud?'เข้าสู่ระบบด้วย Google':'เข้าใช้งานโหมดทดลอง'}</button>`
+   :`${cloud?'<p class="text-xs text-slate-500 mb-2">สำหรับบัญชีครูหรือผู้ดูแลที่โรงเรียนอนุมัติไว้ในระบบเท่านั้น</p>':'<p class="text-xs text-slate-500 mb-2">เลือกบทบาทสำหรับทดลองใช้งาน (ข้อมูลจำลองเท่านั้น)</p><select id="demo-role" class="i"><option value="admin">ผู้อำนวยการ / ผู้ดูแลระบบ</option><option value="teacher">ครูผู้สอน</option></select>'}<button id="go" class="b w-full"><i class="fa-brands fa-google mr-2"></i>${cloud?'เข้าสู่ระบบครู / ผู้ดูแล':'เข้าใช้งานโหมดทดลอง'}</button>`;
   $('#go').onclick=()=>login(r)};
  $('#ts').onclick=()=>pick('s');$('#tt').onclick=()=>pick('t');pick('s')}
 async function login(r){
- if(r=='t')pending={role:'teacher'};
+ if(r=='t')pending={role:cloud?'teacher':($('#demo-role')?.value||'admin')};
  else if(cloud)pending={role:'student'};
  else{
   const studentId=$('#sid').value.trim();
@@ -264,9 +290,12 @@ async function enter(u){
   }else if(!p){
    if(!pending)throw new Error('ไม่พบข้อมูลผู้ใช้ในโหมดทดลอง');
    p=pending.role==='teacher'
-    ?{role:'teacher',schoolId:SCHOOL_ID,name:u.displayName||'ครูทดสอบ',photo:u.photoURL||''}
-    :{role:'student',schoolId:SCHOOL_ID,studentId:pending.studentId,grade:'',track:'',name:u.displayName||'นักเรียนทดสอบ',photo:u.photoURL||'',qr:`YN-${pending.studentId}-${crypto.randomUUID()}`};
+    ?{role:'teacher',schoolId:SCHOOL_ID,name:u.displayName||'ครูทดลอง',photo:u.photoURL||''}
+    :pending.role==='admin'
+     ?{role:'admin',schoolId:SCHOOL_ID,name:u.displayName||'ผู้ดูแลทดลอง',photo:u.photoURL||''}
+     :{role:'student',schoolId:SCHOOL_ID,studentId:pending.studentId,grade:'ม.6/2',track:'ข้อมูลจำลอง',name:u.displayName||'นักเรียนทดลอง',photo:u.photoURL||'',qr:`YN-${pending.studentId}-${crypto.randomUUID()}`};
    await D.set('users',u.uid,p);
+   if(D===Local)seedDemoData();
   }
   me={uid:u.uid,...p};pending=null;S.tab='home';me.role==='student'?studentView():teacherView();
  }catch(e){toast(e.message||'ไม่สามารถเข้าสู่ระบบได้','err');pending=null;if(cloud&&auth.currentUser)await signOut(auth);landing()}}

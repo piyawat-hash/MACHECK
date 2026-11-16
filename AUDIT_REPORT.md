@@ -42,3 +42,4 @@ See `STATIC_TEST_REPORT.md` for the exact results.
 - Added GitHub Pages root entry and relative PWA paths while preserving `public/` for optional Firebase Hosting.
 - Removed the inherited `noindex` setting from the public release.
 - The production `main` branch was not modified; release changes are staged in a review branch and a draft Pull Request.
+- Added a shareable local Demo Mode with synthetic student/session/attendance/task records. It does not write to Firebase and is explicitly labelled as sample data.

@@ -7,7 +7,7 @@
 ขอบเขต: Static checks และ Node.js unit/contract tests
 
 - `cd functions && npm run lint` — ผ่าน: Node.js syntax checks ของ Cloud Functions, QR helper, migration script และ provisioning script
-- `cd functions && npm test` — ผ่าน 11/11 tests: QR token helper, payload parser, frontend check-in contract, removal of legacy master key, responsive UI/logo contract, mobile sign-in redirect, assignment ownership และ approval/migration contract
+- `cd functions && npm test` — ผ่าน 12/12 tests: QR token helper, payload parser, frontend check-in contract, removal of legacy master key, responsive UI/logo contract, mobile sign-in redirect, assignment ownership และ approval/migration contract
 - `node scripts/verify-release.mjs` — ผ่าน: required files, inline HTML module syntax, frontend/backend call contract, critical security markers
 - JSON parse — ผ่าน: `firebase.json`, `firestore.indexes.json`, `functions/package.json`, `public/manifest.json` และ `.firebaserc.example`
 
@@ -37,3 +37,5 @@
 - Director Overview contract test: verifies administrator-specific dashboard, class rollup and safe wording around unmatched check-ins.
 - GitHub Pages contract test: verifies root page/relative manifest and removes `noindex`.
 - Release verification now checks root assets and the root GitHub Pages entry.
+
+- Demo mode contract test: checks shareable `?demo=1`, local-only mode selection, synthetic sample records and role selection.

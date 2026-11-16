@@ -67,3 +67,14 @@ test('GitHub Pages project-path assets and public search indexing are configured
   assert.equal(manifest.start_url, './');
   assert.equal(manifest.scope, './');
 });
+
+
+test('shareable demo mode is isolated to local storage and seeds synthetic records', () => {
+  assert.match(html, /new URLSearchParams\(location\.search\)\.get\('demo'\)/);
+  assert.match(html, /pageMode==='1'\)localStorage\.setItem\('mc_mode','demo'\)/);
+  assert.match(html, /dm:\(\)=>\{localStorage\.setItem\('mc_mode','demo'\)/);
+  assert.match(html, /function seedDemoData\(\)/);
+  assert.match(html, /นักเรียนตัวอย่าง/);
+  assert.match(html, /โหมดทดลองเท่านั้น: ข้อมูลเก็บในเบราว์เซอร์นี้/);
+  assert.match(html, /value="admin">ผู้อำนวยการ \/ ผู้ดูแลระบบ/);
+});
