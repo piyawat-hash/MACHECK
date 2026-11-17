@@ -139,7 +139,8 @@ const img=(f,n)=>new Promise(r=>{const o=new FileReader();o.onload=()=>{const i=
 let G={}; 
 const crest=(c='w-12 h-12',s=G.logo)=>`<img src="${s?esc(s):'crest.png'}" alt="โรงเรียนโยธินนุกูล" class="${c} rounded-full object-cover ring-2 ring-brand-300 bg-white">`;
 const av=(s,n,c)=>s?`<img src="${esc(s)}" referrerpolicy="no-referrer" class="${c} rounded-full object-cover ring-2 ring-brand-300">`:`<div class="${c} rounded-full bg-brand-200 text-brand-800 font-bold flex items-center justify-center ring-2 ring-brand-300 shrink-0">${esc((n||'?').replace(/^(นางสาว|นาย|นาง|ครู|คุณครู)/,'')[0]||'?')}</div>`;
-let Dr={}; 
+let Dr={};
+let landingRole='student'; 
 document.addEventListener('input',e=>{const k=e.target.dataset.k;if(k)Dr[k]=e.target.value});
 document.addEventListener('change',async e=>{const k=e.target.dataset.up,f=e.target.files?.[0];if(k&&f){Dr[k]=await img(f,k=='logo'?256:160);R()}});
 
@@ -223,7 +224,7 @@ function seedDemoData(){
  students.slice(0,4).forEach(student=>{const id=`${assignmentId}_${student.studentId}`;store.submissions[id]={schoolId:SCHOOL_ID,assignmentId,studentId:student.studentId,uid:student.uid,status:'COMPLETED',score:null,ts:now-10*60*1000}});
  store.__macheckDemoSeeded=true;flush();
 }
-let D=cloud?Cloud:Local,me,pending,unsubs=[],qrExpiryTimer=null,S={a:[],s:[],l:[],u:[],ss:[],classes:[],members:[],announcements:[],studentClasses:[],classSubs:[],joinCode:null,joinCodeClassId:null,selectedClass:null,aByClass:{},sByClass:{},mByClass:{},lByClass:{},tab:'home',cur:null,sessionQr:null,qrSessionId:null,sessionQrExpiresAt:null};
+let D=cloud?Cloud:Local,me,pending,unsubs=[],qrExpiryTimer=null,S={a:[],s:[],l:[],u:[],ss:[],classes:[],members:[],announcements:[],accessRequests:[],studentClasses:[],classSubs:[],joinCode:null,joinCodeClassId:null,selectedClass:null,aByClass:{},sByClass:{},mByClass:{},lByClass:{},tab:'home',cur:null,sessionQr:null,qrSessionId:null,sessionQrExpiresAt:null};
 const clearClassSubs=()=>{S.classSubs.forEach(f=>f());S.classSubs=[]};
 const unsub=()=>{unsubs.forEach(f=>f());unsubs=[];clearClassSubs()};
 const R=()=>me&&(me.role=='student'?renderS():renderT());
@@ -232,6 +233,8 @@ const subG=()=>D.sub('settings',x=>{const s=x.find(i=>i.id=='studio');if(s){G=s;
 // ---------- actions ----------
 const chip=()=>`<button data-a="tm" class="text-xs px-3 py-1.5 rounded-full font-semibold ${cloud?'bg-white/25 text-white':'bg-amber-400 text-black'}">${cloud?'โหมดจริง':'โหมดทดสอบ'}</button>`;
 const A={
+ apply:()=>beginAccessRequest(landingRole),
+ reviewRequest:async b=>{if(!isAdminRole())return toast('ไม่มีสิทธิ์ตรวจคำขอ','err');const uid=b.dataset.uid,decision=b.dataset.decision;if(!uid||!['approved','rejected'].includes(decision))return;if(!await ask((decision==='approved'?'อนุมัติ':'ปฏิเสธ')+'คำขอบัญชีนี้?'))return;try{await callServer('reviewAccountRequest',{uid,decision,note:''});toast(decision==='approved'?'อนุมัติบัญชีเรียบร้อยแล้ว':'ปฏิเสธคำขอเรียบร้อยแล้ว');}catch(e){err(e)}},
  nav:b=>{S.tab=b.dataset.t;R()},
  tm:()=>{if(!cfg.apiKey)return fbModal();localStorage.mc_mode=cloud?'demo':'cloud';location.reload()},
  lo:async()=>{if(await ask('ต้องการออกจากระบบหรือไม่?')){if(cloud)await signOut(auth);else landing()}},
@@ -323,12 +326,12 @@ function landing(){unsub();me=null;S.tab='home';
   <div class="grid lg:grid-cols-2 gap-8 items-center mt-8">
    <div class="text-center lg:text-left"><img src="logo.png" alt="MACHECK" class="brand-logo brand-logo-hero mx-auto lg:mx-0"><div class="text-brand-950 font-semibold mt-2">Smart Check, Simple Life</div><div class="text-3xl lg:text-4xl font-black italic text-brand-950 mt-4 leading-snug">เช็กง่าย แม่นยำ<br>ครบจบในที่เดียว</div><div class="mt-4 text-xl font-black italic text-brand-950">“ก้าวสู่โรงเรียนดิจิทัล ด้วย MACHECK”</div></div>
    <div class="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-md mx-auto">${cloud?'':'<div class="text-xs bg-amber-50 text-amber-700 rounded-xl p-3 mb-3">โหมดทดลองเท่านั้น: ข้อมูลเก็บในเบราว์เซอร์นี้ ไม่ใช่ฐานข้อมูลจริง และห้ามใช้ข้อมูลนักเรียนจริง</div>'}
-    <div class="flex mb-4 bg-brand-50 rounded-xl p-1"><button id="ts" class="flex-1 py-2 rounded-lg font-semibold">นักเรียน</button><button id="tt" class="flex-1 py-2 rounded-lg font-semibold">ครู / แอดมิน</button></div><div id="pt"></div></div></div>
+    <div class="flex mb-4 bg-brand-50 rounded-xl p-1"><button id="ts" class="flex-1 py-2 rounded-lg font-semibold">นักเรียน</button><button id="tt" class="flex-1 py-2 rounded-lg font-semibold">ครู / แอดมิน</button></div><div id="pt"></div><button data-a="apply" class="w-full mt-3 rounded-xl border-2 border-brand-200 bg-brand-50 hover:bg-brand-100 text-brand-900 py-3 text-sm font-bold"><i class="fa-solid fa-user-plus mr-2"></i>สมัครบัญชี / ขอเปิดใช้งาน MACHECK</button><p class="text-[11px] text-center text-slate-400 mt-2">สมัครด้วย Google แล้วกรอกข้อมูลเพื่อส่งให้โรงเรียนตรวจสอบ</p></div></div>
   <div class="mt-10 mx-auto w-fit bg-gradient-to-r from-brand-950 to-brand-600 text-white rounded-full px-8 py-3 font-black text-xl"><i class="fa-solid fa-trophy text-amber-300 mr-2"></i>จุดเด่นของระบบ MACHECK</div>
   <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">${FEATS.map(([i,t,d])=>`<div class="bg-white/90 rounded-3xl p-4 flex gap-4 items-center shadow"><div class="w-14 h-14 shrink-0 rounded-full bg-gradient-to-br from-brand-600 to-brand-950 text-white flex items-center justify-center text-2xl"><i class="fa-solid ${i}"></i></div><div><div class="font-bold text-brand-950">${t}</div><div class="text-xs text-slate-600">${d}</div></div></div>`).join('')}</div>
   <div class="mt-6 rounded-3xl bg-brand-950 text-white p-6"><div class="font-black text-xl text-amber-300 mb-3"><i class="fa-solid fa-star mr-2"></i>ข้อดีที่ได้รับ</div>${['ลดภาระงานครู เช็กชื่อและติดตามงานได้ง่ายขึ้น','นักเรียนใช้งานสะดวก รวดเร็ว ทุกที่ ทุกเวลา','ยกระดับการบริหารจัดการ สู่โรงเรียนดิจิทัลเต็มรูปแบบ'].map(x=>`<div class="flex gap-3 items-center py-1"><i class="fa-solid fa-circle-check text-amber-300 text-xl"></i>${x}</div>`).join('')}</div>
   <p class="text-center text-white font-bold italic text-xl mt-8 mb-4">MACHECK... มากกว่าการเช็กชื่อ <span class="text-amber-300">คืออนาคตของการศึกษาไทย</span></p><div class="flex items-center justify-center gap-3 bg-brand-950 text-white rounded-2xl py-3 px-4 mb-4 text-sm sm:text-base"><i class="fa-solid fa-circle-check text-amber-300 text-xl"></i><span><b class="text-amber-300">MACHECK :</b> ระบบเช็กชื่ออัจฉริยะ เพื่อโรงเรียนโยธินนุกูลในอนาคต</span></div></div></div>`;
- const pick=r=>{$('#ts').className='flex-1 py-2 rounded-lg font-semibold '+(r=='s'?'bg-brand-600 text-white shadow':'text-slate-500');$('#tt').className='flex-1 py-2 rounded-lg font-semibold '+(r=='t'?'bg-brand-600 text-white shadow':'text-slate-500');
+ const pick=r=>{landingRole=r==='s'?'student':'teacher';$('#ts').className='flex-1 py-2 rounded-lg font-semibold '+(r=='s'?'bg-brand-600 text-white shadow':'text-slate-500');$('#tt').className='flex-1 py-2 rounded-lg font-semibold '+(r=='t'?'bg-brand-600 text-white shadow':'text-slate-500');
   $('#pt').innerHTML=r=='s'?`${cloud?'<p class="text-xs text-slate-500 mb-2">เข้าสู่ระบบด้วยบัญชี Google ที่โรงเรียนอนุมัติและลงทะเบียนไว้</p>':'<p class="text-xs text-slate-500 mb-2">โหมดทดลอง: ใช้รหัสนักเรียนตัวอย่าง 12345 ข้อมูลทั้งหมดอยู่ในเบราว์เซอร์นี้</p><input id="sid" inputmode="numeric" class="i" placeholder="รหัสนักเรียนตัวอย่าง" value="12345">'}<button id="go" class="b w-full"><i class="fa-brands fa-google mr-2"></i>${cloud?'เข้าสู่ระบบด้วย Google':'เข้าใช้งานโหมดทดลอง'}</button>`
    :`${cloud?'<p class="text-xs text-slate-500 mb-2">สำหรับบัญชีครูหรือผู้ดูแลที่โรงเรียนอนุมัติไว้ในระบบเท่านั้น</p>':'<p class="text-xs text-slate-500 mb-2">เลือกบทบาทสำหรับทดลองใช้งาน (ข้อมูลจำลองเท่านั้น)</p><select id="demo-role" class="i"><option value="admin">ผู้อำนวยการ / ผู้ดูแลระบบ</option><option value="teacher">ครูผู้สอน</option></select>'}<button id="go" class="b w-full"><i class="fa-brands fa-google mr-2"></i>${cloud?'เข้าสู่ระบบครู / ผู้ดูแล':'เข้าใช้งานโหมดทดลอง'}</button>`;
   $('#go').onclick=()=>login(r)};
@@ -349,9 +352,82 @@ async function login(r){
   if(window.matchMedia('(max-width: 767px)').matches)await signInWithRedirect(auth,provider);
   else await signInWithPopup(auth,provider);
  }catch(e){pending=null;sessionStorage.removeItem('mc_pending_role');toast(e?.message||'เข้าสู่ระบบไม่สำเร็จ ลองใหม่อีกครั้ง','err')}}
+
+function beginAccessRequest(role){
+ if(!cloud)return toast('การสมัครบัญชีจริงต้องเชื่อมต่อ Firebase ก่อน กรุณาออกจากโหมด Demo','warn');
+ if(!['student','teacher'].includes(role))return toast('ประเภทบัญชีไม่ถูกต้อง','err');
+ pending={flow:'request',role};
+ sessionStorage.setItem('mc_pending_role','request_'+role);
+ const provider=new GoogleAuthProvider();
+ provider.setCustomParameters({prompt:'select_account'});
+ if(window.matchMedia('(max-width: 767px)').matches){
+  signInWithRedirect(auth,provider).catch(e=>{pending=null;sessionStorage.removeItem('mc_pending_role');toast(e?.message||'เข้าสู่ระบบไม่สำเร็จ','err')});
+ }else{
+  signInWithPopup(auth,provider).catch(e=>{pending=null;sessionStorage.removeItem('mc_pending_role');toast(e?.message||'เข้าสู่ระบบไม่สำเร็จ','err')});
+ }
+}
+function openAccessRequestForm(user,role){
+ const student=role==='student';
+ const email=String(user.email||'');
+ if(!email)return toast('บัญชี Google นี้ไม่มีอีเมล กรุณาเลือกบัญชีอื่น','err');
+ const levels=['ม.1','ม.2','ม.3','ม.4','ม.5','ม.6','ป.1','ป.2','ป.3','ป.4','ป.5','ป.6'];
+ const levelOptions='<option value="">เลือกระดับชั้น</option>'+levels.map(v=>'<option value="'+v+'">'+v+'</option>').join('');
+ const fields=student
+  ? '<div><label class="block text-xs font-bold text-slate-600 mb-1">รหัสประจำตัวนักเรียน *</label><input id="ar-student-id" class="i" inputmode="numeric" maxlength="10" placeholder="รหัสนักเรียน 3-10 หลัก"></div>'
+   +'<div class="grid grid-cols-2 gap-2"><div><label class="block text-xs font-bold text-slate-600 mb-1">ระดับชั้น *</label><select id="ar-level" class="i">'+levelOptions+'</select></div><div><label class="block text-xs font-bold text-slate-600 mb-1">ห้อง *</label><input id="ar-room" class="i" inputmode="numeric" maxlength="2" placeholder="เช่น 2"></div></div>'
+   +'<div><label class="block text-xs font-bold text-slate-600 mb-1">แผนการเรียน / โปรแกรม *</label><input id="ar-track" class="i" maxlength="120" placeholder="เช่น เทคโนโลยีมัลติมีเดีย-ภาษาจีน"></div>'
+  : '<div><label class="block text-xs font-bold text-slate-600 mb-1">รหัสครู / บุคลากรที่โรงเรียนกำหนด *</label><input id="ar-employee-id" class="i" maxlength="40" placeholder="รหัสบุคลากรของโรงเรียน"></div>'
+   +'<div><label class="block text-xs font-bold text-slate-600 mb-1">กลุ่มสาระ / ฝ่ายงาน *</label><input id="ar-department" class="i" maxlength="120" placeholder="เช่น กลุ่มสาระวิทยาศาสตร์และเทคโนโลยี"></div>'
+   +'<div><label class="block text-xs font-bold text-slate-600 mb-1">รายวิชา / งานที่รับผิดชอบ *</label><input id="ar-subjects" class="i" maxlength="160" placeholder="เช่น วิทยาการคำนวณ"></div>'
+   +'<div><label class="block text-xs font-bold text-slate-600 mb-1">ตำแหน่ง *</label><select id="ar-position" class="i"><option value="">เลือกตำแหน่ง</option><option>ครูผู้สอน</option><option>ครูอัตราจ้าง</option><option>บุคลากรสนับสนุน</option><option>ผู้บริหารสถานศึกษา</option></select><p class="text-[11px] text-amber-700 mt-1">คำขอนี้ได้รับสิทธิ์ระดับครูเท่านั้น สิทธิ์ผู้ดูแลและเจ้าของระบบกำหนดแยกต่างหาก</p></div>';
+ const m=modal(
+  '<div class="flex items-start gap-3 mb-4"><div class="w-11 h-11 rounded-2xl bg-brand-100 text-brand-700 flex items-center justify-center text-xl"><i class="fa-solid fa-user-check"></i></div><div><h3 class="font-black text-xl text-brand-950">สมัครบัญชี MACHECK</h3><p class="text-xs text-slate-500 mt-1">'+(student?'คำขอสำหรับนักเรียน':'คำขอสำหรับครูและบุคลากร')+'</p></div></div>'
+  +'<div class="rounded-xl border border-emerald-100 bg-emerald-50 p-3 mb-4 text-xs text-emerald-800"><b>บัญชี Google:</b> '+esc(email)+'<br>ใช้อีเมลนี้ยืนยันตัวตนและเข้าสู่ระบบ</div>'
+  +'<div class="space-y-3"><div><label class="block text-xs font-bold text-slate-600 mb-1">ชื่อ-นามสกุลจริง *</label><input id="ar-name" class="i" maxlength="120" autocomplete="name" value="'+esc(user.displayName||'')+'" placeholder="ชื่อ และนามสกุล"></div>'+fields
+  +'<label class="flex items-start gap-2 text-xs text-slate-600"><input id="ar-consent" type="checkbox" class="mt-0.5"><span>ข้าพเจ้ายืนยันว่าข้อมูลที่กรอกเป็นความจริง และยินยอมให้โรงเรียนใช้ข้อมูลนี้เพื่อตรวจสอบคำขอและจัดการบัญชี MACHECK *</span></label></div>'
+  +'<div class="flex gap-2 justify-end mt-5"><button id="ar-cancel" class="g">ยกเลิก</button><button id="ar-submit" class="b"><i class="fa-solid fa-paper-plane mr-1"></i>ส่งคำขอให้โรงเรียนตรวจสอบ</button></div>'
+  +'<p class="text-[11px] text-slate-400 mt-3">ยังไม่สามารถเข้าใช้งานได้จนกว่าโรงเรียนจะตรวจสอบและอนุมัติคำขอ</p>'
+ );
+ const cancel=async()=>{m.close();pending=null;sessionStorage.removeItem('mc_pending_role');if(auth.currentUser)await signOut(auth);landing()};
+ m.querySelector('#ar-cancel').onclick=cancel;
+ m.querySelector('#ar-submit').onclick=async()=>{
+  const name=m.querySelector('#ar-name').value.trim();
+  if(name.length<3)return toast('กรุณากรอกชื่อ-นามสกุลให้ครบ','warn');
+  if(!m.querySelector('#ar-consent').checked)return toast('กรุณายืนยันการใช้ข้อมูลก่อนส่งคำขอ','warn');
+  const data={role,name};
+  if(student){
+   const studentId=m.querySelector('#ar-student-id').value.trim();
+   const level=m.querySelector('#ar-level').value;
+   const room=m.querySelector('#ar-room').value.trim();
+   const track=m.querySelector('#ar-track').value.trim();
+   if(!/^\\d{3,10}$/.test(studentId))return toast('รหัสนักเรียนต้องเป็นตัวเลข 3-10 หลัก','warn');
+   if(!level||!/^\\d{1,2}$/.test(room)||Number(room)<1||Number(room)>99||!track)return toast('กรอกระดับชั้น ห้อง และแผนการเรียนให้ครบ','warn');
+   Object.assign(data,{studentId,grade:level+'/'+room,track});
+  }else{
+   const employeeId=m.querySelector('#ar-employee-id').value.trim();
+   const department=m.querySelector('#ar-department').value.trim();
+   const subjects=m.querySelector('#ar-subjects').value.trim();
+   const position=m.querySelector('#ar-position').value;
+   if(employeeId.length<2||!department||!subjects||!position)return toast('กรอกข้อมูลบุคลากรให้ครบทุกช่อง','warn');
+   Object.assign(data,{employeeId,department,subjects,position});
+  }
+  const submit=m.querySelector('#ar-submit');submit.disabled=true;submit.textContent='กำลังส่งคำขอ...';
+  try{
+   const result=await callServer('submitAccountRequest',data);
+   m.close();pending=null;sessionStorage.removeItem('mc_pending_role');
+   toast(result.alreadyPending?'บัญชีนี้มีคำขอรอการตรวจสอบอยู่แล้ว':'ส่งคำขอสำเร็จ รอโรงเรียนตรวจสอบและอนุมัติ');
+   if(auth.currentUser)await signOut(auth);else landing();
+  }catch(e){submit.disabled=false;submit.innerHTML='<i class="fa-solid fa-paper-plane mr-1"></i>ส่งคำขอให้โรงเรียนตรวจสอบ';err(e)}
+ };
+}
+
 async function enter(u){
  try{
   let p=await D.get('users',u.uid);
+  if(cloud&&pending?.flow==='request'){
+   if(p?.status==='active'){pending=null;toast('บัญชีนี้ได้รับอนุมัติแล้ว กรุณาใช้ปุ่มเข้าสู่ระบบตามปกติ','warn');await signOut(auth);return}
+   openAccessRequestForm(u,pending.role);return;
+  }
   if(cloud){
    if(!p||p.schoolId!==SCHOOL_ID)throw new Error('บัญชีนี้ยังไม่ได้รับอนุมัติจากโรงเรียน กรุณาติดต่อผู้ดูแลระบบ');
    if(p.status!=='active')throw new Error('บัญชีนี้ยังไม่ได้รับอนุมัติหรือถูกระงับ กรุณาติดต่อผู้ดูแลระบบ');
@@ -375,7 +451,7 @@ async function enter(u){
 if(cloud){
   onAuthStateChanged(auth,u=>{
     if(u){
-      if(!pending){const role=sessionStorage.getItem('mc_pending_role');if(role==='student'||role==='teacher')pending={role};}
+      if(!pending){const role=sessionStorage.getItem('mc_pending_role');if(role==='request_student'||role==='request_teacher')pending={flow:'request',role:role.slice(8)};else if(role==='student'||role==='teacher')pending={role};}
       sessionStorage.removeItem('mc_pending_role');
       enter(u);
     }else{pending=null;sessionStorage.removeItem('mc_pending_role');landing()}
@@ -497,6 +573,7 @@ function teacherView(){unsub();S.cur=null;
  </div>`;
  if(isAdminRole()){
   unsubs.push(D.sub('users',x=>{S.u=x;R()},['role','student']));
+  unsubs.push(D.sub('access_requests',x=>{S.accessRequests=x;R()}));
   unsubs.push(D.sub('attendance_sessions',x=>{S.ss=x;if(!S.cur&&x[0])S.cur=x[0].id;R()}));
   unsubs.push(D.sub('attendance_logs',x=>{S.l=x;R()}));
  }else{
