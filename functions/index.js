@@ -355,6 +355,7 @@ exports.joinClass = onCall(async (request) => {
       schoolId: profile.schoolId, classId: classroom.id, uid,
       role: 'student', status: 'active',
       name: profile.name || '', studentId: profile.studentId || '',
+      grade: profile.grade || '', track: profile.track || '',
       joinedAt: FieldValue.serverTimestamp(),
     });
   });
