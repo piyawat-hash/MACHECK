@@ -1,0 +1,11 @@
+node_modules/
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+.env
+.env.*
+service-account*.json
+*service-account*.json
+
+# Local student/teacher roster contains personal data
+functions/scripts/users-to-provision.json

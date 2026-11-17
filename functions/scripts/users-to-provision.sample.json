@@ -1,0 +1,15 @@
+[
+  {
+    "email": "teacher@example.org",
+    "role": "teacher",
+    "name": "ชื่อครู"
+  },
+  {
+    "email": "student@example.org",
+    "role": "student",
+    "name": "ชื่อนักเรียน",
+    "studentId": "12345",
+    "grade": "ม.6/2",
+    "track": "วิทยาการคำนวณ"
+  }
+]

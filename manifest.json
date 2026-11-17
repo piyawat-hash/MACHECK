@@ -1,14 +1,14 @@
 {
-  "name": "MACHECK โรงเรียนโยธินนุกูล",
+  "name": "MACHECK | โรงเรียนโยธินนุกูล",
   "short_name": "MACHECK",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#3b0764",
-  "theme_color": "#3b0764",
+  "background_color": "#f5f1fb",
+  "theme_color": "#4c0b91",
   "lang": "th",
   "icons": [
-    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
-    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"}
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png" }
   ]
 }

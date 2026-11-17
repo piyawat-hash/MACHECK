@@ -1,0 +1,31 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function userPath() {
+      return /databases/(default)/documents/users/$(request.auth.uid);
+    }
+    function activeProfile() {
+      return request.auth != null
+        && firestore.exists(userPath())
+        && firestore.get(userPath()).data.status == 'active';
+    }
+    function sameSchool(schoolId) {
+      return activeProfile()
+        && firestore.get(userPath()).data.schoolId == schoolId;
+    }
+
+    match /schools/{schoolId}/users/{uid}/{allPaths=**} {
+      allow read: if sameSchool(schoolId)
+        && (request.auth.uid == uid || firestore.get(userPath()).data.role in ['teacher', 'admin']);
+      allow write: if sameSchool(schoolId)
+        && request.auth.uid == uid
+        && request.resource != null
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
