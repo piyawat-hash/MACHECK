@@ -1,0 +1,45 @@
+name: MACHECK validation
+
+on:
+  push:
+    branches:
+      - main
+      - "feature/**"
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Functions dependencies
+        run: npm --prefix functions install
+      - name: Check Functions syntax
+        run: npm --prefix functions run lint
+      - name: Run Functions unit tests
+        run: npm --prefix functions test
+      - name: Check web app syntax and mirrored hosting files
+        run: |
+          cmp -s index.html public/index.html
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          for (const file of ['index.html', 'public/index.html']) {
+            const html = readFileSync(file, 'utf8');
+            const match = html.match(/<script type="module">([\s\S]*?)<\/script>/);
+            if (!match) throw new Error('Missing module script in ' + file);
+            writeFileSync('/tmp/' + file.replaceAll('/', '-') + '.mjs', match[1]);
+          }
+          NODE
+          node --check /tmp/index.html.mjs
+          node --check /tmp/public-index.html.mjs
+          node -e "JSON.parse(require('node:fs').readFileSync('firebase.json','utf8'));JSON.parse(require('node:fs').readFileSync('firestore.indexes.json','utf8'));"

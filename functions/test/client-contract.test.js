@@ -55,7 +55,7 @@ test('administrator gets a director overview with school-level attendance indica
   assert.match(html, /นับนักเรียนไม่ซ้ำคน/);
   assert.match(html, /ยังไม่พบการเช็กชื่อ/);
   assert.match(html, /สรุปตามห้องเรียน/);
-  assert.match(html, /if\(me\.role==='admin'\)return tDirectorHome\(\)/);
+  assert.match(html, /if\(isAdminRole\(\)\)return tDirectorHome\(\)/);
 });
 
 test('GitHub Pages project-path assets and public search indexing are configured', () => {
@@ -77,4 +77,54 @@ test('shareable demo mode is isolated to local storage and seeds synthetic recor
   assert.match(html, /นักเรียนตัวอย่าง/);
   assert.match(html, /โหมดทดลองเท่านั้น: ข้อมูลเก็บในเบราว์เซอร์นี้/);
   assert.match(html, /value="admin">ผู้อำนวยการ \/ ผู้ดูแลระบบ/);
+});
+
+test('owner and Google Classroom-style workflows are present and class scoped', () => {
+  const backend = fs.readFileSync(path.join(projectRoot, 'functions/index.js'), 'utf8');
+  const provisioning = fs.readFileSync(path.join(projectRoot, 'functions/scripts/provision-users.js'), 'utf8');
+  assert.match(html, /function tClasses\(\)/);
+  assert.match(html, /createClass/);
+  assert.match(html, /joinClass/);
+  assert.match(html, /addStudent/);
+  assert.match(html, /removeMember/);
+  assert.match(html, /createClassAssignment/);
+  assert.match(html, /submitClassAssignment/);
+  assert.match(html, /gradeClassSubmission/);
+  assert.match(html, /createClassAnnouncement/);
+  assert.match(html, /data-filepath/);
+  assert.match(html, /getBlob\(storageRef\(storage/);
+  assert.match(backend, /exports\.createClass = onCall/);
+  assert.match(backend, /exports\.addClassStudent = onCall/);
+  assert.match(backend, /exports\.gradeClassSubmission = onCall/);
+  assert.match(backend, /exports\.updateClassAssignment = onCall/);
+  assert.match(backend, /exports\.cancelClassAssignment = onCall/);
+  assert.match(backend, /assignment\.status === 'CANCELLED'/);
+  assert.match(html, /editAssignment:async/);
+  assert.match(html, /cancelAssignment:async/);
+  assert.match(html, /ยกเลิกงานแล้ว/);
+  assert.match(backend, /session\.classId/);
+  assert.match(provisioning, /'owner'/);
+  assert.match(provisioning, /--owner-email=/);
+  assert.match(rules, /'owner'/);
+});
+
+
+test('account applications collect verified identity details and never self-assign privileged roles', () => {
+  const backend = fs.readFileSync(path.join(projectRoot, 'functions/index.js'), 'utf8');
+  assert.match(html, /data-a="apply"/);
+  assert.match(html, /function openAccessRequestForm/);
+  assert.match(html, /ar-student-id/);
+  assert.match(html, /ar-employee-id/);
+  assert.match(html, /ar-consent/);
+  assert.match(html, /callServer\('submitAccountRequest'/);
+  assert.match(html, /D\.sub\('access_requests'/);
+  assert.match(html, /reviewAccountRequest/);
+  assert.match(backend, /exports\.submitAccountRequest = onCall/);
+  assert.match(backend, /exports\.reviewAccountRequest = onCall/);
+  assert.match(backend, /token\.email_verified !== true/);
+  assert.match(backend, /sign_in_provider !== 'google\.com'/);
+  assert.match(backend, /requireProfile\(reviewerUid, \['admin', 'owner'\]\)/);
+  assert.match(backend, /\['student', 'teacher'\]\.includes\(role\)/);
+  assert.match(rules, /match \/access_requests\/\{uid\}/);
+  assert.match(rules, /allow create, update, delete: if false/);
 });
