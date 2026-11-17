@@ -204,6 +204,22 @@ const A={
  lo:async()=>{if(await ask('ต้องการออกจากระบบหรือไม่?')){if(cloud)await signOut(auth);else landing()}},
  fb:()=>fbModal(),
  pick:b=>{S.cur=b.dataset.id;R()},
+ pickClass:b=>{S.selectedClass=b.dataset.id;R()},
+ newClass:async()=>{const name=(Dr.cn||'').trim(),subject=(Dr.cs||'').trim(),description=(Dr.cd||'').trim();if(!name||!subject)return toast('กรอกชื่อห้องและรายวิชาให้ครบ','warn');
+  try{let result;if(cloud){result=await callServer('createClass',{name,subject,description})}
+   else{const classId=crypto.randomUUID(),joinCode=crypto.randomUUID().slice(0,8).toUpperCase();await D.set('classes',classId,{name,subject,description,teacherUid:me.uid,createdBy:me.uid,status:'active',joinCode,joinCodeLast4:joinCode.slice(-4)});await D.set('class_members',classId+'_'+me.uid,{classId,uid:me.uid,role:'teacher',status:'active'});result={classId,joinCode}}
+   S.selectedClass=result.classId;S.joinCode=result.joinCode;Dr.cn=Dr.cs=Dr.cd='';S.tab='cls';toast('สร้างห้องเรียนแล้ว');R()
+  }catch(e){err(e)}},
+ joinClass:async()=>{const joinCode=(Dr.joinCode||'').trim().toUpperCase();if(!joinCode)return toast('กรอกรหัสเข้าห้องก่อน','warn');
+  try{if(cloud){const out=await callServer('joinClass',{joinCode});toast('เข้าร่วมห้อง '+out.className+' แล้ว')}
+   else{const c=S.classes.find(x=>String(x.joinCode||'').toUpperCase()===joinCode);if(!c)return toast('ไม่พบรหัสห้องเรียน','err');await D.set('class_members',c.id+'_'+me.uid,{classId:c.id,uid:me.uid,role:'student',status:'active',name:me.name,studentId:me.studentId});toast('เข้าร่วมห้องแล้ว')}
+   Dr.joinCode='';R()
+  }catch(e){err(e)}},
+ removeMember:async b=>{if(!await ask('นำสมาชิกคนนี้ออกจากห้องเรียน?'))return;try{if(cloud)await callServer('removeClassMember',{classId:b.dataset.class,memberUid:b.dataset.uid});else await D.upd('class_members',b.dataset.class+'_'+b.dataset.uid,{status:'removed'});toast('นำสมาชิกออกจากห้องแล้ว')}catch(e){err(e)}},
+ rotateCode:async b=>{try{const result=cloud?await callServer('rotateClassJoinCode',{classId:b.dataset.id}):{joinCode:crypto.randomUUID().slice(0,8).toUpperCase()};if(!cloud)await D.upd('classes',b.dataset.id,{joinCode:result.joinCode,joinCodeLast4:result.joinCode.slice(-4)});S.joinCode=result.joinCode;toast('สร้างรหัสเข้าร่วมห้องใหม่แล้ว');R()}catch(e){err(e)}},
+ announce:async b=>{const title=(Dr.annTitle||'').trim(),message=(Dr.annText||'').trim(),classId=Dr.annClass||S.selectedClass;if(!classId||!title||!message)return toast('กรอกห้อง หัวข้อ และข้อความประกาศให้ครบ','warn');try{if(cloud)await callServer('createClassAnnouncement',{classId,title,message});else await D.set('announcements',crypto.randomUUID(),{classId,title,message,createdBy:me.uid});Dr.annTitle=Dr.annText='';toast('ประกาศข่าวสารแล้ว');R()}catch(e){err(e)}},
+ grade:async b=>{const m=modal(`<h3 class="font-bold text-lg mb-3">ตรวจงานและให้คะแนน</h3><input id="gs" type="number" min="0" max="100" class="i" placeholder="คะแนน 0-100"><textarea id="gf" class="i" rows="3" placeholder="ความคิดเห็นถึงนักเรียน"></textarea><div class="flex justify-end gap-2"><button id="gx" class="g">ยกเลิก</button><button id="gy" class="b">บันทึกคะแนน</button></div>`);m.querySelector('#gx').onclick=m.close;m.querySelector('#gy').onclick=async()=>{const score=m.querySelector('#gs').value,feedback=m.querySelector('#gf').value;if(score==='')return toast('กรอกคะแนนก่อน','warn');try{if(cloud)await callServer('gradeClassSubmission',{submissionId:b.dataset.id,score:Number(score),feedback});else await D.upd('submissions',b.dataset.id,{score:Number(score),feedback,status:'GRADED'});m.close();toast('บันทึกคะแนนแล้ว')}catch(e){err(e)}}},
+
  ns:()=>{const s=cs(),m=modal(`<h3 class="font-bold text-lg mb-3">สร้าง QR Code คาบใหม่</h3><input id="nc" class="i" maxlength="40" placeholder="ห้องเรียน เช่น ม.6/2" value="${esc(s?.className||'')}"><input id="nb" class="i" maxlength="80" placeholder="วิชา เช่น วิทยาการคำนวณ" value="${esc(s?.subject||'')}"><p class="text-xs text-slate-500 mb-3">QR Code จะมีอายุ 30 นาที และสามารถต่ออายุได้จากหน้าครู</p><div class="flex gap-2 justify-end mt-2"><button id="x" class="g">ยกเลิก</button><button id="y" class="b">สร้างคาบ</button></div>`);
   m.querySelector('#x').onclick=m.close;
   m.querySelector('#y').onclick=async()=>{const c=m.querySelector('#nc').value.trim()||'ห้องเรียน',b=m.querySelector('#nb').value.trim()||'ไม่ระบุวิชา';m.close();
@@ -222,11 +238,18 @@ const A={
   else{const token=crypto.randomUUID()+crypto.randomUUID(),payload=`MACHECK|${s.id}|${token}`;await D.upd('attendance_sessions',s.id,{qrPayload:payload,qrExpiresAt:Date.now()+30*60*1000});S.sessionQr=payload;S.qrSessionId=s.id;S.sessionQrExpiresAt=Date.now()+30*60*1000;}
   toast('ออก QR Code ใหม่แล้ว');R()
  }catch(e){err(e)}},
- na:async()=>{const t=(Dr.at||'').trim();if(!t)return toast('กรอกชื่องานก่อน','warn');
-  try{await D.set('assignments',crypto.randomUUID().slice(0,8),{title:t,due:Dr.ad||'',createdBy:me.uid});Dr.at='';Dr.ad='';toast('สั่งงานแล้ว');R()}catch(e){err(e)}},
+ na:async()=>{const t=(Dr.at||'').trim(),classId=Dr.classId||S.selectedClass;if(!t)return toast('กรอกชื่องานก่อน','warn');if(!classId)return toast('เลือกห้องเรียนก่อนสร้างงาน','warn');
+  try{const dueAt=Dr.ad?new Date(Dr.ad+'T23:59:00+07:00').toISOString():null;
+   if(cloud)await callServer('createClassAssignment',{classId,title:t,details:Dr.details||'',dueAt,attachments:[]});
+   else await D.set('assignments',crypto.randomUUID(),{classId,className:S.classes.find(x=>x.id===classId)?.name||'',title:t,details:Dr.details||'',due:Dr.ad||'',createdBy:me.uid});
+   Dr.at=Dr.ad=Dr.details='';toast('มอบหมายงานแล้ว');R()
+  }catch(e){err(e)}},
  da:async b=>{const item=S.a.find(x=>x.id===b.dataset.id);if(!item)return;if(!isAdminRole()&&item.createdBy!==me.uid)return toast('คุณไม่มีสิทธิ์ลบงานที่ครูท่านอื่นสร้าง','warn');if(!await ask('ลบงานนี้ออกจากระบบ?'))return;try{await D.del('assignments',b.dataset.id);toast('ลบงานแล้ว')}catch(e){err(e)}},
- sub:async b=>{if(!await ask('ยืนยันส่งงานนี้?'))return;
-  try{await D.set('submissions',b.dataset.id+'_'+me.studentId,{assignmentId:b.dataset.id,studentId:me.studentId,uid:me.uid,status:'COMPLETED',score:null});toast('ส่งงานแล้ว')}catch(e){err(e)}},
+ sub:async b=>{const item=S.a.find(x=>x.id===b.dataset.id);if(!item)return;if(!await ask('ยืนยันส่งงานนี้?'))return;try{
+  if(cloud){const textAnswer=Dr['answer_'+item.id]||'';await callServer('submitClassAssignment',{assignmentId:item.id,text:textAnswer,attachments:[]})}
+  else await D.set('submissions',item.id+'_'+me.uid,{assignmentId:item.id,classId:item.classId,studentId:me.studentId,uid:me.uid,status:'SUBMITTED',score:null,text:Dr['answer_'+item.id]||''});
+  toast('ส่งงานแล้ว');R()
+ }catch(e){err(e)}},
  sc:()=>scan(),
  ex:()=>navigator.clipboard.writeText(JSON.stringify(me.role=='student'?{profile:me,attendance:S.l,submissions:S.s}:{students:S.u,sessions:S.ss,attendance:S.l,assignments:S.a,submissions:S.s},null,2)).then(()=>toast('คัดลอก JSON แล้ว'),()=>toast('คัดลอกไม่ได้','err')),
  csv:()=>{const q=v=>`"${String(v).replace(/^[=+\-@]/,"'$&").replace(/"/g,'""')}"`;
