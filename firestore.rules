@@ -25,12 +25,10 @@ service cloud.firestore {
     }
 
     match /users/{uid} {
-      allow get: if signedIn() && request.auth.uid == uid
-        || isAdmin(resource.data.schoolId)
-        || isTeacher(resource.data.schoolId);
-      // Roster listing is retained for the legacy pilot dashboard. Class-scoped pages
-      // must use class_members; do not expose profile writes through the client.
-      allow list: if isTeacher(resource.data.schoolId);
+      // Students can read their own profile. Only school administrators can inspect all profiles.
+      // Teachers receive the minimum roster snapshot in class_members instead.
+      allow get: if signedIn() && request.auth.uid == uid || isAdmin(resource.data.schoolId);
+      allow list: if isAdmin(resource.data.schoolId);
       allow create, delete: if false;
       allow update: if signedIn() && request.auth.uid == uid
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'photo']);
