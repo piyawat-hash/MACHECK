@@ -298,11 +298,7 @@ function normalizeAttachments(value, classId, folder) {
     if (!/^(application\/pdf|image\/(png|jpeg|webp)|application\/vnd\.openxmlformats-officedocument\.(wordprocessingml\.document|spreadsheetml\.sheet)|application\/msword)$/i.test(contentType)) {
       throw new HttpsError('invalid-argument', 'ชนิดไฟล์นี้ยังไม่รองรับ');
     }
-    const url = requireText(item.url, 'URL ไฟล์', 2000);
-    if (!url.startsWith('https://firebasestorage.googleapis.com/')) {
-      throw new HttpsError('invalid-argument', 'URL ไฟล์ต้องเป็น Firebase Storage download URL');
-    }
-    return { name, path, contentType, size: Number(item.size) || 0, url };
+    return { name, path, contentType, size: Number(item.size) || 0 };
   });
 }
 
