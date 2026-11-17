@@ -113,7 +113,7 @@ import {initializeApp} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-
 import {getAuth,GoogleAuthProvider,signInWithPopup,signInWithRedirect,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import {getFirestore,collection,doc,getDoc,setDoc,updateDoc,deleteDoc,onSnapshot,query,where,serverTimestamp} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import {getFunctions,httpsCallable} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
-import {getStorage,ref as storageRef,uploadBytes,getDownloadURL} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
+import {getStorage,ref as storageRef,uploadBytes,getBlob} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
 
 // Pilot deployment: one school only. Do not reuse this build for another school
 // until tenant provisioning and tenant-isolation tests are completed.
@@ -176,7 +176,7 @@ async function uploadClassFiles(classId,folder,files){
   const path='schools/'+SCHOOL_ID+'/classes/'+classId+'/'+folder+'/'+crypto.randomUUID()+'_'+safe;
   const target=storageRef(storage,path);
   await uploadBytes(target,file,{contentType:file.type});
-  out.push({name:file.name,path,contentType:file.type,size:file.size,url:await getDownloadURL(target)});
+  out.push({name:file.name,path,contentType:file.type,size:file.size});
  }
  return out;
 }
@@ -303,6 +303,7 @@ const A={
   if(Object.keys(p).length){await D.upd('users',me.uid,p);Object.assign(me,p)}
   Dr={};toast('บันทึกการตั้งค่าแล้ว');R()}catch(e){err(e)}}
 };
+document.addEventListener('click',async e=>{const b=e.target.closest('[data-filepath]');if(!b)return;try{if(!storage)throw new Error('ยังไม่ได้ตั้งค่า Firebase Storage');const blob=await getBlob(storageRef(storage,b.dataset.filepath));const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=b.dataset.filename||'MACHECK-file';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000)}catch(error){err(error)}});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(b)A[b.dataset.a]?.(b)});
 function fbModal(){const m=modal(`<h3 class="font-bold text-lg mb-1"><i class="fa-solid fa-database text-brand-600 mr-2"></i>เชื่อมต่อ Firebase Cloud</h3><p class="text-xs text-slate-500 mb-3">วางค่า firebaseConfig จากโปรเจกต์ของคุณ</p><textarea id="ct" rows="7" class="i font-mono text-xs bg-slate-50" placeholder="{ apiKey: &quot;...&quot;, authDomain: &quot;...&quot;, projectId: &quot;...&quot;, appId: &quot;...&quot; }"></textarea>
 <div class="flex flex-wrap gap-2 justify-end"><button id="x" class="g">ปิด</button><button id="cl" class="g">ล้างค่า</button><button id="sv" class="b">เชื่อมต่อทันที</button></div>`);
