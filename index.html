@@ -190,8 +190,9 @@ function seedDemoData(){
  students.slice(0,4).forEach(student=>{const id=`${assignmentId}_${student.studentId}`;store.submissions[id]={schoolId:SCHOOL_ID,assignmentId,studentId:student.studentId,uid:student.uid,status:'COMPLETED',score:null,ts:now-10*60*1000}});
  store.__macheckDemoSeeded=true;flush();
 }
-let D=cloud?Cloud:Local,me,pending,unsubs=[],qrExpiryTimer=null,S={a:[],s:[],l:[],u:[],ss:[],classes:[],members:[],announcements:[],studentClasses:[],classSubs:[],joinCode:null,selectedClass:null,tab:'home',cur:null,sessionQr:null,qrSessionId:null,sessionQrExpiresAt:null};
-const unsub=()=>{unsubs.forEach(f=>f());unsubs=[]};
+let D=cloud?Cloud:Local,me,pending,unsubs=[],qrExpiryTimer=null,S={a:[],s:[],l:[],u:[],ss:[],classes:[],members:[],announcements:[],studentClasses:[],classSubs:[],joinCode:null,selectedClass:null,aByClass:{},sByClass:{},mByClass:{},tab:'home',cur:null,sessionQr:null,qrSessionId:null,sessionQrExpiresAt:null};
+const clearClassSubs=()=>{S.classSubs.forEach(f=>f());S.classSubs=[]};
+const unsub=()=>{unsubs.forEach(f=>f());unsubs=[];clearClassSubs()};
 const R=()=>me&&(me.role=='student'?renderS():renderT());
 const subG=()=>D.sub('settings',x=>{const s=x.find(i=>i.id=='studio');if(s){G=s;theme(G.hue);R()}});
 
@@ -329,7 +330,22 @@ function studentView(){unsub();
   <main id="main" class="student-main"></main>
   <nav class="bn student-bottom-nav">${[['home','fa-house','หน้าแรก'],['cls','fa-users','ห้องเรียน'],['task','fa-clipboard-list','งานค้าง'],['set','fa-user','บัญชี']].map(([k,i,t])=>`<button data-a="nav" data-t="${k}" class="nv"><i class="fa-solid ${i} text-lg block mb-1"></i>${t}${k=='task'?'<span id="bd"></span>':''}</button>`).join('')}</nav>
  </div>`;
- unsubs.push(subG(),D.sub('assignments',a=>{S.a=a;R()}),D.sub('submissions',s=>{S.s=s;R()},['uid',me.uid]),D.sub('attendance_logs',l=>{S.l=l;R()},['uid',me.uid]));R()}
+ unsubs.push(subG(),
+  D.sub('class_members',rows=>{S.studentClasses=rows.filter(x=>x.status==='active');watchStudentClasses();R()},['uid',me.uid]),
+  D.sub('submissions',s=>{S.s=s;R()},['uid',me.uid]),
+  D.sub('attendance_logs',l=>{S.l=l;R()},['uid',me.uid])
+ );R()}
+async function watchStudentClasses(){
+ clearClassSubs();S.classes=[];S.aByClass={};S.a=[];
+ const rows=S.studentClasses||[];
+ const classes=await Promise.all(rows.map(x=>D.get('classes',x.classId).catch(()=>null)));
+ S.classes=classes.filter(Boolean);
+ for(const classroom of S.classes){
+  const classId=classroom.id;
+  S.classSubs.push(D.sub('assignments',rows=>{S.aByClass[classId]=rows;S.a=Object.values(S.aByClass).flat();R()},['classId',classId]));
+  S.classSubs.push(D.sub('announcements',rows=>{S.announcements=S.announcements.filter(x=>x.classId!==classId).concat(rows);R()},['classId',classId]));
+ }
+}
 
 function renderS(){
  const dn=new Set(S.s.map(x=>x.assignmentId)),pe=S.a.filter(a=>!dn.has(a.id)),today=schoolDayKey(Date.now()),l=S.l.find(x=>schoolDayKey(x.ts)===today);
@@ -411,8 +427,22 @@ function teacherView(){unsub();S.cur=null;
   </div>
   <nav class="bn teacher-mobile-nav lg:hidden fixed bottom-0 inset-x-0 flex">${NAV.map(([k,i,t])=>`<button data-a="nav" data-t="${k}" class="nv"><i class="fa-solid ${i} text-lg block mb-0.5"></i>${t}</button>`).join('')}</nav>
  </div>`;
- unsubs.push(subG(),D.sub('attendance_sessions',x=>{S.ss=x;if(!S.cur&&x[0])S.cur=x[0].id;R()}),D.sub('assignments',x=>{S.a=x;R()}),D.sub('submissions',x=>{S.s=x;R()}),D.sub('users',x=>{S.u=x;R()},['role','student']),D.sub('attendance_logs',x=>{S.l=x;R()}));R()}
-
+ unsubs.push(subG(),
+  D.sub('attendance_sessions',x=>{S.ss=x;if(!S.cur&&x[0])S.cur=x[0].id;R()}),
+  D.sub('users',x=>{S.u=x;R()},['role','student']),
+  D.sub('attendance_logs',x=>{S.l=x;R()}),
+  D.sub('classes',x=>{S.classes=x;if(!S.selectedClass&&x[0])S.selectedClass=x[0].id;watchTeacherClasses();R()},isAdminRole()?null:['teacherUid',me.uid])
+ );R()}
+function watchTeacherClasses(){
+ clearClassSubs();S.aByClass={};S.sByClass={};S.mByClass={};S.a=[];S.s=[];S.members=[];S.announcements=[];
+ for(const classroom of S.classes){
+  const classId=classroom.id;
+  S.classSubs.push(D.sub('class_members',rows=>{S.mByClass[classId]=rows;S.members=Object.values(S.mByClass).flat();R()},['classId',classId]));
+  S.classSubs.push(D.sub('assignments',rows=>{S.aByClass[classId]=rows;S.a=Object.values(S.aByClass).flat();R()},['classId',classId]));
+  S.classSubs.push(D.sub('submissions',rows=>{S.sByClass[classId]=rows;S.s=Object.values(S.sByClass).flat();R()},['classId',classId]));
+  S.classSubs.push(D.sub('announcements',rows=>{S.announcements=S.announcements.filter(x=>x.classId!==classId).concat(rows);R()},['classId',classId]));
+ }
+}
 function renderT(){
  if(qrExpiryTimer){clearTimeout(qrExpiryTimer);qrExpiryTimer=null;}
  $('#sf').innerHTML=`<div class="flex justify-center mb-2">${crest('w-11 h-11')}</div><b class="text-white">โรงเรียนโยธินนุกูล</b><div class="mt-1"><i class="fa-solid fa-circle text-[8px] ${cloud?'text-emerald-400':'text-amber-400'} mr-1"></i>${cloud?'Cloud Online':'Demo Mode'}</div>`;
