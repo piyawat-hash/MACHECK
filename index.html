@@ -485,9 +485,9 @@ function teacherView(){unsub();S.cur=null;
   </div>
   <nav class="bn teacher-mobile-nav lg:hidden fixed bottom-0 inset-x-0 flex">${NAV.map(([k,i,t])=>`<button data-a="nav" data-t="${k}" class="nv"><i class="fa-solid ${i} text-lg block mb-0.5"></i>${t}</button>`).join('')}</nav>
  </div>`;
+ if(isAdminRole())unsubs.push(D.sub('users',x=>{S.u=x;R()},['role','student']));
  unsubs.push(subG(),
   D.sub('attendance_sessions',x=>{S.ss=x;if(!S.cur&&x[0])S.cur=x[0].id;R()}),
-  D.sub('users',x=>{S.u=x;R()},['role','student']),
   D.sub('attendance_logs',x=>{S.l=x;R()}),
   D.sub('classes',x=>{S.classes=x;if(!S.selectedClass&&x[0])S.selectedClass=x[0].id;watchTeacherClasses();R()},isAdminRole()?null:['teacherUid',me.uid])
  );R()}
@@ -495,7 +495,7 @@ function watchTeacherClasses(){
  clearClassSubs();S.aByClass={};S.sByClass={};S.mByClass={};S.a=[];S.s=[];S.members=[];S.announcements=[];
  for(const classroom of S.classes){
   const classId=classroom.id;
-  S.classSubs.push(D.sub('class_members',rows=>{S.mByClass[classId]=rows;S.members=Object.values(S.mByClass).flat();R()},['classId',classId]));
+  S.classSubs.push(D.sub('class_members',rows=>{S.mByClass[classId]=rows;S.members=Object.values(S.mByClass).flat();if(!isAdminRole()){const roster=new Map(S.members.filter(m=>m.role==='student'&&m.status==='active').map(m=>[m.uid,{id:m.uid,uid:m.uid,name:m.name,studentId:m.studentId,grade:m.grade,track:m.track,photo:m.photo,classId:m.classId}]));S.u=[...roster.values()];}R()},['classId',classId]));
   S.classSubs.push(D.sub('assignments',rows=>{S.aByClass[classId]=rows;S.a=Object.values(S.aByClass).flat();R()},['classId',classId]));
   S.classSubs.push(D.sub('submissions',rows=>{S.sByClass[classId]=rows;S.s=Object.values(S.sByClass).flat();R()},['classId',classId]));
   S.classSubs.push(D.sub('announcements',rows=>{S.announcements=S.announcements.filter(x=>x.classId!==classId).concat(rows);R()},['classId',classId]));
