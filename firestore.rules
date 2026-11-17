@@ -133,6 +133,11 @@ service cloud.firestore {
             || (('classId' in resource.data) && isClassTeacher(resource.data.classId, resource.data.schoolId))));
       allow write: if false;
     }
+    match /access_requests/{uid} {
+      allow get, list: if isAdmin(resource.data.schoolId);
+      allow create, update, delete: if false;
+    }
+
     match /{document=**} { allow read, write: if false; }
   }
 }
