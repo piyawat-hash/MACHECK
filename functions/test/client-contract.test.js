@@ -107,3 +107,24 @@ test('owner and Google Classroom-style workflows are present and class scoped', 
   assert.match(provisioning, /--owner-email=/);
   assert.match(rules, /'owner'/);
 });
+
+
+test('account applications collect verified identity details and never self-assign privileged roles', () => {
+  const backend = fs.readFileSync(path.join(projectRoot, 'functions/index.js'), 'utf8');
+  assert.match(html, /data-a="apply"/);
+  assert.match(html, /function openAccessRequestForm/);
+  assert.match(html, /ar-student-id/);
+  assert.match(html, /ar-employee-id/);
+  assert.match(html, /ar-consent/);
+  assert.match(html, /callServer\('submitAccountRequest'/);
+  assert.match(html, /D\.sub\('access_requests'/);
+  assert.match(html, /reviewAccountRequest/);
+  assert.match(backend, /exports\.submitAccountRequest = onCall/);
+  assert.match(backend, /exports\.reviewAccountRequest = onCall/);
+  assert.match(backend, /token\.email_verified !== true/);
+  assert.match(backend, /sign_in_provider !== 'google\.com'/);
+  assert.match(backend, /requireProfile\(reviewerUid, \['admin', 'owner'\]\)/);
+  assert.match(backend, /\['student', 'teacher'\]\.includes\(role\)/);
+  assert.match(rules, /match \/access_requests\/\{uid\}/);
+  assert.match(rules, /allow create, update, delete: if false/);
+});
