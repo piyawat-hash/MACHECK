@@ -13,10 +13,25 @@ service firebase.storage {
       return activeProfile()
         && firestore.get(userPath()).data.schoolId == schoolId;
     }
+    function isAdminOrOwner() {
+      return firestore.get(userPath()).data.role in ['admin', 'owner'];
+    }
+    function memberPath(classId, uid) {
+      return /databases/(default)/documents/class_members/$(classId + '_' + uid);
+    }
+    function activeMember(classId, uid) {
+      return firestore.exists(memberPath(classId, uid))
+        && firestore.get(memberPath(classId, uid)).data.status == 'active';
+    }
+    function allowedFile() {
+      return request.resource != null
+        && request.resource.size <= 20 * 1024 * 1024
+        && request.resource.contentType.matches('application/pdf|image/(png|jpeg|webp)|application/vnd.openxmlformats-officedocument.(wordprocessingml.document|spreadsheetml.sheet)|application/msword');
+    }
 
     match /schools/{schoolId}/users/{uid}/{allPaths=**} {
       allow read: if sameSchool(schoolId)
-        && (request.auth.uid == uid || firestore.get(userPath()).data.role in ['teacher', 'admin']);
+        && (request.auth.uid == uid || firestore.get(userPath()).data.role in ['teacher', 'admin', 'owner']);
       allow write: if sameSchool(schoolId)
         && request.auth.uid == uid
         && request.resource != null
@@ -24,8 +39,29 @@ service firebase.storage {
         && request.resource.contentType.matches('image/.*');
     }
 
-    match /{allPaths=**} {
-      allow read, write: if false;
+    match /schools/{schoolId}/classes/{classId}/assignments/{assignmentId}/{fileName} {
+      allow read: if sameSchool(schoolId)
+        && activeMember(classId, request.auth.uid);
+      allow create: if sameSchool(schoolId)
+        && (isAdminOrOwner()
+          || (firestore.get(userPath()).data.role == 'teacher' && activeMember(classId, request.auth.uid)))
+        && resource == null && allowedFile();
+      allow update, delete: if false;
     }
+
+    match /schools/{schoolId}/classes/{classId}/submissions/{assignmentId}/{uid}/{fileName} {
+      allow read: if sameSchool(schoolId)
+        && (request.auth.uid == uid
+          || isAdminOrOwner()
+          || (firestore.get(userPath()).data.role == 'teacher' && activeMember(classId, request.auth.uid)));
+      allow create: if sameSchool(schoolId)
+        && request.auth.uid == uid
+        && firestore.get(userPath()).data.role == 'student'
+        && activeMember(classId, request.auth.uid)
+        && resource == null && allowedFile();
+      allow update, delete: if false;
+    }
+
+    match /{allPaths=**} { allow read, write: if false; }
   }
 }
