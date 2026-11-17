@@ -387,8 +387,9 @@ exports.createClassAssignment = onCall(async (request) => {
   const classroom = await requireClassTeacher(profile, uid, classId);
   const title = requireText(request.data?.title, 'ชื่องาน', 160);
   const details = String(request.data?.details || '').trim().slice(0, 5000);
-  const dueAt = request.data?.dueAt ? Timestamp.fromDate(new Date(request.data.dueAt)) : null;
-  if (dueAt && !Number.isFinite(dueAt.toMillis())) throw new HttpsError('invalid-argument', 'กำหนดส่งไม่ถูกต้อง');
+  const dueDate = request.data?.dueAt ? new Date(request.data.dueAt) : null;
+  if (dueDate && !Number.isFinite(dueDate.getTime())) throw new HttpsError('invalid-argument', 'กำหนดส่งไม่ถูกต้อง');
+  const dueAt = dueDate ? Timestamp.fromDate(dueDate) : null;
   const id = request.data?.assignmentId ? requireText(request.data.assignmentId, 'รหัสงาน', 100) : crypto.randomUUID();
   if (!/^[A-Za-z0-9_-]{8,100}$/.test(id)) throw new HttpsError('invalid-argument', 'รูปแบบรหัสงานไม่ถูกต้อง');
   const attachments = normalizeAttachments(request.data?.attachments, classId, `assignments/${id}`);
