@@ -661,7 +661,25 @@ function tRep(){return `<section class="c flex justify-between items-center"><di
  ${S.u.map(u=>{const at=S.l.filter(l=>l.uid==u.id).length,tk=Math.max(0,S.a.length-S.s.filter(x=>x.uid==u.id).length);
  return `<tr class="border-b border-slate-100"><td class="py-3 font-medium text-slate-500">${esc(u.studentId)}</td><td class="py-3 font-bold">${esc(u.name)}</td><td class="py-3">${esc(u.grade||'-')}</td><td class="py-3">${esc(u.track||'-')}</td><td class="py-3 text-center font-semibold text-emerald-600">${at}</td><td class="py-3 text-center font-semibold ${tk?'text-rose-500':'text-slate-400'}">${tk}</td></tr>`}).join('')}
  </tbody></table></div>`:'<p class="text-slate-400 text-sm">ยังไม่มีนักเรียนในระบบ</p>'}</section>`}
-function tSet(){return `<section class="c max-w-xl">${ttl('bg-brand-600','ตั้งค่าระบบ & สตูดิโอ')}<div class="space-y-4">
+function tAccessRequests(){
+ const requests=S.accessRequests||[];
+ const cards=requests.map(r=>{
+  const status=r.status==='pending'?'รอตรวจสอบ':r.status==='approved'?'อนุมัติแล้ว':'ไม่อนุมัติ';
+  const tone=r.status==='pending'?'bg-amber-100 text-amber-800':r.status==='approved'?'bg-emerald-100 text-emerald-800':'bg-rose-100 text-rose-700';
+  const details=r.role==='student'
+   ?'<div><b>รหัสนักเรียน:</b> '+esc(r.studentId||'-')+'</div><div><b>ชั้น / ห้อง:</b> '+esc(r.grade||'-')+'</div><div class="sm:col-span-2"><b>แผนการเรียน:</b> '+esc(r.track||'-')+'</div>'
+   :'<div><b>รหัสบุคลากร:</b> '+esc(r.employeeId||'-')+'</div><div><b>ตำแหน่ง:</b> '+esc(r.position||'-')+'</div><div><b>กลุ่มสาระ / ฝ่าย:</b> '+esc(r.department||'-')+'</div><div><b>รายวิชา / งาน:</b> '+esc(r.subjects||'-')+'</div>';
+  const buttons=r.status==='pending'
+   ?'<div class="flex gap-2 mt-4"><button data-a="reviewRequest" data-uid="'+esc(r.id)+'" data-decision="approved" class="b flex-1"><i class="fa-solid fa-check mr-1"></i>อนุมัติบัญชี</button><button data-a="reviewRequest" data-uid="'+esc(r.id)+'" data-decision="rejected" class="g flex-1 text-rose-700">ปฏิเสธ</button></div>'
+   :'<p class="text-xs text-slate-400 mt-3">ผู้ตรวจสอบ: '+esc(r.reviewedByEmail||'-')+(r.reviewNote?' · หมายเหตุ: '+esc(r.reviewNote):'')+'</p>';
+  return '<article class="rounded-2xl border border-slate-100 p-4 mb-3"><div class="flex flex-wrap gap-2 items-center justify-between"><div class="font-bold text-brand-950">'+esc(r.name||'ไม่ระบุชื่อ')+'</div><span class="text-xs rounded-full px-2 py-1 '+tone+'">'+status+'</span></div>'
+   +'<div class="text-xs text-slate-500 mt-1 break-all">'+esc(r.email||'-')+' · '+(r.role==='student'?'นักเรียน':'ครู / บุคลากร')+' · ส่งเมื่อ '+(r.ts?fd(r.ts):'-')+'</div>'
+   +'<div class="grid sm:grid-cols-2 gap-2 text-sm mt-3">'+details+'</div>'+buttons+'</article>';
+ }).join('');
+ return '<section class="c"><div class="flex items-center justify-between gap-3 mb-3"><div>'+ttl('bg-emerald-600','ตรวจสอบคำขอเปิดบัญชี')+'</div><span class="text-xs font-bold rounded-full bg-amber-100 text-amber-800 px-3 py-1">'+requests.filter(x=>x.status==='pending').length+' รอตรวจสอบ</span></div>'
+  +(cards||'<p class="text-sm text-slate-400">ยังไม่มีคำขอเปิดบัญชี</p>')+'</section>';
+}
+function tSet(){return (isAdminRole()?tAccessRequests():'')+`<section class="c max-w-xl">${ttl('bg-brand-600','ตั้งค่าระบบ & สตูดิโอ')}<div class="space-y-4">
  <div><label class="block text-xs font-semibold text-slate-600 mb-1">ชื่อผู้สอน</label><input data-k="tname" class="i" value="${esc(Dr.tname??me.name??'')}"></div>
  <div><label class="block text-xs font-semibold text-slate-600 mb-1">URL รูปโปรไฟล์ครู</label><input data-k="timg" class="i" value="${esc(Dr.timg??me.photo??'')}"></div>
  <div><label class="block text-xs font-semibold text-slate-600 mb-1">URL โลโก้โรงเรียน (ถ้ามี)</label><div class="flex gap-2"><input data-k="logo" class="i mb-0" value="${esc(Dr.logo??G.logo??'')}"><button data-a="rl" class="g text-xs shrink-0">รีเซ็ต</button></div></div>
