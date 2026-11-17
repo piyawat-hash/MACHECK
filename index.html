@@ -293,6 +293,9 @@ const A={
  dm:()=>{localStorage.setItem('mc_mode','demo');location.href=location.pathname+'?demo=1'},
  rl:()=>{Dr.logo='';R()},
  sv:async()=>{try{
+  if(Dr.storageBucket!==undefined&&String(Dr.storageBucket).trim()&&String(Dr.storageBucket).trim()!==String(cfg.storageBucket||'')){
+   const next={...cfg,storageBucket:String(Dr.storageBucket).trim()};localStorage.mc_cfg=JSON.stringify(next);toast('บันทึก Storage Bucket แล้ว กำลังโหลดระบบใหม่');location.reload();return;
+  }
   if(Dr.logo!==undefined||Dr.hue!==undefined)await D.set('settings','studio',{logo:Dr.logo??G.logo??'',hue:Dr.hue??G.hue??268});
   const p={};if(Dr.tname?.trim())p.name=Dr.tname.trim();if(Dr.timg!==undefined)p.photo=Dr.timg;
   if(Object.keys(p).length){await D.upd('users',me.uid,p);Object.assign(me,p)}
@@ -578,6 +581,7 @@ function tSet(){return `<section class="c max-w-xl">${ttl('bg-brand-600','ตั
  <div><label class="block text-xs font-semibold text-slate-600 mb-1">ชื่อผู้สอน</label><input data-k="tname" class="i" value="${esc(Dr.tname??me.name??'')}"></div>
  <div><label class="block text-xs font-semibold text-slate-600 mb-1">URL รูปโปรไฟล์ครู</label><input data-k="timg" class="i" value="${esc(Dr.timg??me.photo??'')}"></div>
  <div><label class="block text-xs font-semibold text-slate-600 mb-1">URL โลโก้โรงเรียน (ถ้ามี)</label><div class="flex gap-2"><input data-k="logo" class="i mb-0" value="${esc(Dr.logo??G.logo??'')}"><button data-a="rl" class="g text-xs shrink-0">รีเซ็ต</button></div></div>
+ ${isAdminRole()?'<div><label class="block text-xs font-semibold text-slate-600 mb-1">Firebase Storage Bucket</label><input data-k="storageBucket" class="i" placeholder="คัดลอกจาก Firebase Console เช่น ชื่อ bucket ของโปรเจกต์" value="'+esc(Dr.storageBucket??cfg.storageBucket??'')+'"><p class="text-[11px] text-slate-400">ใช้สำหรับอัปโหลดไฟล์งานและไฟล์ส่งงาน · บันทึกแล้วหน้าเว็บจะโหลดใหม่</p></div>':''}
  <div><label class="block text-xs font-semibold text-slate-600 mb-1">เลือกธีมสีหลัก</label><div class="flex flex-wrap gap-2 pt-1">${THEMES.map(([n,h])=>`<button data-a="hue" data-h="${h}" class="px-4 py-2 rounded-xl text-xs font-semibold ${((Dr.hue??G.hue??268)==h)?'bg-brand-600 text-white':'bg-slate-100 text-slate-700'}">${n}</button>`).join('')}</div></div>
  <button data-a="sv" class="b w-full mt-2">บันทึกการตั้งค่า</button></div></section>`}
 </script></body></html>
