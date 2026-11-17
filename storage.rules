@@ -31,7 +31,7 @@ service firebase.storage {
 
     match /schools/{schoolId}/users/{uid}/{allPaths=**} {
       allow read: if sameSchool(schoolId)
-        && (request.auth.uid == uid || firestore.get(userPath()).data.role in ['teacher', 'admin', 'owner']);
+        && (request.auth.uid == uid || isAdminOrOwner());
       allow write: if sameSchool(schoolId)
         && request.auth.uid == uid
         && request.resource != null
@@ -41,7 +41,7 @@ service firebase.storage {
 
     match /schools/{schoolId}/classes/{classId}/assignments/{assignmentId}/{fileName} {
       allow read: if sameSchool(schoolId)
-        && activeMember(classId, request.auth.uid);
+        && (isAdminOrOwner() || activeMember(classId, request.auth.uid));
       allow create: if sameSchool(schoolId)
         && (isAdminOrOwner()
           || (firestore.get(userPath()).data.role == 'teacher' && activeMember(classId, request.auth.uid)))
