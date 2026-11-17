@@ -238,6 +238,7 @@ exports.checkIn = onCall(async (request) => {
     tx.create(attendanceRef, {
       schoolId: profile.schoolId,
       sessionId,
+      ...(session.classId ? { classId: session.classId } : {}),
       uid,
       studentId: student.studentId || '',
       name: student.name || request.auth.token.name || 'นักเรียน',
