@@ -372,7 +372,7 @@ exports.addClassStudent = onCall(async (request) => {
   const profile = await requireProfile(uid, ['teacher', 'admin', 'owner']);
   const classId = requireText(request.data?.classId, 'รหัสห้อง', 100);
   const studentId = requireText(request.data?.studentId, 'รหัสนักเรียน', 10);
-  if (!/^\\d{3,10}$/.test(studentId)) throw new HttpsError('invalid-argument', 'รหัสนักเรียนต้องเป็นตัวเลข 3-10 หลัก');
+  if (!/^\d{3,10}$/.test(studentId)) throw new HttpsError('invalid-argument', 'รหัสนักเรียนต้องเป็นตัวเลข 3-10 หลัก');
   await requireClassTeacher(profile, uid, classId);
   const matches = await db.collection('users')
     .where('schoolId', '==', profile.schoolId)
