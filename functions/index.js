@@ -428,6 +428,62 @@ exports.createClassAssignment = onCall(async (request) => {
   return { assignmentId: id };
 });
 
+exports.updateClassAssignment = onCall(async (request) => {
+  const uid = requireAuth(request);
+  const profile = await requireProfile(uid, ['teacher', 'admin', 'owner']);
+  const assignmentId = requireText(request.data?.assignmentId, 'รหัสงาน', 100);
+  const ref = db.collection('assignments').doc(assignmentId);
+  const snap = await ref.get();
+  if (!snap.exists || snap.data().schoolId !== profile.schoolId || !snap.data().classId) {
+    throw new HttpsError('not-found', 'ไม่พบงานในห้องเรียนนี้');
+  }
+  const assignment = snap.data();
+  await requireClassTeacher(profile, uid, assignment.classId);
+  if (!isPrivileged(profile) && assignment.createdBy !== uid) {
+    throw new HttpsError('permission-denied', 'เฉพาะครูผู้สร้างงานเท่านั้นที่แก้ไขได้');
+  }
+  if (assignment.status === 'CANCELLED') {
+    throw new HttpsError('failed-precondition', 'งานนี้ถูกยกเลิกแล้ว');
+  }
+  const title = requireText(request.data?.title, 'ชื่องาน', 160);
+  const details = String(request.data?.details || '').trim().slice(0, 5000);
+  const dueDate = request.data?.dueAt ? new Date(request.data.dueAt) : null;
+  if (dueDate && !Number.isFinite(dueDate.getTime())) {
+    throw new HttpsError('invalid-argument', 'กำหนดส่งไม่ถูกต้อง');
+  }
+  await ref.update({
+    title, details,
+    dueAt: dueDate ? Timestamp.fromDate(dueDate) : null,
+    due: dueDate ? dueDate.toISOString() : '',
+    updatedAt: FieldValue.serverTimestamp(),
+    updatedBy: uid,
+  });
+  return { updated: true };
+});
+
+exports.cancelClassAssignment = onCall(async (request) => {
+  const uid = requireAuth(request);
+  const profile = await requireProfile(uid, ['teacher', 'admin', 'owner']);
+  const assignmentId = requireText(request.data?.assignmentId, 'รหัสงาน', 100);
+  const ref = db.collection('assignments').doc(assignmentId);
+  const snap = await ref.get();
+  if (!snap.exists || snap.data().schoolId !== profile.schoolId || !snap.data().classId) {
+    throw new HttpsError('not-found', 'ไม่พบงานในห้องเรียนนี้');
+  }
+  const assignment = snap.data();
+  await requireClassTeacher(profile, uid, assignment.classId);
+  if (!isPrivileged(profile) && assignment.createdBy !== uid) {
+    throw new HttpsError('permission-denied', 'เฉพาะครูผู้สร้างงานเท่านั้นที่ยกเลิกได้');
+  }
+  await ref.update({
+    status: 'CANCELLED',
+    cancelledAt: FieldValue.serverTimestamp(),
+    cancelledBy: uid,
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+  return { cancelled: true };
+});
+
 exports.submitClassAssignment = onCall(async (request) => {
   const uid = requireAuth(request);
   const profile = await requireProfile(uid, ['student']);
@@ -438,6 +494,7 @@ exports.submitClassAssignment = onCall(async (request) => {
     throw new HttpsError('not-found', 'ไม่พบงานที่มอบหมาย');
   }
   const assignment = assignmentSnap.data();
+  if (assignment.status === 'CANCELLED') throw new HttpsError('failed-precondition', 'งานนี้ถูกยกเลิกแล้ว');
   await requireClassStudent(profile, uid, assignment.classId);
   const text = String(request.data?.text || '').trim().slice(0, 5000);
   const attachments = normalizeAttachments(request.data?.attachments, assignment.classId, `submissions/${assignmentId}/${uid}`);
