@@ -388,7 +388,8 @@ exports.createClassAssignment = onCall(async (request) => {
   const details = String(request.data?.details || '').trim().slice(0, 5000);
   const dueAt = request.data?.dueAt ? Timestamp.fromDate(new Date(request.data.dueAt)) : null;
   if (dueAt && !Number.isFinite(dueAt.toMillis())) throw new HttpsError('invalid-argument', 'กำหนดส่งไม่ถูกต้อง');
-  const id = crypto.randomUUID();
+  const id = request.data?.assignmentId ? requireText(request.data.assignmentId, 'รหัสงาน', 100) : crypto.randomUUID();
+  if (!/^[A-Za-z0-9_-]{8,100}$/.test(id)) throw new HttpsError('invalid-argument', 'รูปแบบรหัสงานไม่ถูกต้อง');
   const attachments = normalizeAttachments(request.data?.attachments, classId, `assignments/${id}`);
   await db.collection('assignments').doc(id).create({
     schoolId: profile.schoolId, classId, className: classroom.data.name,
