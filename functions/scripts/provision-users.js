@@ -20,7 +20,9 @@ if (APPLY && !/^\S+@\S+\.\S+$/.test(approverEmail)) {
 }
 const fileArg = process.argv.find((arg) => arg.startsWith('--file='));
 const inputFile = fileArg ? path.resolve(process.cwd(), fileArg.slice('--file='.length)) : path.join(__dirname, 'users-to-provision.json');
-const ALLOWED_ROLES = new Set(['student', 'teacher', 'admin']);
+const ALLOWED_ROLES = new Set(['student', 'teacher', 'admin', 'owner']);
+const ownerArg = process.argv.find((arg) => arg.startsWith('--owner-email='));
+const ownerEmail = ownerArg ? ownerArg.slice('--owner-email='.length).trim().toLowerCase() : '';
 
 function validateRows(rows) {
   if (!Array.isArray(rows)) throw new Error('ไฟล์บัญชีต้องเป็น JSON Array');
@@ -35,6 +37,9 @@ function validateRows(rows) {
     if (!/^\S+@\S+\.\S+$/.test(email)) throw new Error(`รายการที่ ${line}: email ไม่ถูกต้อง`);
     if (!ALLOWED_ROLES.has(role)) throw new Error(`รายการที่ ${line}: role ต้องเป็น student, teacher หรือ admin`);
     if (!name || name.length > 120) throw new Error(`รายการที่ ${line}: กรุณาระบุชื่อไม่เกิน 120 ตัวอักษร`);
+    if (role === 'owner' && (!ownerEmail || email !== ownerEmail)) {
+      throw new Error(`รายการที่ ${line}: บทบาท owner ต้องยืนยันด้วย --owner-email ที่ตรงกับอีเมลบัญชี`);
+    }
     if (emails.has(email)) throw new Error(`อีเมลซ้ำในไฟล์: ${email}`);
     emails.add(email);
     if (role === 'student') {
@@ -87,7 +92,7 @@ async function main() {
       skipped += 1;
       continue;
     }
-    if (existing.role && existing.role !== row.role) {
+    if (existing.role && existing.role !== row.role && !(row.role === 'owner' && existing.role === 'admin')) {
       console.warn(`SKIP ${email}: role เดิม (${existing.role}) ไม่ตรงกับไฟล์ (${row.role}) ต้องให้ผู้ดูแลตรวจสอบก่อน`);
       skipped += 1;
       continue;
@@ -96,6 +101,14 @@ async function main() {
       console.warn(`SKIP ${email}: บัญชีถูกระงับอยู่ หากโรงเรียนอนุมัติให้เปิดใช้งานอีกครั้งจึงค่อยใช้ --reactivate-suspended`);
       skipped += 1;
       continue;
+    }
+    if (row.role === 'owner') {
+      const owners = await db.collection('users').where('schoolId', '==', SCHOOL_ID).where('role', '==', 'owner').get();
+      if (owners.docs.some((doc) => doc.id !== authUser.uid)) {
+        console.warn(`SKIP ${email}: มีบัญชี owner อื่นในโรงเรียนแล้ว ต้องตรวจสอบก่อนเปลี่ยนเจ้าของระบบ`);
+        skipped += 1;
+        continue;
+      }
     }
     if (row.role === 'student') {
       const collision = await db.collection('users')
