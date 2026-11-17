@@ -1,75 +1,84 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function signedIn() {
-      return request.auth != null;
+    function signedIn() { return request.auth != null; }
+    function userPath() { return /databases/$(database)/documents/users/$(request.auth.uid); }
+    function hasProfile() { return signedIn() && exists(userPath()); }
+    function profile() { return get(userPath()).data; }
+    function activeProfile() { return hasProfile() && profile().status == 'active'; }
+    function belongsToSchool(schoolId) { return activeProfile() && profile().schoolId == schoolId; }
+    function isTeacher(schoolId) { return belongsToSchool(schoolId) && profile().role in ['teacher', 'admin', 'owner']; }
+    function isStudent(schoolId) { return belongsToSchool(schoolId) && profile().role == 'student'; }
+    function isAdmin(schoolId) { return belongsToSchool(schoolId) && profile().role in ['admin', 'owner']; }
+    function memberPath(classId) { return /databases/$(database)/documents/class_members/$(classId + '_' + request.auth.uid); }
+    function isClassMember(classId) {
+      return activeProfile() && exists(memberPath(classId))
+        && get(memberPath(classId)).data.status == 'active';
     }
-
-    function userPath() {
-      return /databases/$(database)/documents/users/$(request.auth.uid);
-    }
-
-    function hasProfile() {
-      return signedIn() && exists(userPath());
-    }
-
-    function profile() {
-      return get(userPath()).data;
-    }
-
-    function activeProfile() {
-      return hasProfile() && profile().status == 'active';
-    }
-
-    function belongsToSchool(schoolId) {
-      return activeProfile() && profile().schoolId == schoolId;
-    }
-
-    function isTeacher(schoolId) {
-      return belongsToSchool(schoolId) && profile().role in ['teacher', 'admin'];
-    }
-
-    function isStudent(schoolId) {
-      return belongsToSchool(schoolId) && profile().role == 'student';
-    }
-
-    function isAdmin(schoolId) {
-      return belongsToSchool(schoolId) && profile().role == 'admin';
+    function isClassTeacher(classId, schoolId) {
+      return isTeacher(schoolId) && (
+        isAdmin(schoolId)
+        || (exists(/databases/$(database)/documents/class_members/$(classId + '_' + request.auth.uid))
+          && get(/databases/$(database)/documents/class_members/$(classId + '_' + request.auth.uid)).data.role == 'teacher'
+          && get(/databases/$(database)/documents/class_members/$(classId + '_' + request.auth.uid)).data.status == 'active')
+      );
     }
 
     match /users/{uid} {
       allow get: if signedIn() && request.auth.uid == uid
+        || isAdmin(resource.data.schoolId)
         || isTeacher(resource.data.schoolId);
-      // Client queries must include schoolId == the signed-in user's school.
+      // Roster listing is retained for the legacy pilot dashboard. Class-scoped pages
+      // must use class_members; do not expose profile writes through the client.
       allow list: if isTeacher(resource.data.schoolId);
       allow create, delete: if false;
-      // Roster fields and authorization attributes are server-managed.
-      allow update: if signedIn()
-        && request.auth.uid == uid
-        // Only display name/photo can be changed by the account owner.
-        // Role, status, studentId, grade, track and schoolId are server-managed.
+      allow update: if signedIn() && request.auth.uid == uid
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'photo']);
     }
 
     match /settings/{settingId} {
       allow read: if belongsToSchool(resource.data.schoolId);
-      allow create: if isTeacher(request.resource.data.schoolId)
+      allow create: if isAdmin(request.resource.data.schoolId)
         && request.resource.data.keys().hasOnly(['schoolId', 'logo', 'hue', 'ts']);
-      allow update: if isTeacher(resource.data.schoolId)
+      allow update: if isAdmin(resource.data.schoolId)
         && request.resource.data.schoolId == resource.data.schoolId
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['logo', 'hue', 'ts']);
-      allow delete: if isTeacher(resource.data.schoolId);
+      allow delete: if isAdmin(resource.data.schoolId);
+    }
+
+    match /classes/{classId} {
+      allow get, list: if belongsToSchool(resource.data.schoolId)
+        && (isAdmin(resource.data.schoolId)
+          || resource.data.teacherUid == request.auth.uid
+          || isClassMember(classId));
+      // Class creation, join codes, and membership changes are callable/server-only.
+      allow create, update, delete: if false;
+    }
+
+    match /class_members/{memberId} {
+      allow get, list: if belongsToSchool(resource.data.schoolId)
+        && (resource.data.uid == request.auth.uid
+          || isAdmin(resource.data.schoolId)
+          || isClassTeacher(resource.data.classId, resource.data.schoolId));
+      allow create, update, delete: if false;
     }
 
     match /assignments/{assignmentId} {
-      allow read: if belongsToSchool(resource.data.schoolId);
+      allow read: if belongsToSchool(resource.data.schoolId)
+        && (!('classId' in resource.data)
+          || isAdmin(resource.data.schoolId)
+          || isClassMember(resource.data.classId)
+          || isClassTeacher(resource.data.classId, resource.data.schoolId));
+      // Legacy unscoped assignment compatibility only. New class assignments use callable API.
       allow create: if isTeacher(request.resource.data.schoolId)
+        && !('classId' in request.resource.data)
         && request.resource.data.createdBy == request.auth.uid
         && request.resource.data.title is string
         && request.resource.data.title.size() > 0
         && request.resource.data.title.size() <= 160
         && request.resource.data.keys().hasOnly(['schoolId', 'createdBy', 'title', 'due', 'ts']);
       allow update: if isTeacher(resource.data.schoolId)
+        && !('classId' in resource.data)
         && (resource.data.createdBy == request.auth.uid || isAdmin(resource.data.schoolId))
         && request.resource.data.schoolId == resource.data.schoolId
         && request.resource.data.createdBy == resource.data.createdBy
@@ -79,9 +88,13 @@ service cloud.firestore {
     }
 
     match /submissions/{submissionId} {
-      allow read: if isTeacher(resource.data.schoolId)
-        || (isStudent(resource.data.schoolId) && resource.data.uid == request.auth.uid);
+      allow read: if belongsToSchool(resource.data.schoolId)
+        && (resource.data.uid == request.auth.uid
+          || isAdmin(resource.data.schoolId)
+          || (('classId' in resource.data) && isClassTeacher(resource.data.classId, resource.data.schoolId)));
+      // New class submissions and grading are callable/server-only.
       allow create: if isStudent(request.resource.data.schoolId)
+        && !('classId' in request.resource.data)
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.studentId == profile().studentId
         && request.resource.data.status == 'COMPLETED'
@@ -93,20 +106,22 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // QR session lifecycle and attendance writes are server-only.
+    match /announcements/{announcementId} {
+      allow read: if belongsToSchool(resource.data.schoolId)
+        && (isAdmin(resource.data.schoolId) || isClassMember(resource.data.classId)
+          || isClassTeacher(resource.data.classId, resource.data.schoolId));
+      allow create, update, delete: if false;
+    }
+
     match /attendance_sessions/{sessionId} {
       allow read: if isTeacher(resource.data.schoolId);
       allow write: if false;
     }
-
     match /attendance_logs/{recordId} {
       allow read: if isTeacher(resource.data.schoolId)
         || (isStudent(resource.data.schoolId) && resource.data.uid == request.auth.uid);
       allow write: if false;
     }
-
-    match /{document=**} {
-      allow read, write: if false;
-    }
+    match /{document=**} { allow read, write: if false; }
   }
 }
