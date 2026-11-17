@@ -367,6 +367,32 @@ exports.joinClass = onCall(async (request) => {
   return { classId: classroom.id, className: classroom.data().name, subject: classroom.data().subject };
 });
 
+exports.addClassStudent = onCall(async (request) => {
+  const uid = requireAuth(request);
+  const profile = await requireProfile(uid, ['teacher', 'admin', 'owner']);
+  const classId = requireText(request.data?.classId, 'รหัสห้อง', 100);
+  const studentId = requireText(request.data?.studentId, 'รหัสนักเรียน', 10);
+  if (!/^\\d{3,10}$/.test(studentId)) throw new HttpsError('invalid-argument', 'รหัสนักเรียนต้องเป็นตัวเลข 3-10 หลัก');
+  await requireClassTeacher(profile, uid, classId);
+  const matches = await db.collection('users')
+    .where('schoolId', '==', profile.schoolId)
+    .where('studentId', '==', studentId)
+    .where('role', '==', 'student')
+    .limit(2).get();
+  const target = matches.docs.find((doc) => doc.data().status === 'active');
+  if (!target) throw new HttpsError('not-found', 'ไม่พบบัญชีนักเรียนที่ได้รับอนุมัติในโรงเรียนนี้');
+  const student = target.data();
+  const memberRef = db.collection('class_members').doc(`${classId}_${target.id}`);
+  await memberRef.set({
+    schoolId: profile.schoolId, classId, uid: target.id,
+    role: 'student', status: 'active',
+    name: student.name || '', studentId: student.studentId || '',
+    grade: student.grade || '', track: student.track || '', photo: student.photo || '',
+    joinedAt: FieldValue.serverTimestamp(), addedBy: uid, addedAt: FieldValue.serverTimestamp(),
+  }, { merge: true });
+  return { added: true, name: student.name || '', studentId };
+});
+
 exports.removeClassMember = onCall(async (request) => {
   const uid = requireAuth(request);
   const profile = await requireProfile(uid, ['teacher', 'admin', 'owner']);
