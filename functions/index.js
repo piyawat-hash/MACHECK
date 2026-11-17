@@ -9,6 +9,7 @@ const {
 } = require('./lib/qr');
 const { initializeApp } = require('firebase-admin/app');
 const { getFirestore, FieldValue, Timestamp } = require('firebase-admin/firestore');
+const { getAuth } = require('firebase-admin/auth');
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const { setGlobalOptions } = require('firebase-functions/v2');
 
@@ -564,4 +565,191 @@ exports.rotateClassJoinCode = onCall(async (request) => {
     updatedAt: FieldValue.serverTimestamp(),
   });
   return { joinCode };
+});
+
+
+// Account onboarding: new accounts remain pending until a school administrator approves them.
+exports.submitAccountRequest = onCall(async (request) => {
+  const uid = requireAuth(request);
+  const token = request.auth.token || {};
+  if (token.firebase?.sign_in_provider !== 'google.com' || token.email_verified !== true) {
+    throw new HttpsError('permission-denied', 'กรุณาเข้าสู่ระบบด้วยบัญชี Google ที่ยืนยันอีเมลแล้ว');
+  }
+  const email = requireText(token.email, 'อีเมล Google', 254).toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new HttpsError('invalid-argument', 'ไม่พบอีเมล Google ที่ถูกต้อง');
+  }
+  const name = requireText(request.data?.name, 'ชื่อ-นามสกุล', 120);
+  if (name.length < 3) throw new HttpsError('invalid-argument', 'กรุณากรอกชื่อ-นามสกุลให้ครบ');
+  const role = request.data?.role;
+  if (!['student', 'teacher'].includes(role)) {
+    throw new HttpsError('permission-denied', 'เปิดคำขอได้เฉพาะบัญชีนักเรียนหรือครูเท่านั้น');
+  }
+
+  const userRef = db.collection('users').doc(uid);
+  const existingUser = await userRef.get();
+  if (existingUser.exists && existingUser.data().status === 'active') {
+    throw new HttpsError('already-exists', 'บัญชีนี้ได้รับอนุมัติแล้ว กรุณาเข้าสู่ระบบตามปกติ');
+  }
+
+  let details;
+  if (role === 'student') {
+    const studentId = requireText(request.data?.studentId, 'รหัสนักเรียน', 10);
+    const grade = requireText(request.data?.grade, 'ชั้นและห้อง', 12);
+    const track = requireText(request.data?.track, 'แผนการเรียน', 120);
+    if (!/^\d{3,10}$/.test(studentId)) throw new HttpsError('invalid-argument', 'รหัสนักเรียนต้องเป็นตัวเลข 3-10 หลัก');
+    if (!/^(ป|ม)\.[1-6]\/\d{1,2}$/.test(grade)) throw new HttpsError('invalid-argument', 'รูปแบบชั้นและห้องไม่ถูกต้อง');
+    const existingStudent = await db.collection('users').where('studentId', '==', studentId).limit(10).get();
+    if (existingStudent.docs.some((doc) => doc.id !== uid && doc.data().schoolId === SCHOOL_ID)) {
+      throw new HttpsError('already-exists', 'รหัสนักเรียนนี้ถูกใช้ในระบบแล้ว กรุณาติดต่อผู้ดูแล');
+    }
+    const pendingStudent = await db.collection('access_requests').where('studentId', '==', studentId).limit(10).get();
+    if (pendingStudent.docs.some((doc) => doc.id !== uid && doc.data().schoolId === SCHOOL_ID && doc.data().status === 'pending')) {
+      throw new HttpsError('already-exists', 'รหัสนักเรียนนี้มีคำขอรอตรวจสอบแล้ว กรุณาติดต่อโรงเรียน');
+    }
+    details = { studentId, grade, track };
+  } else {
+    const employeeId = requireText(request.data?.employeeId, 'รหัสครูหรือบุคลากร', 40);
+    const department = requireText(request.data?.department, 'กลุ่มสาระหรือฝ่ายงาน', 120);
+    const subjects = requireText(request.data?.subjects, 'รายวิชาหรืองานที่รับผิดชอบ', 160);
+    const position = requireText(request.data?.position, 'ตำแหน่ง', 60);
+    if (employeeId.length < 2) throw new HttpsError('invalid-argument', 'รหัสบุคลากรไม่ถูกต้อง');
+    details = { employeeId, department, subjects, position };
+  }
+
+  const requestRef = db.collection('access_requests').doc(uid);
+  const previous = await requestRef.get();
+  if (previous.exists && previous.data().status === 'pending') {
+    return { submitted: false, alreadyPending: true, status: 'pending' };
+  }
+  const now = FieldValue.serverTimestamp();
+  await requestRef.set({
+    schoolId: SCHOOL_ID,
+    uid,
+    role,
+    name,
+    email,
+    photo: String(token.picture || '').slice(0, 1000),
+    ...details,
+    status: 'pending',
+    consentVersion: '2026-11',
+    submittedAt: now,
+    updatedAt: now,
+    ts: now,
+    reviewNote: FieldValue.delete(),
+    reviewedBy: FieldValue.delete(),
+    reviewedByEmail: FieldValue.delete(),
+    reviewedAt: FieldValue.delete(),
+  }, { merge: true });
+  return { submitted: true, status: 'pending' };
+});
+
+exports.reviewAccountRequest = onCall(async (request) => {
+  const reviewerUid = requireAuth(request);
+  const reviewer = await requireProfile(reviewerUid, ['admin', 'owner']);
+  const targetUid = requireText(request.data?.uid, 'รหัสบัญชี', 128);
+  const decision = request.data?.decision;
+  if (!['approved', 'rejected'].includes(decision)) {
+    throw new HttpsError('invalid-argument', 'คำสั่งตรวจสอบไม่ถูกต้อง');
+  }
+  const note = String(request.data?.note || '').trim().slice(0, 500);
+  const requestRef = db.collection('access_requests').doc(targetUid);
+  const snapshot = await requestRef.get();
+  if (!snapshot.exists || snapshot.data().schoolId !== reviewer.schoolId) {
+    throw new HttpsError('not-found', 'ไม่พบคำขอของโรงเรียนนี้');
+  }
+  const application = snapshot.data();
+  if (application.status !== 'pending') {
+    throw new HttpsError('failed-precondition', 'คำขอนี้ถูกตรวจสอบไปแล้ว');
+  }
+  if (!['student', 'teacher'].includes(application.role)) {
+    throw new HttpsError('permission-denied', 'ประเภทบัญชีในคำขอไม่ถูกต้อง');
+  }
+
+  const authUser = await getAuth().getUser(targetUid);
+  const hasGoogleProvider = (authUser.providerData || []).some((provider) => provider.providerId === 'google.com');
+  if (!hasGoogleProvider || !authUser.emailVerified
+      || String(authUser.email || '').toLowerCase() !== String(application.email || '').toLowerCase()) {
+    throw new HttpsError('failed-precondition', 'บัญชี Google หรืออีเมลยังยืนยันไม่สมบูรณ์');
+  }
+
+  if (decision === 'rejected') {
+    await requestRef.update({
+      status: 'rejected',
+      reviewNote: note,
+      reviewedBy: reviewerUid,
+      reviewedByEmail: reviewer.email || '',
+      reviewedAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+    return { reviewed: true, status: 'rejected' };
+  }
+
+  const userRef = db.collection('users').doc(targetUid);
+  const existingProfile = await userRef.get();
+  if (existingProfile.exists && existingProfile.data().status === 'active') {
+    throw new HttpsError('already-exists', 'บัญชีนี้มีโปรไฟล์ที่ใช้งานอยู่แล้ว');
+  }
+  const profile = {
+    schoolId: SCHOOL_ID,
+    role: application.role,
+    status: 'active',
+    name: application.name,
+    email: application.email,
+    photo: application.photo || authUser.photoURL || '',
+    approvedAt: FieldValue.serverTimestamp(),
+    approvedBy: reviewerUid,
+    approvalSource: 'account-request',
+    updatedAt: FieldValue.serverTimestamp(),
+    ...(application.role === 'student'
+      ? { studentId: application.studentId, grade: application.grade, track: application.track }
+      : {
+        employeeId: application.employeeId,
+        department: application.department,
+        subjects: application.subjects,
+        position: application.position,
+      }),
+  };
+
+  const registryRef = application.role === 'student'
+    ? db.collection('student_id_registry').doc(String(application.studentId))
+    : null;
+  if (application.role === 'student') {
+    const matchingProfiles = await db.collection('users').where('studentId', '==', application.studentId).limit(10).get();
+    if (matchingProfiles.docs.some((doc) => doc.id !== targetUid && doc.data().schoolId === SCHOOL_ID)) {
+      throw new HttpsError('already-exists', 'รหัสนักเรียนนี้ถูกผูกกับบัญชีอื่นแล้ว');
+    }
+  }
+  await db.runTransaction(async (transaction) => {
+    const latestRequest = await transaction.get(requestRef);
+    const latestProfile = await transaction.get(userRef);
+    if (!latestRequest.exists || latestRequest.data().status !== 'pending') {
+      throw new HttpsError('failed-precondition', 'คำขอนี้ถูกตรวจสอบไปแล้ว');
+    }
+    if (latestProfile.exists && latestProfile.data().status === 'active') {
+      throw new HttpsError('already-exists', 'บัญชีนี้มีโปรไฟล์ที่ใช้งานอยู่แล้ว');
+    }
+    if (registryRef) {
+      const registry = await transaction.get(registryRef);
+      if (registry.exists && registry.data().uid !== targetUid) {
+        throw new HttpsError('already-exists', 'รหัสนักเรียนนี้ถูกผูกกับบัญชีอื่นแล้ว');
+      }
+      transaction.set(registryRef, {
+        schoolId: SCHOOL_ID,
+        studentId: application.studentId,
+        uid: targetUid,
+        assignedAt: FieldValue.serverTimestamp(),
+      }, { merge: true });
+    }
+    transaction.set(userRef, profile, { merge: true });
+    transaction.update(requestRef, {
+      status: 'approved',
+      reviewNote: note,
+      reviewedBy: reviewerUid,
+      reviewedByEmail: reviewer.email || '',
+      reviewedAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+  });
+  return { reviewed: true, status: 'approved', role: application.role };
 });
