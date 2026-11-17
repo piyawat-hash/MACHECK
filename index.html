@@ -162,6 +162,23 @@ const callServer=async(name,data={})=>{
   const result=await callable(data);
   return result.data;
 };
+async function uploadClassFiles(classId,folder,files){
+ if(!files||!files.length)return [];
+ if(!storage)throw new Error('ยังไม่ได้ตั้งค่า Firebase Storage Bucket ใน firebaseConfig กรุณาเพิ่ม storageBucket จาก Firebase Console');
+ if(files.length>5)throw new Error('แนบไฟล์ได้ไม่เกิน 5 ไฟล์');
+ const allowed=['application/pdf','image/png','image/jpeg','image/webp','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','application/msword'];
+ const out=[];
+ for(const file of [...files]){
+  if(file.size>20*1024*1024)throw new Error('ไฟล์ '+file.name+' มีขนาดเกิน 20 MB');
+  if(!allowed.includes(file.type))throw new Error('ชนิดไฟล์ '+file.name+' ยังไม่รองรับ');
+  const safe=file.name.replace(/[^a-zA-Z0-9._-]/g,'_').slice(-100);
+  const path='schools/'+SCHOOL_ID+'/classes/'+classId+'/'+folder+'/'+crypto.randomUUID()+'_'+safe;
+  const target=storageRef(storage,path);
+  await uploadBytes(target,file,{contentType:file.type});
+  out.push({name:file.name,path,contentType:file.type,size:file.size,url:await getDownloadURL(target)});
+ }
+ return out;
+}
 const Cloud={
  sub(n,cb,w){
   const constraints=[where('schoolId','==',SCHOOL_ID)];
@@ -254,14 +271,15 @@ const A={
   toast('ออก QR Code ใหม่แล้ว');R()
  }catch(e){err(e)}},
  na:async()=>{const t=(Dr.at||'').trim(),classId=Dr.classId||S.selectedClass;if(!t)return toast('กรอกชื่องานก่อน','warn');if(!classId)return toast('เลือกห้องเรียนก่อนสร้างงาน','warn');
-  try{const dueAt=Dr.ad?new Date(Dr.ad+'T23:59:00+07:00').toISOString():null;
-   if(cloud)await callServer('createClassAssignment',{classId,title:t,details:Dr.details||'',dueAt,attachments:[]});
-   else await D.set('assignments',crypto.randomUUID(),{classId,className:S.classes.find(x=>x.id===classId)?.name||'',title:t,details:Dr.details||'',due:Dr.ad||'',createdBy:me.uid});
+  try{const dueAt=Dr.ad?new Date(Dr.ad+'T23:59:00+07:00').toISOString():null,assignmentId=crypto.randomUUID();
+   const attachments=cloud?await uploadClassFiles(classId,'assignments/'+assignmentId,$('#assignment-files')?.files):[];
+   if(cloud)await callServer('createClassAssignment',{assignmentId,classId,title:t,details:Dr.details||'',dueAt,attachments});
+   else await D.set('assignments',assignmentId,{classId,className:S.classes.find(x=>x.id===classId)?.name||'',title:t,details:Dr.details||'',due:Dr.ad||'',createdBy:me.uid,attachments});
    Dr.at=Dr.ad=Dr.details='';toast('มอบหมายงานแล้ว');R()
   }catch(e){err(e)}},
  da:async b=>{const item=S.a.find(x=>x.id===b.dataset.id);if(!item)return;if(!isAdminRole()&&item.createdBy!==me.uid)return toast('คุณไม่มีสิทธิ์ลบงานที่ครูท่านอื่นสร้าง','warn');if(!await ask('ลบงานนี้ออกจากระบบ?'))return;try{await D.del('assignments',b.dataset.id);toast('ลบงานแล้ว')}catch(e){err(e)}},
  sub:async b=>{const item=S.a.find(x=>x.id===b.dataset.id);if(!item)return;if(!await ask('ยืนยันส่งงานนี้?'))return;try{
-  if(cloud){const textAnswer=Dr['answer_'+item.id]||'';await callServer('submitClassAssignment',{assignmentId:item.id,text:textAnswer,attachments:[]})}
+  if(cloud){const textAnswer=Dr['answer_'+item.id]||'',attachments=await uploadClassFiles(item.classId,'submissions/'+item.id+'/'+me.uid,$('#submission-files-'+item.id)?.files);await callServer('submitClassAssignment',{assignmentId:item.id,text:textAnswer,attachments})}
   else await D.set('submissions',item.id+'_'+me.uid,{assignmentId:item.id,classId:item.classId,studentId:me.studentId,uid:me.uid,status:'SUBMITTED',score:null,text:Dr['answer_'+item.id]||''});
   toast('ส่งงานแล้ว');R()
  }catch(e){err(e)}},
