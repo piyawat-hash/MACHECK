@@ -97,6 +97,7 @@ import {initializeApp} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-
 import {getAuth,GoogleAuthProvider,signInWithPopup,signInWithRedirect,onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import {getFirestore,collection,doc,getDoc,setDoc,updateDoc,deleteDoc,onSnapshot,query,where,serverTimestamp} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import {getFunctions,httpsCallable} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
+import {getStorage,ref as storageRef,uploadBytes,getDownloadURL} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
 
 // Pilot deployment: one school only. Do not reuse this build for another school
 // until tenant provisioning and tenant-isolation tests are completed.
@@ -107,6 +108,7 @@ const THEMES=[['ม่วง',268],['น้ำเงิน',217],['เขีย�
 
 // ---------- helpers ----------
 const $=s=>document.querySelector(s),app=$('#app');
+const isAdminRole=()=>!!me&&['admin','owner'].includes(me.role);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 const fd=t=>new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',day:'numeric',month:'short',year:'numeric'}).format(new Date(t));
 const ft=t=>new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(t));
@@ -127,7 +129,7 @@ document.addEventListener('change',async e=>{const k=e.target.dataset.up,f=e.tar
 
 // ---------- data layer ----------
 function readStoredJson(key,fallback){try{const raw=localStorage.getItem(key);return raw?JSON.parse(raw):fallback}catch(e){console.warn('Invalid local storage value:',key);localStorage.removeItem(key);return fallback}}
-let fs,auth,functions,cfg=readStoredJson('mc_cfg',DEFAULT_CFG);
+let fs,auth,functions,storage=null,cfg=readStoredJson('mc_cfg',DEFAULT_CFG);
 const pageMode=new URLSearchParams(location.search).get('demo');
 if(pageMode==='1')localStorage.setItem('mc_mode','demo');
 if(pageMode==='0')localStorage.removeItem('mc_mode');
@@ -137,6 +139,7 @@ if(cloud){
   fs=getFirestore(fbApp);
   auth=getAuth(fbApp);
   functions=getFunctions(fbApp,FUNCTION_REGION);
+  if(cfg.storageBucket)storage=getStorage(fbApp);
 }
 const callServer=async(name,data={})=>{
   if(!cloud||!functions)throw new Error('Cloud Functions ยังไม่ได้เชื่อมต่อ');
@@ -187,7 +190,7 @@ function seedDemoData(){
  students.slice(0,4).forEach(student=>{const id=`${assignmentId}_${student.studentId}`;store.submissions[id]={schoolId:SCHOOL_ID,assignmentId,studentId:student.studentId,uid:student.uid,status:'COMPLETED',score:null,ts:now-10*60*1000}});
  store.__macheckDemoSeeded=true;flush();
 }
-let D=cloud?Cloud:Local,me,pending,unsubs=[],qrExpiryTimer=null,S={a:[],s:[],l:[],u:[],ss:[],tab:'home',cur:null,sessionQr:null,qrSessionId:null,sessionQrExpiresAt:null};
+let D=cloud?Cloud:Local,me,pending,unsubs=[],qrExpiryTimer=null,S={a:[],s:[],l:[],u:[],ss:[],classes:[],members:[],announcements:[],studentClasses:[],classSubs:[],joinCode:null,selectedClass:null,tab:'home',cur:null,sessionQr:null,qrSessionId:null,sessionQrExpiresAt:null};
 const unsub=()=>{unsubs.forEach(f=>f());unsubs=[]};
 const R=()=>me&&(me.role=='student'?renderS():renderT());
 const subG=()=>D.sub('settings',x=>{const s=x.find(i=>i.id=='studio');if(s){G=s;theme(G.hue);R()}});
@@ -208,19 +211,19 @@ const A={
     else{const id=crypto.randomUUID(),token=crypto.randomUUID()+crypto.randomUUID(),payload=`MACHECK|${id}|${token}`;await D.set('attendance_sessions',id,{className:c,subject:b,createdBy:me.uid,active:true,qrPayload:payload,qrExpiresAt:Date.now()+30*60*1000},'createdAt');S.cur=id;S.sessionQr=payload;S.qrSessionId=id;S.sessionQrExpiresAt=Date.now()+30*60*1000;}
     S.tab='home';toast('สร้าง QR Code คาบใหม่แล้ว');R()
    }catch(e){err(e)}}},
- tg:async()=>{const s=cs();if(!s)return;if(me.role!=='admin'&&s.createdBy!==me.uid)return toast('คาบนี้สร้างโดยครูท่านอื่น จึงไม่สามารถแก้ไขได้','warn');try{
+ tg:async()=>{const s=cs();if(!s)return;if(!isAdminRole()&&s.createdBy!==me.uid)return toast('คาบนี้สร้างโดยครูท่านอื่น จึงไม่สามารถแก้ไขได้','warn');try{
   if(cloud){const result=await callServer('setAttendanceSessionActive',{sessionId:s.id,active:!s.active});S.sessionQr=result.qrPayload||null;S.qrSessionId=s.id;S.sessionQrExpiresAt=result.expiresAt||null;}
   else{const active=!s.active,token=crypto.randomUUID()+crypto.randomUUID(),payload=active?`MACHECK|${s.id}|${token}`:null;await D.upd('attendance_sessions',s.id,{active,qrPayload:payload,qrExpiresAt:active?Date.now()+30*60*1000:null});S.sessionQr=payload;S.qrSessionId=s.id;S.sessionQrExpiresAt=active?Date.now()+30*60*1000:null;}
   toast(s.active?'ปิดคาบเรียนแล้ว':'เปิดคาบเรียนแล้ว');R()
  }catch(e){err(e)}},
- qr:async()=>{const s=cs();if(!s||!s.active)return;if(me.role!=='admin'&&s.createdBy!==me.uid)return toast('คาบนี้สร้างโดยครูท่านอื่น จึงไม่สามารถต่ออายุ QR ได้','warn');try{
+ qr:async()=>{const s=cs();if(!s||!s.active)return;if(!isAdminRole()&&s.createdBy!==me.uid)return toast('คาบนี้สร้างโดยครูท่านอื่น จึงไม่สามารถต่ออายุ QR ได้','warn');try{
   if(cloud){const result=await callServer('refreshAttendanceQr',{sessionId:s.id});S.sessionQr=result.qrPayload;S.qrSessionId=s.id;S.sessionQrExpiresAt=result.expiresAt;}
   else{const token=crypto.randomUUID()+crypto.randomUUID(),payload=`MACHECK|${s.id}|${token}`;await D.upd('attendance_sessions',s.id,{qrPayload:payload,qrExpiresAt:Date.now()+30*60*1000});S.sessionQr=payload;S.qrSessionId=s.id;S.sessionQrExpiresAt=Date.now()+30*60*1000;}
   toast('ออก QR Code ใหม่แล้ว');R()
  }catch(e){err(e)}},
  na:async()=>{const t=(Dr.at||'').trim();if(!t)return toast('กรอกชื่องานก่อน','warn');
   try{await D.set('assignments',crypto.randomUUID().slice(0,8),{title:t,due:Dr.ad||'',createdBy:me.uid});Dr.at='';Dr.ad='';toast('สั่งงานแล้ว');R()}catch(e){err(e)}},
- da:async b=>{const item=S.a.find(x=>x.id===b.dataset.id);if(!item)return;if(me.role!=='admin'&&item.createdBy!==me.uid)return toast('คุณไม่มีสิทธิ์ลบงานที่ครูท่านอื่นสร้าง','warn');if(!await ask('ลบงานนี้ออกจากระบบ?'))return;try{await D.del('assignments',b.dataset.id);toast('ลบงานแล้ว')}catch(e){err(e)}},
+ da:async b=>{const item=S.a.find(x=>x.id===b.dataset.id);if(!item)return;if(!isAdminRole()&&item.createdBy!==me.uid)return toast('คุณไม่มีสิทธิ์ลบงานที่ครูท่านอื่นสร้าง','warn');if(!await ask('ลบงานนี้ออกจากระบบ?'))return;try{await D.del('assignments',b.dataset.id);toast('ลบงานแล้ว')}catch(e){err(e)}},
  sub:async b=>{if(!await ask('ยืนยันส่งงานนี้?'))return;
   try{await D.set('submissions',b.dataset.id+'_'+me.studentId,{assignmentId:b.dataset.id,studentId:me.studentId,uid:me.uid,status:'COMPLETED',score:null});toast('ส่งงานแล้ว')}catch(e){err(e)}},
  sc:()=>scan(),
@@ -284,7 +287,7 @@ async function enter(u){
   if(cloud){
    if(!p||p.schoolId!==SCHOOL_ID)throw new Error('บัญชีนี้ยังไม่ได้รับอนุมัติจากโรงเรียน กรุณาติดต่อผู้ดูแลระบบ');
    if(p.status!=='active')throw new Error('บัญชีนี้ยังไม่ได้รับอนุมัติหรือถูกระงับ กรุณาติดต่อผู้ดูแลระบบ');
-   if(!['student','teacher','admin'].includes(p.role))throw new Error('บัญชีนี้ไม่มีสิทธิ์ใช้งาน MACHECK');
+   if(!['student','teacher','admin','owner'].includes(p.role))throw new Error('บัญชีนี้ไม่มีสิทธิ์ใช้งาน MACHECK');
    const actualRole=p.role==='student'?'student':'teacher';
    if(pending?.role&&pending.role!==actualRole)throw new Error('เลือกประเภทบัญชีไม่ตรงกับสิทธิ์ที่โรงเรียนกำหนด');
   }else if(!p){
@@ -324,7 +327,7 @@ function studentView(){unsub();
    <div class="student-brand-lockup"><img src="logo.png" alt="MACHECK" class="brand-logo student-header-logo"><div class="text-white/90 text-xs font-medium tracking-wide">SMART CHECK · SIMPLE LIFE</div></div>
   </header>
   <main id="main" class="student-main"></main>
-  <nav class="bn student-bottom-nav">${[['home','fa-house','หน้าแรก'],['task','fa-clipboard-list','งานค้าง'],['set','fa-user','บัญชี']].map(([k,i,t])=>`<button data-a="nav" data-t="${k}" class="nv"><i class="fa-solid ${i} text-lg block mb-1"></i>${t}${k=='task'?'<span id="bd"></span>':''}</button>`).join('')}</nav>
+  <nav class="bn student-bottom-nav">${[['home','fa-house','หน้าแรก'],['cls','fa-users','ห้องเรียน'],['task','fa-clipboard-list','งานค้าง'],['set','fa-user','บัญชี']].map(([k,i,t])=>`<button data-a="nav" data-t="${k}" class="nv"><i class="fa-solid ${i} text-lg block mb-1"></i>${t}${k=='task'?'<span id="bd"></span>':''}</button>`).join('')}</nav>
  </div>`;
  unsubs.push(subG(),D.sub('assignments',a=>{S.a=a;R()}),D.sub('submissions',s=>{S.s=s;R()},['uid',me.uid]),D.sub('attendance_logs',l=>{S.l=l;R()},['uid',me.uid]));R()}
 
@@ -390,7 +393,7 @@ function scan(){
 }
 
 // ---------- teacher: Desktop Command Center ----------
-const NAV=[['home','fa-house','หน้าแรก'],['att','fa-clipboard-user','เช็กชื่อ'],['task','fa-box-archive','งานค้าง'],['rep','fa-chart-pie','รายงาน'],['set','fa-gear','ตั้งค่า']];
+const NAV=[['home','fa-house','หน้าแรก'],['cls','fa-chalkboard-user','ห้องเรียน'],['att','fa-clipboard-user','เช็กชื่อ'],['task','fa-box-archive','งานค้าง'],['rep','fa-chart-pie','รายงาน'],['set','fa-gear','ตั้งค่า']];
 const cs=()=>S.ss.find(x=>x.id==S.cur),cl=()=>S.l.filter(l=>l.sessionId==S.cur),late=l=>l.status?l.status==='late':!!(cs()&&l.ts-cs().ts>9e5);
 function teacherView(){unsub();S.cur=null;
  app.innerHTML=`<div class="teacher-shell flex min-h-screen bg-[#f3f0fa]">
@@ -413,13 +416,13 @@ function teacherView(){unsub();S.cur=null;
 function renderT(){
  if(qrExpiryTimer){clearTimeout(qrExpiryTimer);qrExpiryTimer=null;}
  $('#sf').innerHTML=`<div class="flex justify-center mb-2">${crest('w-11 h-11')}</div><b class="text-white">โรงเรียนโยธินนุกูล</b><div class="mt-1"><i class="fa-solid fa-circle text-[8px] ${cloud?'text-emerald-400':'text-amber-400'} mr-1"></i>${cloud?'Cloud Online':'Demo Mode'}</div>`;
- $('#hd').innerHTML=`<div class="teacher-heading"><div class="teacher-mobile-brand lg:hidden"><img src="logo.png" alt="MACHECK" class="brand-logo"><span>TEACHER CENTER</span></div><div class="hidden lg:block"><div class="text-xs text-brand-600 font-semibold tracking-wider">MACHECK / YOTHIN NUKUL SCHOOL</div><div class="text-lg font-bold text-brand-950">${({home:(me.role==='admin'?'ภาพรวมผู้บริหาร':'ภาพรวมระบบ'),att:'จัดการการเช็กชื่อ',task:'ติดตามงานนักเรียน',rep:'รายงานและข้อมูล',set:'ตั้งค่าระบบ'})[S.tab]||'MACHECK Command Center'}</div></div></div>
-  <div class="flex items-center gap-3 ml-auto"><span class="teacher-mode-chip">${chip()}</span><div class="flex items-center gap-2.5">${av(me.photo,me.name,'w-9 h-9')}<div class="leading-tight hidden sm:block"><div class="text-sm font-bold text-brand-950">${esc(me.name)}</div><div class="text-xs text-slate-500">${me.role==='admin'?'ผู้ดูแลระบบ':'ครูผู้สอน'}</div></div></div>
+ $('#hd').innerHTML=`<div class="teacher-heading"><div class="teacher-mobile-brand lg:hidden"><img src="logo.png" alt="MACHECK" class="brand-logo"><span>TEACHER CENTER</span></div><div class="hidden lg:block"><div class="text-xs text-brand-600 font-semibold tracking-wider">MACHECK / YOTHIN NUKUL SCHOOL</div><div class="text-lg font-bold text-brand-950">${({home:(isAdminRole()?'ภาพรวมผู้บริหาร':'ภาพรวมระบบ'),cls:'จัดการห้องเรียน',att:'จัดการการเช็กชื่อ',task:'ติดตามงานนักเรียน',rep:'รายงานและข้อมูล',set:'ตั้งค่าระบบ'})[S.tab]||'MACHECK Command Center'}</div></div></div>
+  <div class="flex items-center gap-3 ml-auto"><span class="teacher-mode-chip">${chip()}</span><div class="flex items-center gap-2.5">${av(me.photo,me.name,'w-9 h-9')}<div class="leading-tight hidden sm:block"><div class="text-sm font-bold text-brand-950">${esc(me.name)}</div><div class="text-xs text-slate-500">${me.role==='owner'?'เจ้าของระบบ':(isAdminRole()?'ผู้ดูแลระบบ':'ครูผู้สอน')}</div></div></div>
   <button data-a="lo" title="ออกจากระบบ" class="teacher-logout"><i class="fa-solid fa-right-from-bracket"></i></button></div>`;
- $('#main').innerHTML={home:tHome,att:tAtt,task:tTask,rep:tRep,set:tSet}[S.tab]();
+ $('#main').innerHTML={home:tHome,cls:tClasses,att:tAtt,task:tTask,rep:tRep,set:tSet}[S.tab]();
  document.querySelectorAll('.nv').forEach(b=>b.classList.toggle('on',b.dataset.t==S.tab));
  if($('#mq')&&cs()){
-  const s=cs(),owns=me.role==='admin'||s.createdBy===me.uid,valid=S.qrSessionId===s.id&&S.sessionQr&&Number(S.sessionQrExpiresAt||0)>Date.now();
+  const s=cs(),owns=isAdminRole()||s.createdBy===me.uid,valid=S.qrSessionId===s.id&&S.sessionQr&&Number(S.sessionQrExpiresAt||0)>Date.now();
   if(s.active&&valid){qr($('#mq'),S.sessionQr,150);const e=$('#qr-expiry');if(e)e.textContent='QR ใช้ได้ถึง '+ft(S.sessionQrExpiresAt)+' น.';qrExpiryTimer=setTimeout(()=>{if(me&&me.role!=='student')R()},Math.max(250,Number(S.sessionQrExpiresAt)-Date.now()+250));}
   else if(s.active&&owns){$('#mq').innerHTML=`<button data-a="qr" class="g text-xs">${S.qrSessionId===s.id?'QR หมดอายุ · สร้างใหม่':'สร้าง / ต่ออายุ QR'}</button>`;const e=$('#qr-expiry');if(e)e.textContent='QR มีอายุ 30 นาที';}
   else if(s.active){$('#mq').innerHTML='<span class="text-xs text-slate-400">QR ของครูผู้สร้างคาบ</span>';const e=$('#qr-expiry');if(e)e.textContent='คุณสามารถดูรายชื่อได้ แต่แก้ไขคาบนี้ไม่ได้';}
@@ -428,13 +431,13 @@ function renderT(){
 
 const ttl=(c,t)=>`<h2 class="text-lg font-bold flex items-center gap-2 mb-4"><span class="w-2.5 h-6 ${c} rounded-full"></span>${t}</h2>`;
 function tHome(){
- if(me.role==='admin')return tDirectorHome();
+ if(isAdminRole())return tDirectorHome();
  const s=cs(),L=cl(),n=s?S.u.filter(u=>String(u.grade||'').trim()===String(s.className||'').trim()).length:0,lt=L.filter(late).length,pr=L.length-lt,ab=Math.max(0,n-L.length),rate=n?Math.min(100,Math.round(L.length/n*100)):0;let o=0;
  const arc=[[pr,'#22c55e'],[lt,'#3b82f6'],[ab,'#f59e0b']].map(([v,c])=>{const k=n?v/n*100:0,r=`<circle cx="18" cy="18" r="15.9155" fill="none" stroke="${c}" stroke-width="4" stroke-dasharray="${k} ${100-k}" stroke-dashoffset="${-o}"/>`;o+=k;return r}).join('');
  return `<section class="rounded-3xl overflow-hidden bg-white shadow-[0_4px_24px_rgba(76,29,149,.08)] mb-6"><div class="bg-gradient-to-r from-brand-700 to-brand-500 text-white px-6 py-4 flex justify-between items-center gap-3"><h2 class="font-bold text-lg">เช็กชื่อประจำคาบเรียน</h2><button data-a="ns" class="bg-white text-brand-700 rounded-full px-5 py-2 font-semibold text-sm shadow shrink-0">สร้าง QR Code</button></div>
  <div class="p-6 md:px-10 flex justify-between items-center gap-6"><div class="min-w-0"><div class="text-5xl md:text-6xl font-black italic text-brand-950">${esc(s?.className||'ยังไม่มีคาบ')}</div><div class="text-lg text-slate-500 mt-2">${esc(s?.subject||'กดสร้าง QR Code เพื่อเริ่มคาบเรียน')}</div></div>
   <div class="flex flex-col items-center gap-1.5 shrink-0">${s?'<div id="mq" class="p-1 bg-white"></div>':'<div class="w-[150px] h-[150px] bg-slate-50 rounded-xl flex items-center justify-center text-slate-300 text-5xl"><i class="fa-solid fa-qrcode"></i></div>'}<div id="qr-expiry" class="text-[10px] text-slate-400 text-center mt-1"></div>
-  ${s?`<button data-a="tg" ${me.role!=='admin'&&s.createdBy!==me.uid?'disabled':''} class="text-xs font-bold ${s.active?'text-emerald-600':'text-slate-400'}"><i class="fa-solid fa-circle-check mr-1"></i>${s.active?'ใช้งานอยู่':'ปิดคาบแล้ว'}</button><div class="text-[10px] text-slate-400">${me.role!=='admin'&&s.createdBy!==me.uid?'ดูได้เท่านั้น':'แตะเพื่อ'+(s.active?'ปิด':'เปิด')+'คาบ'}</div>`:''}</div></div></section>
+  ${s?`<button data-a="tg" ${!isAdminRole()&&s.createdBy!==me.uid?'disabled':''} class="text-xs font-bold ${s.active?'text-emerald-600':'text-slate-400'}"><i class="fa-solid fa-circle-check mr-1"></i>${s.active?'ใช้งานอยู่':'ปิดคาบแล้ว'}</button><div class="text-[10px] text-slate-400">${!isAdminRole()&&s.createdBy!==me.uid?'ดูได้เท่านั้น':'แตะเพื่อ'+(s.active?'ปิด':'เปิด')+'คาบ'}</div>`:''}</div></div></section>
  <section class="c"><h2 class="font-bold text-lg mb-4">สรุปการเช็กชื่อ</h2><div class="flex flex-col sm:flex-row items-center justify-center gap-8 sm:gap-16">
   <div class="text-center"><div class="relative w-36 h-36"><svg viewBox="0 0 36 36" class="w-full h-full -rotate-90"><circle cx="18" cy="18" r="15.9155" fill="none" stroke="#f1f5f9" stroke-width="4"/>${arc}</svg><div class="absolute inset-0 flex items-center justify-center text-3xl font-black text-brand-950">${rate}%</div></div><div class="text-xs text-slate-400 mt-2">รวมทั้งหมด ${n} คน</div></div>
   <div class="w-full sm:w-72 space-y-4">${[['มาเรียน',pr,'bg-emerald-500'],['ขาดเรียน',ab,'bg-amber-500'],['สาย',lt,'bg-blue-500']].map(([t,v,c])=>`<div class="flex items-center gap-3"><span class="w-4 h-4 rounded-full ${c} shrink-0"></span><span class="flex-1 font-medium">${t}</span><b class="text-brand-800">${v} คน</b></div>`).join('')}</div></div></section>`}
@@ -468,7 +471,7 @@ function tDirectorHome(){
 function tAtt(){const L=cl();return `<section class="c">${ttl('bg-brand-600','รายชื่อผู้เช็กชื่อ')}<div class="flex flex-wrap gap-2 mb-4">${S.ss.slice(0,8).map(s=>`<button data-a="pick" data-id="${s.id}" class="px-3 py-1.5 rounded-full text-xs font-semibold ${s.id==S.cur?'bg-brand-600 text-white':'bg-slate-100 text-slate-600'}">${esc(s.className)} ${esc(s.subject)} ${fd(s.ts)} ${ft(s.ts)}</button>`).join('')||'<span class="text-slate-400 text-sm">ยังไม่มีคาบเรียน</span>'}</div>
  ${L.length?L.map(l=>`<div class="flex justify-between items-center border-b border-slate-100 py-3 text-sm"><span class="font-medium">${esc(l.name)} <span class="text-slate-400">(${esc(l.studentId)})</span></span><span>${ft(l.ts)} น. <b class="ml-2 text-xs px-2 py-1 rounded-full ${late(l)?'bg-blue-100 text-blue-700':'bg-emerald-100 text-emerald-700'}">${late(l)?'สาย':'มาเรียน'}</b></span></div>`).join(''):'<p class="text-slate-400 text-sm">ยังไม่มีนักเรียนเช็กชื่อในคาบนี้</p>'}</section>`}
 function tTask(){const n=S.u.length;return `<section class="c">${ttl('bg-amber-500','สั่งงานใหม่')}<div class="grid md:grid-cols-3 gap-2"><input data-k="at" class="i md:col-span-2" placeholder="ชื่องาน" value="${esc(Dr.at||'')}"><input data-k="ad" type="date" class="i" value="${esc(Dr.ad||'')}"></div><button data-a="na" class="b">สั่งงาน</button></section>
- <section class="c">${ttl('bg-brand-600','ติดตามงานค้าง')}${S.a.length?S.a.map(a=>{const d=S.s.filter(x=>x.assignmentId==a.id).length,p=n?Math.min(100,d/n*100):0,pn=S.u.filter(u=>!S.s.some(x=>x.assignmentId==a.id&&x.uid==u.id)),canManage=me.role==='admin'||a.createdBy===me.uid;
+ <section class="c">${ttl('bg-brand-600','ติดตามงานค้าง')}${S.a.length?S.a.map(a=>{const d=S.s.filter(x=>x.assignmentId==a.id).length,p=n?Math.min(100,d/n*100):0,pn=S.u.filter(u=>!S.s.some(x=>x.assignmentId==a.id&&x.uid==u.id)),canManage=isAdminRole()||a.createdBy===me.uid;
   return `<div class="border-b border-slate-100 pb-4 mb-4"><div class="flex justify-between items-start mb-2"><div><div class="font-bold text-brand-950">${esc(a.title)}</div><div class="text-xs text-slate-400">กำหนดส่ง ${esc(a.due||'ไม่ระบุ')}</div></div>${canManage?`<button data-a="da" data-id="${a.id}" class="text-rose-500 text-xs hover:underline"><i class="fa-solid fa-trash mr-1"></i>ลบงาน</button>`:'<span class="text-xs text-slate-400">ผู้สั่งงานท่านอื่น</span>'}</div>
   <div class="flex items-center gap-3 text-sm mb-2"><div class="flex-1 bg-slate-100 rounded-full h-2.5 overflow-hidden"><div class="bg-emerald-500 h-full" style="width:${p}%"></div></div><span class="font-semibold text-slate-600">${d}/${n} คน (${Math.round(p)}%)</span></div>
   ${pn.length?`<div class="text-xs text-slate-500">ยังไม่ส่ง: ${esc(pn.map(x=>x.name).join(', '))}</div>`:'<div class="text-xs text-emerald-600 font-semibold">ส่งครบทุกคนแล้ว!</div>'}</div>`}).join(''):'<p class="text-slate-400 text-sm">ยังไม่มีรายการสั่งงาน</p>'}</section>`}
