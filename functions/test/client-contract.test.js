@@ -96,6 +96,12 @@ test('owner and Google Classroom-style workflows are present and class scoped', 
   assert.match(backend, /exports\.createClass = onCall/);
   assert.match(backend, /exports\.addClassStudent = onCall/);
   assert.match(backend, /exports\.gradeClassSubmission = onCall/);
+  assert.match(backend, /exports\.updateClassAssignment = onCall/);
+  assert.match(backend, /exports\.cancelClassAssignment = onCall/);
+  assert.match(backend, /assignment\.status === 'CANCELLED'/);
+  assert.match(html, /editAssignment:async/);
+  assert.match(html, /cancelAssignment:async/);
+  assert.match(html, /ยกเลิกงานแล้ว/);
   assert.match(backend, /session\.classId/);
   assert.match(provisioning, /'owner'/);
   assert.match(provisioning, /--owner-email=/);
