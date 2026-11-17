@@ -90,14 +90,17 @@ function assertSessionOwner(profile, uid, session) {
 exports.createAttendanceSession = onCall(async (request) => {
   const uid = requireAuth(request);
   const profile = await requireProfile(uid, ['teacher', 'admin', 'owner']);
-  const className = requireText(request.data?.className, 'ห้องเรียน', 40);
-  const subject = requireText(request.data?.subject, 'รายวิชา', 80);
+  const classId = request.data?.classId ? requireText(request.data.classId, 'รหัสห้องเรียน', 100) : null;
+  const classroom = classId ? await requireClassTeacher(profile, uid, classId) : null;
+  const className = classroom ? classroom.data.name : requireText(request.data?.className, 'ห้องเรียน', 40);
+  const subject = classroom ? classroom.data.subject : requireText(request.data?.subject, 'รายวิชา', 80);
   const sessionId = crypto.randomUUID();
   const qr = newQr();
   const now = FieldValue.serverTimestamp();
 
   await db.collection('attendance_sessions').doc(sessionId).create({
     schoolId: profile.schoolId,
+    ...(classId ? { classId } : {}),
     className,
     subject,
     active: true,
@@ -215,10 +218,17 @@ exports.checkIn = onCall(async (request) => {
       throw new HttpsError('permission-denied', 'QR ไม่ถูกต้องหรือถูกเปลี่ยนแล้ว');
     }
 
-    const studentClass = String(student.grade || '').trim();
-    const sessionClass = String(session.className || '').trim();
-    if (!studentClass || studentClass !== sessionClass) {
-      throw new HttpsError('permission-denied', 'QR นี้ไม่ได้สร้างสำหรับห้องเรียนของคุณ');
+    if (session.classId) {
+      const memberSnap = await tx.get(db.collection('class_members').doc(`${session.classId}_${uid}`));
+      if (!memberSnap.exists || memberSnap.data().status !== 'active' || memberSnap.data().role !== 'student') {
+        throw new HttpsError('permission-denied', 'คุณไม่ได้เป็นสมาชิกของห้องเรียนที่เปิดเช็กชื่อนี้');
+      }
+    } else {
+      const studentClass = String(student.grade || '').trim();
+      const sessionClass = String(session.className || '').trim();
+      if (!studentClass || studentClass !== sessionClass) {
+        throw new HttpsError('permission-denied', 'QR นี้ไม่ได้สร้างสำหรับห้องเรียนของคุณ');
+      }
     }
 
     if (attendanceSnap.exists) return { alreadyCheckedIn: true };
@@ -446,4 +456,25 @@ exports.createClassAnnouncement = onCall(async (request) => {
   const ref = db.collection('announcements').doc();
   await ref.create({ schoolId: profile.schoolId, classId, title, message, createdBy: uid, createdAt: FieldValue.serverTimestamp() });
   return { announcementId: ref.id, className: classroom.data.name };
+});
+
+exports.rotateClassJoinCode = onCall(async (request) => {
+  const uid = requireAuth(request);
+  const profile = await requireProfile(uid, ['teacher', 'admin', 'owner']);
+  const classId = requireText(request.data?.classId, 'รหัสห้อง', 100);
+  const classroom = await requireClassTeacher(profile, uid, classId);
+  let joinCode;
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const candidate = makeJoinCode();
+    const duplicate = await db.collection('classes').where('schoolId', '==', SCHOOL_ID)
+      .where('joinCodeHash', '==', hashJoinCode(candidate)).limit(1).get();
+    if (duplicate.empty) { joinCode = candidate; break; }
+  }
+  if (!joinCode) throw new HttpsError('resource-exhausted', 'สร้างรหัสเข้าห้องไม่สำเร็จ');
+  await classroom.ref.update({
+    joinCodeHash: hashJoinCode(joinCode),
+    joinCodeLast4: joinCode.slice(-4),
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+  return { joinCode };
 });
