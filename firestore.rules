@@ -23,6 +23,13 @@ service cloud.firestore {
           && get(/databases/$(database)/documents/class_members/$(classId + '_' + request.auth.uid)).data.status == 'active')
       );
     }
+    function attendanceSessionPath(sessionId) {
+      return /databases/$(database)/documents/attendance_sessions/$(sessionId);
+    }
+    function ownsAttendanceSession(sessionId) {
+      return exists(attendanceSessionPath(sessionId))
+        && get(attendanceSessionPath(sessionId)).data.createdBy == request.auth.uid;
+    }
 
     match /users/{uid} {
       // Students can read their own profile. Only school administrators can inspect all profiles.
@@ -112,12 +119,18 @@ service cloud.firestore {
     }
 
     match /attendance_sessions/{sessionId} {
-      allow read: if isTeacher(resource.data.schoolId);
+      allow read: if belongsToSchool(resource.data.schoolId)
+        && (isAdmin(resource.data.schoolId)
+          || resource.data.createdBy == request.auth.uid
+          || (('classId' in resource.data) && isClassTeacher(resource.data.classId, resource.data.schoolId)));
       allow write: if false;
     }
     match /attendance_logs/{recordId} {
-      allow read: if isTeacher(resource.data.schoolId)
-        || (isStudent(resource.data.schoolId) && resource.data.uid == request.auth.uid);
+      allow read: if (isStudent(resource.data.schoolId) && resource.data.uid == request.auth.uid)
+        || (belongsToSchool(resource.data.schoolId)
+          && (isAdmin(resource.data.schoolId)
+            || ownsAttendanceSession(resource.data.sessionId)
+            || (('classId' in resource.data) && isClassTeacher(resource.data.classId, resource.data.schoolId))));
       allow write: if false;
     }
     match /{document=**} { allow read, write: if false; }
