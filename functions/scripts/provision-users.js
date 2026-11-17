@@ -28,6 +28,7 @@ function validateRows(rows) {
   if (!Array.isArray(rows)) throw new Error('ไฟล์บัญชีต้องเป็น JSON Array');
   const emails = new Set();
   const studentIds = new Set();
+  if (rows.filter((row) => row?.role === 'owner').length > 1) throw new Error('กำหนด owner ได้เพียงหนึ่งบัญชีในไฟล์');
   for (const [index, row] of rows.entries()) {
     const line = index + 1;
     if (!row || typeof row !== 'object') throw new Error(`รายการที่ ${line} ไม่ถูกต้อง`);
@@ -35,7 +36,7 @@ function validateRows(rows) {
     const role = String(row.role || '').trim();
     const name = String(row.name || '').trim();
     if (!/^\S+@\S+\.\S+$/.test(email)) throw new Error(`รายการที่ ${line}: email ไม่ถูกต้อง`);
-    if (!ALLOWED_ROLES.has(role)) throw new Error(`รายการที่ ${line}: role ต้องเป็น student, teacher หรือ admin`);
+    if (!ALLOWED_ROLES.has(role)) throw new Error(`รายการที่ ${line}: role ต้องเป็น student, teacher, admin หรือ owner`);
     if (!name || name.length > 120) throw new Error(`รายการที่ ${line}: กรุณาระบุชื่อไม่เกิน 120 ตัวอักษร`);
     if (role === 'owner' && (!ownerEmail || email !== ownerEmail)) {
       throw new Error(`รายการที่ ${line}: บทบาท owner ต้องยืนยันด้วย --owner-email ที่ตรงกับอีเมลบัญชี`);
