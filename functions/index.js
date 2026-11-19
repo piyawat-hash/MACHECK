@@ -580,7 +580,7 @@ exports.submitAccountRequest = onCall(async (request) => {
     throw new HttpsError('permission-denied', 'กรุณาใช้บัญชี Google ที่ยืนยันอีเมลแล้ว');
   }
   const email = requireText(token.email, 'อีเมล', 254).toLowerCase();
-  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     throw new HttpsError('invalid-argument', 'ไม่พบอีเมลที่ถูกต้อง');
   }
   const firstName = requireText(request.data?.firstName, 'ชื่อจริง', 60);
@@ -604,8 +604,8 @@ exports.submitAccountRequest = onCall(async (request) => {
     const grade = requireText(request.data?.grade, 'ชั้นและห้อง', 12);
     const track = requireText(request.data?.track, 'แผนการเรียน', 120);
     const identityCheckMethod = request.data?.identityCheckMethod;
-    if (!/^\\d{3,10}$/.test(studentId)) throw new HttpsError('invalid-argument', 'รหัสนักเรียนต้องเป็นตัวเลข 3-10 หลัก');
-    if (!/^(ป|ม)\\.[1-6]\\/\\d{1,2}$/.test(grade)) throw new HttpsError('invalid-argument', 'รูปแบบชั้นและห้องไม่ถูกต้อง');
+    if (!/^\d{3,10}$/.test(studentId)) throw new HttpsError('invalid-argument', 'รหัสนักเรียนต้องเป็นตัวเลข 3-10 หลัก');
+    if (!/^(ป|ม)\.[1-6]\/\d{1,2}$/.test(grade)) throw new HttpsError('invalid-argument', 'รูปแบบชั้นและห้องไม่ถูกต้อง');
     if (identityCheckMethod !== 'school-roster') {
       throw new HttpsError('failed-precondition', 'ต้องยืนยันตัวตนกับทะเบียนโรงเรียน');
     }
