@@ -109,22 +109,39 @@ test('owner and Google Classroom-style workflows are present and class scoped', 
 });
 
 
-test('account applications collect verified identity details and never self-assign privileged roles', () => {
+test('student and teacher registration collects profile details and supports email/password or Google', () => {
   const backend = fs.readFileSync(path.join(projectRoot, 'functions/index.js'), 'utf8');
   assert.match(html, /data-a="apply"/);
+  assert.match(html, /data-a="applyGoogle"/);
   assert.match(html, /function openAccessRequestForm/);
-  assert.match(html, /ar-student-id/);
-  assert.match(html, /ar-employee-id/);
-  assert.match(html, /ar-consent/);
+  assert.match(html, /function openEmailSignupForm/);
+  assert.match(html, /rg-first/);
+  assert.match(html, /rg-last/);
+  assert.match(html, /rg-nick/);
+  assert.match(html, /rg-student-id/);
+  assert.match(html, /rg-subjects/);
+  assert.match(html, /rg-password/);
+  assert.match(html, /rg-confirm/);
+  assert.match(html, /createUserWithEmailAndPassword/);
+  assert.match(html, /signInWithEmailAndPassword/);
+  assert.match(html, /sendEmailVerification/);
+  assert.match(html, /identityCheckMethod:'school-roster'/);
+  assert.match(html, /ไม่สแกนใบหน้าหรือเก็บข้อมูลชีวมิติ/);
   assert.match(html, /callServer\('submitAccountRequest'/);
   assert.match(html, /D\.sub\('access_requests'/);
   assert.match(html, /reviewAccountRequest/);
   assert.match(backend, /exports\.submitAccountRequest = onCall/);
   assert.match(backend, /exports\.reviewAccountRequest = onCall/);
-  assert.match(backend, /token\.email_verified !== true/);
-  assert.match(backend, /sign_in_provider !== 'google\.com'/);
+  assert.match(backend, /\['google\.com', 'password'\]\.includes\(providerId\)/);
+  assert.match(backend, /hasSupportedProvider/);
+  assert.match(backend, /authUser\.emailVerified/);
+  assert.match(backend, /firstName/);
+  assert.match(backend, /lastName/);
+  assert.match(backend, /nickname/);
+  assert.match(backend, /identityVerifiedAt/);
   assert.match(backend, /requireProfile\(reviewerUid, \['admin', 'owner'\]\)/);
   assert.match(backend, /\['student', 'teacher'\]\.includes\(role\)/);
   assert.match(rules, /match \/access_requests\/\{uid\}/);
   assert.match(rules, /allow create, update, delete: if false/);
 });
+
