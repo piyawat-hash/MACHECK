@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "schoolId": "yothin-nukul",
+  "className": "ม.6/2",
+  "term": "2",
+  "academicYear": 2569,
+  "status": "partial-overrides-awaiting-full-timetable",
+  "note": "บันทึกเฉพาะรายการเปลี่ยนแปลงที่ผู้ใช้ยืนยันแล้ว ไม่ใช่ตารางเรียนฉบับเต็ม",
+  "overrides": [
+    {
+      "day": "monday",
+      "dayLabel": "วันจันทร์",
+      "period": 4,
+      "previousSubject": "สอนเสริม",
+      "subject": "ดนตรี"
+    },
+    {
+      "day": "tuesday",
+      "dayLabel": "วันอังคาร",
+      "period": 5,
+      "previousSubject": "ดนตรี",
+      "subject": "สอนเสริม"
+    }
+  ]
+}
