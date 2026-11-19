@@ -572,15 +572,21 @@ exports.rotateClassJoinCode = onCall(async (request) => {
 exports.submitAccountRequest = onCall(async (request) => {
   const uid = requireAuth(request);
   const token = request.auth.token || {};
-  if (token.firebase?.sign_in_provider !== 'google.com' || token.email_verified !== true) {
-    throw new HttpsError('permission-denied', 'กรุณาเข้าสู่ระบบด้วยบัญชี Google ที่ยืนยันอีเมลแล้ว');
+  const providerId = token.firebase?.sign_in_provider;
+  if (!['google.com', 'password'].includes(providerId)) {
+    throw new HttpsError('permission-denied', 'กรุณาใช้ Google หรืออีเมลและรหัสผ่านที่รองรับ');
   }
-  const email = requireText(token.email, 'อีเมล Google', 254).toLowerCase();
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    throw new HttpsError('invalid-argument', 'ไม่พบอีเมล Google ที่ถูกต้อง');
+  if (providerId === 'google.com' && token.email_verified !== true) {
+    throw new HttpsError('permission-denied', 'กรุณาใช้บัญชี Google ที่ยืนยันอีเมลแล้ว');
   }
-  const name = requireText(request.data?.name, 'ชื่อ-นามสกุล', 120);
-  if (name.length < 3) throw new HttpsError('invalid-argument', 'กรุณากรอกชื่อ-นามสกุลให้ครบ');
+  const email = requireText(token.email, 'อีเมล', 254).toLowerCase();
+  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+    throw new HttpsError('invalid-argument', 'ไม่พบอีเมลที่ถูกต้อง');
+  }
+  const firstName = requireText(request.data?.firstName, 'ชื่อจริง', 60);
+  const lastName = requireText(request.data?.lastName, 'นามสกุล', 80);
+  const nickname = requireText(request.data?.nickname, 'ชื่อเล่น', 40);
+  const name = (firstName + ' ' + lastName).slice(0, 120);
   const role = request.data?.role;
   if (!['student', 'teacher'].includes(role)) {
     throw new HttpsError('permission-denied', 'เปิดคำขอได้เฉพาะบัญชีนักเรียนหรือครูเท่านั้น');
@@ -597,8 +603,12 @@ exports.submitAccountRequest = onCall(async (request) => {
     const studentId = requireText(request.data?.studentId, 'รหัสนักเรียน', 10);
     const grade = requireText(request.data?.grade, 'ชั้นและห้อง', 12);
     const track = requireText(request.data?.track, 'แผนการเรียน', 120);
-    if (!/^\d{3,10}$/.test(studentId)) throw new HttpsError('invalid-argument', 'รหัสนักเรียนต้องเป็นตัวเลข 3-10 หลัก');
-    if (!/^(ป|ม)\.[1-6]\/\d{1,2}$/.test(grade)) throw new HttpsError('invalid-argument', 'รูปแบบชั้นและห้องไม่ถูกต้อง');
+    const identityCheckMethod = request.data?.identityCheckMethod;
+    if (!/^\\d{3,10}$/.test(studentId)) throw new HttpsError('invalid-argument', 'รหัสนักเรียนต้องเป็นตัวเลข 3-10 หลัก');
+    if (!/^(ป|ม)\\.[1-6]\\/\\d{1,2}$/.test(grade)) throw new HttpsError('invalid-argument', 'รูปแบบชั้นและห้องไม่ถูกต้อง');
+    if (identityCheckMethod !== 'school-roster') {
+      throw new HttpsError('failed-precondition', 'ต้องยืนยันตัวตนกับทะเบียนโรงเรียน');
+    }
     const existingStudent = await db.collection('users').where('studentId', '==', studentId).limit(10).get();
     if (existingStudent.docs.some((doc) => doc.id !== uid && doc.data().schoolId === SCHOOL_ID)) {
       throw new HttpsError('already-exists', 'รหัสนักเรียนนี้ถูกใช้ในระบบแล้ว กรุณาติดต่อผู้ดูแล');
@@ -607,14 +617,10 @@ exports.submitAccountRequest = onCall(async (request) => {
     if (pendingStudent.docs.some((doc) => doc.id !== uid && doc.data().schoolId === SCHOOL_ID && doc.data().status === 'pending')) {
       throw new HttpsError('already-exists', 'รหัสนักเรียนนี้มีคำขอรอตรวจสอบแล้ว กรุณาติดต่อโรงเรียน');
     }
-    details = { studentId, grade, track };
+    details = { studentId, grade, track, identityCheckMethod };
   } else {
-    const employeeId = requireText(request.data?.employeeId, 'รหัสครูหรือบุคลากร', 40);
-    const department = requireText(request.data?.department, 'กลุ่มสาระหรือฝ่ายงาน', 120);
-    const subjects = requireText(request.data?.subjects, 'รายวิชาหรืองานที่รับผิดชอบ', 160);
-    const position = requireText(request.data?.position, 'ตำแหน่ง', 60);
-    if (employeeId.length < 2) throw new HttpsError('invalid-argument', 'รหัสบุคลากรไม่ถูกต้อง');
-    details = { employeeId, department, subjects, position };
+    const subjects = requireText(request.data?.subjects, 'วิชาที่สอนประจำ', 300);
+    details = { subjects };
   }
 
   const requestRef = db.collection('access_requests').doc(uid);
@@ -627,8 +633,13 @@ exports.submitAccountRequest = onCall(async (request) => {
     schoolId: SCHOOL_ID,
     uid,
     role,
+    firstName,
+    lastName,
+    nickname,
     name,
     email,
+    authProvider: providerId,
+    emailVerifiedAtSubmission: token.email_verified === true,
     photo: String(token.picture || '').slice(0, 1000),
     ...details,
     status: 'pending',
@@ -641,7 +652,7 @@ exports.submitAccountRequest = onCall(async (request) => {
     reviewedByEmail: FieldValue.delete(),
     reviewedAt: FieldValue.delete(),
   }, { merge: true });
-  return { submitted: true, status: 'pending' };
+  return { submitted: true, status: 'pending', emailVerificationRequired: providerId === 'password' };
 });
 
 exports.reviewAccountRequest = onCall(async (request) => {
@@ -667,10 +678,10 @@ exports.reviewAccountRequest = onCall(async (request) => {
   }
 
   const authUser = await getAuth().getUser(targetUid);
-  const hasGoogleProvider = (authUser.providerData || []).some((provider) => provider.providerId === 'google.com');
-  if (!hasGoogleProvider || !authUser.emailVerified
+  const hasSupportedProvider = (authUser.providerData || []).some((provider) => ['google.com', 'password'].includes(provider.providerId));
+  if (!hasSupportedProvider || !authUser.emailVerified
       || String(authUser.email || '').toLowerCase() !== String(application.email || '').toLowerCase()) {
-    throw new HttpsError('failed-precondition', 'บัญชี Google หรืออีเมลยังยืนยันไม่สมบูรณ์');
+    throw new HttpsError('failed-precondition', 'กรุณายืนยันอีเมลก่อนผู้ดูแลอนุมัติบัญชี');
   }
 
   if (decision === 'rejected') {
@@ -695,6 +706,9 @@ exports.reviewAccountRequest = onCall(async (request) => {
     role: application.role,
     status: 'active',
     name: application.name,
+    firstName: application.firstName,
+    lastName: application.lastName,
+    nickname: application.nickname,
     email: application.email,
     photo: application.photo || authUser.photoURL || '',
     approvedAt: FieldValue.serverTimestamp(),
@@ -703,12 +717,7 @@ exports.reviewAccountRequest = onCall(async (request) => {
     updatedAt: FieldValue.serverTimestamp(),
     ...(application.role === 'student'
       ? { studentId: application.studentId, grade: application.grade, track: application.track }
-      : {
-        employeeId: application.employeeId,
-        department: application.department,
-        subjects: application.subjects,
-        position: application.position,
-      }),
+      : { subjects: application.subjects }),
   };
 
   const registryRef = application.role === 'student'
