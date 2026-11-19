@@ -716,7 +716,14 @@ exports.reviewAccountRequest = onCall(async (request) => {
     approvalSource: 'account-request',
     updatedAt: FieldValue.serverTimestamp(),
     ...(application.role === 'student'
-      ? { studentId: application.studentId, grade: application.grade, track: application.track }
+      ? {
+        studentId: application.studentId,
+        grade: application.grade,
+        track: application.track,
+        identityCheckMethod: application.identityCheckMethod,
+        identityVerifiedAt: FieldValue.serverTimestamp(),
+        identityVerifiedBy: reviewerUid,
+      }
       : { subjects: application.subjects }),
   };
 
