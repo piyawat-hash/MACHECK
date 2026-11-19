@@ -17,8 +17,16 @@ for (const relative of required) {
 }
 
 const html = fs.readFileSync(path.join(root, 'public/index.html'), 'utf8');
-const scripts = [...html.matchAll(/<script\s+type="module">([\s\S]*?)<\/script>/gi)];
+const rootHtml = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+if (rootHtml !== html) throw new Error('GitHub Pages and Firebase Hosting HTML files must be byte-identical');
+if (!/^\\s*<!doctype html>/i.test(html)) throw new Error('HTML document must begin with a doctype; code before the doctype is forbidden');
+const scripts = [...html.matchAll(/<script\\s+type="module">([\\s\\S]*?)<\\/script>/gi)];
 if (scripts.length !== 1) throw new Error(`Expected one inline module script, found ${scripts.length}`);
+const moduleStart = html.indexOf(scripts[0][0]);
+const moduleEnd = moduleStart + scripts[0][0].length;
+const tClassesAt = html.indexOf('function tClasses');
+if (tClassesAt < moduleStart || tClassesAt >= moduleEnd) throw new Error('tClasses must remain inside the module script');
+if (!html.includes('name="macheck-build" content="2026.11.19.1"')) throw new Error('Missing expected cache diagnostic build marker');
 if (/ADMIN_KEY|YN-CREATOR-2026|Creator Master Key/.test(html)) throw new Error('Legacy Creator Master Key remains in frontend');
 if (/<meta name="robots" content="noindex/.test(html)) throw new Error('Public Pages build must not carry noindex metadata');
 if (!fs.readFileSync(path.join(root, 'index.html'), 'utf8').includes('DIRECTOR OVERVIEW')) throw new Error('GitHub Pages root index is not the updated release');
