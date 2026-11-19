@@ -430,11 +430,12 @@ function openEmailSignupForm(role){
   if(password.length<8)return toast('รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร','warn');
   if(password!==confirm)return toast('รหัสผ่านทั้งสองช่องไม่ตรงกัน','warn');
   const submit=m.querySelector('#rg-submit');submit.disabled=true;submit.textContent='กำลังสร้างบัญชี...';
+  pending={flow:'signup',role};
   try{
    const credential=await createUserWithEmailAndPassword(auth,email,password);await sendEmailVerification(credential.user);
    await callServer('submitAccountRequest',data);m.close();pending=null;sessionStorage.removeItem('mc_pending_role');await signOut(auth);
    toast('สร้างบัญชีและส่งคำขอแล้ว กรุณายืนยันอีเมลจากกล่องจดหมาย จากนั้นรอผู้ดูแลอนุมัติ');landing();
-  }catch(e){submit.disabled=false;submit.textContent='สร้างบัญชีและส่งคำขอ';err(e)}
+  }catch(e){pending=null;if(auth.currentUser)await signOut(auth);submit.disabled=false;submit.textContent='สร้างบัญชีและส่งคำขอ';err(e)}
  };
 }
 async function enter(u){
@@ -471,6 +472,7 @@ async function enter(u){
 if(cloud){
   onAuthStateChanged(auth,u=>{
     if(u){
+      if(pending?.flow==='signup')return;
       if(!pending){const role=sessionStorage.getItem('mc_pending_role');if(role==='request_student'||role==='request_teacher')pending={flow:'request',role:role.slice(8)};else if(role==='student'||role==='teacher')pending={role};}
       sessionStorage.removeItem('mc_pending_role');
       enter(u);
