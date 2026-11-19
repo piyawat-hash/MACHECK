@@ -21,7 +21,7 @@ const rootHtml = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 if (rootHtml !== html) throw new Error('GitHub Pages and Firebase Hosting HTML files must be byte-identical');
 if (!/^\s*<!doctype html>/i.test(html)) throw new Error('HTML document must begin with a doctype; code before the doctype is forbidden');
 const scripts = [...html.matchAll(/<script\s+type="module">([\s\S]*?)<\/script>/gi)];
-if (scripts.length !== 1) throw new Error(\`Expected one inline module script, found \${scripts.length}\`);
+if (scripts.length !== 1) throw new Error('Expected one inline module script, found ' + scripts.length);
 const moduleStart = html.indexOf(scripts[0][0]);
 const moduleEnd = moduleStart + scripts[0][0].length;
 const tClassesAt = html.indexOf('function tClasses');
