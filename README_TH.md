@@ -48,7 +48,7 @@
 - **GitHub:** เก็บ source code, version history, Pull Request และ CI checks
 - **Firebase Hosting:** เป็นตัวเลือกสำหรับ Production/โดเมนโรงเรียนเมื่อโรงเรียนพร้อมย้าย Hosting; ใช้ `public/` เป็น web root
 - **Firebase:** ให้บริการ Authentication, Firestore, Cloud Functions และ Storage
-- **Firebase Authentication:** Google Sign-In
+- **Firebase Authentication:** Google Sign-In และ Email/Password
 - **Cloud Firestore:** ฐานข้อมูล
 - **Cloud Functions:** ตรวจสอบสิทธิ์และทำรายการสำคัญฝั่ง server
 - **Firebase Storage:** เตรียม Security Rules สำหรับไฟล์ผู้ใช้; ยังไม่มี workflow อัปโหลดไฟล์งานใน V3
@@ -227,11 +227,18 @@ node scripts/migrate-school-id.js --apply --confirm-single-school --backup-confi
 
 ## 8. เตรียมบัญชีครูและนักเรียน
 
-Cloud login ไม่เปิดให้ผู้ใช้สร้างบัญชีหรือกำหนด role เอง ต้องให้โรงเรียนอนุมัติบัญชีจาก Firebase Admin SDK
+MACHECK รองรับการสมัครสมาชิก 2 วิธี คือ Google และ Email/Password โดยผู้สมัครไม่สามารถกำหนดสิทธิ์ Admin หรือ Owner เองได้ ทุกคำขอจะอยู่ในสถานะรอตรวจสอบและรอผู้ดูแลอนุมัติ
 
-1. เปิด Google provider ใน Firebase Authentication และตรวจ Authorized domains
-2. ตรวจว่าบัญชี Google ของครู/นักเรียนมี Firebase Authentication identity แล้ว
-3. คัดลอก `functions/scripts/users-to-provision.sample.json` เป็น `functions/scripts/users-to-provision.json`
+- **นักเรียน:** ชื่อจริง, นามสกุล, ชื่อเล่น, รหัสประจำตัวนักเรียน, ชั้น/ห้อง และแผนการเรียน
+- **ครู:** ชื่อจริง, นามสกุล, ชื่อเล่น และวิชาที่สอนประจำ
+- **Email/Password:** ใช้อีเมลที่รับจดหมายได้ รหัสผ่านอย่างน้อย 8 ตัวอักษร และต้องยืนยันอีเมลก่อนผู้ดูแลอนุมัติ
+- **Google:** ใช้บัญชี Google ที่ยืนยันอีเมลแล้ว
+- **ตรวจสอบตัวตนนักเรียน:** ผู้ดูแลตรวจชื่อและรหัสเทียบกับทะเบียนหรือบัตรนักเรียนด้วยตนเอง ไม่ใช้การจดจำใบหน้าหรือจัดเก็บข้อมูลชีวมิติ
+
+1. เปิด Google และ Email/Password providers ใน Firebase Authentication และตรวจ Authorized domains
+2. ผู้สมัครสร้างบัญชีด้วย Google หรือ Email/Password แล้วกรอกข้อมูลตามประเภทบัญชี
+3. ผู้ดูแลตรวจคำขอเทียบกับทะเบียนนักเรียน/บุคลากร และยืนยันสถานะอีเมลก่อนอนุมัติ
+4. คัดลอก `functions/scripts/users-to-provision.sample.json` เป็น `functions/scripts/users-to-provision.json` เฉพาะกรณี provision บัญชีผู้ดูแลหลักด้วย Firebase Admin SDK
 4. กรอก email, role, name และสำหรับนักเรียนให้กรอก studentId, grade, track
    - บทบาท `owner` สงวนสำหรับเจ้าของระบบเพียงหนึ่งบัญชี ต้องระบุ `--owner-email` ให้ตรงกับ email ในไฟล์ด้วย
    - ตัวอย่างบัญชีผู้สร้างระบบให้ใช้ `role: "owner"` ไม่ใช่ `admin`; ห้าม commit ไฟล์รายชื่อจริงขึ้น GitHub
